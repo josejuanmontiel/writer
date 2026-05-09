@@ -138,9 +138,12 @@ jobs:
         run: |
           cd lib/whisper.cpp
           # Usamos un toolchain file o variables manuales para MinGW
+          # Definimos _WIN32_WINNT=0x0601 para evitar errores con THREAD_POWER_THROTTLING_STATE
           cmake -B build-win -DCMAKE_SYSTEM_NAME=Windows \
             -DCMAKE_C_COMPILER=x86_64-w64-mingw32-gcc \
             -DCMAKE_CXX_COMPILER=x86_64-w64-mingw32-g++ \
+            -DCMAKE_C_FLAGS="-D_WIN32_WINNT=0x0601" \
+            -DCMAKE_CXX_FLAGS="-D_WIN32_WINNT=0x0601" \
             -DWHISPER_BUILD_EXAMPLES=OFF -DWHISPER_BUILD_TESTS=OFF -DBUILD_SHARED_LIBS=OFF
           cmake --build build-win --config Release
 
