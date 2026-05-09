@@ -110,7 +110,7 @@ jobs:
         if: matrix.platform == 'windows'
         run: sudo apt-get install -y gcc-mingw-w64
 
-      - name: Build whisper.cpp
+      - name: Build whisper.cpp (Unix)
         if: matrix.platform != 'windows'
         run: |
           cd lib/whisper.cpp
@@ -120,6 +120,17 @@ jobs:
             cmake -B build -DWHISPER_BUILD_EXAMPLES=OFF -DWHISPER_BUILD_TESTS=OFF -DBUILD_SHARED_LIBS=OFF
           fi
           cmake --build build --config Release
+
+      - name: Build whisper.cpp (Windows Cross-Compile)
+        if: matrix.platform == 'windows'
+        run: |
+          cd lib/whisper.cpp
+          # Usamos un toolchain file o variables manuales para MinGW
+          cmake -B build-win -DCMAKE_SYSTEM_NAME=Windows \
+            -DCMAKE_C_COMPILER=x86_64-w64-mingw32-gcc \
+            -DCMAKE_CXX_COMPILER=x86_64-w64-mingw32-g++ \
+            -DWHISPER_BUILD_EXAMPLES=OFF -DWHISPER_BUILD_TESTS=OFF -DBUILD_SHARED_LIBS=OFF
+          cmake --build build-win --config Release
 
       - name: Build and Package
         run: |
@@ -138,8 +149,9 @@ jobs:
             export CGO_LDFLAGS="-L${{ github.workspace }}/lib/whisper.cpp/build/src -L${{ github.workspace }}/lib/whisper.cpp/build/ggml/src -L${{ github.workspace }}/lib/onnxruntime/lib"
             make package-linux
           elif [ "${{ matrix.platform }}" == "windows" ]; then
-            # Windows usa la librería estática que subimos a HF (compilada manualmente)
-            export CGO_LDFLAGS="-L${{ github.workspace }}/lib/windows"
+            # Windows usa las librerías recién compiladas en build-win/src
+            # Y la de tokenizers que bajamos de HF
+            export CGO_LDFLAGS="-L${{ github.workspace }}/lib/whisper.cpp/build-win/src -L${{ github.workspace }}/lib/whisper.cpp/build-win/ggml/src -L${{ github.workspace }}/lib/windows"
             make package-windows
           elif [ "${{ matrix.platform }}" == "macos" ]; then
             export CGO_LDFLAGS="-L${{ github.workspace }}/lib/whisper.cpp/build/src -L${{ github.workspace }}/lib/whisper.cpp/build/ggml/src"
