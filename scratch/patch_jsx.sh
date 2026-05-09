@@ -1,0 +1,1 @@
+sed -i "s/import { GetConfig, UpdateConfig, ProcessText, ConnectCanva, ProcessDiagramStep, GetDiagramSteps, ResetDiagram }/import { GetConfig, UpdateConfig, ProcessText, ConnectCanva, ProcessDiagramStep, GetDiagramSteps, ResetDiagram, SaveProject }/" frontend/src/App.jsx

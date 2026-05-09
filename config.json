@@ -1,0 +1,30 @@
+{
+  "whisper": {
+    "use_local": true,
+    "language": "es",
+    "local": {
+      "model": "small",
+      "threads": 4
+    },
+    "remote": {
+      "url": "http://192.168.1.4:10300/v1/audio/transcriptions",
+      "model": "Systran/faster-whisper-small"
+    }
+  },
+  "llm_url": "http://192.168.1.4:8000/v3/chat/completions",
+  "kokoro_url": "http://192.168.1.4:8880/v1/audio/speech",
+  "recording_device": "NoMachine Microphone",
+  "audio_temp_path": "/tmp/antigravity_dictation.wav",
+  "only_ttt": false,
+  "canva": {
+    "client_id": "OC-AZ3vDQszTZi5",
+    "client_secret": "YOUR_CANVA_SECRET",
+    "access_token": "TOKEN_REMOVED",
+    "refresh_token": "TOKEN_REMOVED"
+  },
+  "gliner": {
+    "use_local": true,
+    "model_path": "models/gliner2_native",
+    "threshold": 0.8
+  }
+}

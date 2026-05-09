@@ -1,0 +1,28 @@
+# Wails
+build/bin/
+frontend/dist/
+frontend/node_modules/
+wails.log
+
+# Go
+bin/
+pkg/
+src/
+*.test
+*.out
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project specific
+dist/
+dist-win/
+antigravity-writer-linux-offline.tar.gz
+antigravity-writer-windows-offline.zip
+antigravity-writer
+texto.txt
+
+# Unused large models
+models/gliner2/
+models/gliner2_monolithic/
