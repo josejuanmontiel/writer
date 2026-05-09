@@ -85,7 +85,6 @@ jobs:
       - name: Build and Package
         env:
           CGO_ENABLED: "1"
-          GOTOOLCHAIN: "local"
           # Definimos las rutas para que los bindings encuentren whisper y ggml
           CGO_CFLAGS: "-I${{ github.workspace }}/lib/whisper.cpp/include -I${{ github.workspace }}/lib/whisper.cpp/ggml/include"
           # LDFLAGS apunta a las carpetas donde cmake dejó las librerías .a (y a lib/windows para windows)
