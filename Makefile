@@ -51,10 +51,8 @@ package-windows:
 	rm -rf $(DIST_WIN_DIR)
 	mkdir -p $(DIST_WIN_DIR)/models
 	# Compilar el .exe usando el compilador cruzado
-	# Nota: CGO_CFLAGS se pasa para que los bindings de whisper encuentren los headers
+	# Nota: El compilador se define aquí, pero las librerías están en whisper_windows.go
 	GOOS=windows GOARCH=amd64 CGO_ENABLED=1 CC=x86_64-w64-mingw32-gcc \
-	CGO_CFLAGS="-I$(WHISPER_DIR)/include -I$(WHISPER_DIR)/ggml/include" \
-	CGO_LDFLAGS="-L$(CURDIR)/lib/windows -L$(WHISPER_DIR)/build-win/src -L$(WHISPER_DIR)/build-win/ggml/src -lwhisper -lggml -lggml-base -lggml-cpu -ltokenizers -lm -lstdc++" \
 	wails build -platform windows/amd64 -tags webkit2_41
 	
 	cp build/bin/writer.exe $(DIST_WIN_DIR)/
@@ -74,8 +72,7 @@ package-macos:
 	rm -rf $(DIST_MAC_DIR)
 	mkdir -p $(DIST_MAC_DIR)/models
 	# Compilar para macOS (Intel y Apple Silicon si es posible)
-	CGO_ENABLED=1 CGO_CFLAGS="-I$(WHISPER_DIR)/include -I$(WHISPER_DIR)/ggml/include" \
-	wails build -platform darwin/universal
+	CGO_ENABLED=1 wails build -platform darwin/universal
 	
 	cp -r build/bin/antigravity-writer.app $(DIST_MAC_DIR)/
 	cp config.json $(DIST_MAC_DIR)/
