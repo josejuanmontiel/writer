@@ -73,6 +73,7 @@ package-macos:
 	rm -rf $(DIST_MAC_DIR)
 	mkdir -p $(DIST_MAC_DIR)/models
 	# Compilar para macOS (Intel y Apple Silicon si es posible)
+	CGO_ENABLED=1 CGO_CFLAGS="-I$(WHISPER_DIR)/include -I$(WHISPER_DIR)/ggml/include" \
 	wails build -platform darwin/universal
 	
 	cp -r build/bin/antigravity-writer.app $(DIST_MAC_DIR)/
