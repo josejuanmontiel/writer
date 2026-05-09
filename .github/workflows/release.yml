@@ -32,17 +32,33 @@ jobs:
         with:
           lfs: false
 
-      - name: Download Models from Hugging Face
+      - name: Download Assets from Hugging Face
         run: |
+          # Usamos wget para bajar los modelos y librerías
+          # Bajamos los modelos
           mkdir -p models/gliner2_native
-          wget -q -O models/ggml-tiny.bin https://huggingface.co/josejuanmontiel/writer-models/resolve/main/ggml-tiny.bin
-          wget -q -O models/gliner2_native/count_embed.onnx https://huggingface.co/josejuanmontiel/writer-models/resolve/main/gliner2_native/count_embed.onnx
-          wget -q -O models/gliner2_native/count_embed.onnx.data https://huggingface.co/josejuanmontiel/writer-models/resolve/main/gliner2_native/count_embed.onnx.data
-          wget -q -O models/gliner2_native/encoder.onnx https://huggingface.co/josejuanmontiel/writer-models/resolve/main/gliner2_native/encoder.onnx
-          wget -q -O models/gliner2_native/encoder.onnx.data https://huggingface.co/josejuanmontiel/writer-models/resolve/main/gliner2_native/encoder.onnx.data
-          wget -q -O models/gliner2_native/gliner_classifiers.safetensors https://huggingface.co/josejuanmontiel/writer-models/resolve/main/gliner2_native/gliner_classifiers.safetensors
-          wget -q -O models/gliner2_native/prompt_ids.json https://huggingface.co/josejuanmontiel/writer-models/resolve/main/gliner2_native/prompt_ids.json
-          wget -q -O models/gliner2_native/tokenizer.json https://huggingface.co/josejuanmontiel/writer-models/resolve/main/gliner2_native/tokenizer.json
+          wget -q -O models/ggml-tiny.bin https://huggingface.co/josejuanmontiel/writer-models/resolve/main/models/ggml-tiny.bin
+          wget -q -O models/gliner2_native/count_embed.onnx https://huggingface.co/josejuanmontiel/writer-models/resolve/main/models/gliner2_native/count_embed.onnx
+          wget -q -O models/gliner2_native/count_embed.onnx.data https://huggingface.co/josejuanmontiel/writer-models/resolve/main/models/gliner2_native/count_embed.onnx.data
+          wget -q -O models/gliner2_native/encoder.onnx https://huggingface.co/josejuanmontiel/writer-models/resolve/main/models/gliner2_native/encoder.onnx
+          wget -q -O models/gliner2_native/encoder.onnx.data https://huggingface.co/josejuanmontiel/writer-models/resolve/main/models/gliner2_native/encoder.onnx.data
+          wget -q -O models/gliner2_native/gliner_classifiers.safetensors https://huggingface.co/josejuanmontiel/writer-models/resolve/main/models/gliner2_native/gliner_classifiers.safetensors
+          wget -q -O models/gliner2_native/prompt_ids.json https://huggingface.co/josejuanmontiel/writer-models/resolve/main/models/gliner2_native/prompt_ids.json
+          wget -q -O models/gliner2_native/tokenizer.json https://huggingface.co/josejuanmontiel/writer-models/resolve/main/models/gliner2_native/tokenizer.json
+          
+          # Bajamos las librerías necesarias para compilar/enlace
+          mkdir -p lib/windows lib/onnxruntime/lib
+          wget -q -O lib/onnxruntime/lib/libonnxruntime.so.1.22.0 https://huggingface.co/josejuanmontiel/writer-models/resolve/main/lib/onnxruntime/lib/libonnxruntime.so.1.22.0
+          
+          # DLLs para Windows
+          wget -q -O lib/windows/ggml-base.dll https://huggingface.co/josejuanmontiel/writer-models/resolve/main/lib/windows/ggml-base.dll
+          wget -q -O lib/windows/ggml-cpu.dll https://huggingface.co/josejuanmontiel/writer-models/resolve/main/lib/windows/ggml-cpu.dll
+          wget -q -O lib/windows/ggml.dll https://huggingface.co/josejuanmontiel/writer-models/resolve/main/lib/windows/ggml.dll
+          wget -q -O lib/windows/onnxruntime.dll https://huggingface.co/josejuanmontiel/writer-models/resolve/main/lib/windows/onnxruntime.dll
+          wget -q -O lib/windows/SDL2.dll https://huggingface.co/josejuanmontiel/writer-models/resolve/main/lib/windows/SDL2.dll
+          wget -q -O lib/windows/whisper.dll https://huggingface.co/josejuanmontiel/writer-models/resolve/main/lib/windows/whisper.dll
+          
+          # Nota: Si faltan archivos estáticos (.a), asegúrate de haberlos subido a HF
 
       - name: Setup Go
         uses: actions/setup-go@v5
