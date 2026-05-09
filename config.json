@@ -3,7 +3,7 @@
     "use_local": true,
     "language": "es",
     "local": {
-      "model": "small",
+      "model": "tiny",
       "threads": 4
     },
     "remote": {

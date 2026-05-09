@@ -22,7 +22,10 @@ build-linux:
 build-windows:
 	@echo "🚀 Construyendo para Windows..."
 	@echo "Nota: Requiere tener instalado x86_64-w64-mingw32-gcc y whisper.cpp compilado para Windows"
-	GOOS=windows GOARCH=amd64 CGO_ENABLED=1 CC=x86_64-w64-mingw32-gcc wails build -platform windows/amd64
+	GOOS=windows GOARCH=amd64 CGO_ENABLED=1 \
+	CC=x86_64-w64-mingw32-gcc \
+	CXX=x86_64-w64-mingw32-g++ \
+	wails build -platform windows/amd64 -tags webkit2_41
 
 DIST_DIR=dist
 package-linux: build-linux
@@ -50,9 +53,10 @@ package-windows:
 	@echo "📦 Empaquetando para Windows (Offline)..."
 	rm -rf $(DIST_WIN_DIR)
 	mkdir -p $(DIST_WIN_DIR)/models
-	# Compilar el .exe usando el compilador cruzado
-	# Nota: El compilador se define aquí, pero las librerías están en whisper_windows.go
-	GOOS=windows GOARCH=amd64 CGO_ENABLED=1 CC=x86_64-w64-mingw32-gcc \
+	# Pasamos CC y CXX para que CGO use los correctos de MinGW
+	GOOS=windows GOARCH=amd64 CGO_ENABLED=1 \
+	CC=x86_64-w64-mingw32-gcc \
+	CXX=x86_64-w64-mingw32-g++ \
 	wails build -platform windows/amd64 -tags webkit2_41
 	
 	cp build/bin/writer.exe $(DIST_WIN_DIR)/

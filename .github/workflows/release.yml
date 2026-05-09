@@ -148,8 +148,14 @@ jobs:
           fi
           cmake --build build --config Release
           
-          # Renombramos las librerías para que el linker las encuentre con el prefijo 'lib' (importante en Mac)
+          # Consolidamos todas las librerías estáticas en build/src
+          # 1. Aseguramos el prefijo 'lib'
+          # 2. Las movemos todas a build/src para que el linker las encuentre fácil
           find build -name "*.a" -exec bash -c 'dir=$(dirname "{}"); base=$(basename "{}"); if [[ ! $base =~ ^lib ]]; then mv "{}" "$dir/lib$base"; fi' \;
+          find build -name "lib*.a" -exec cp "{}" build/src/ \;
+          
+          echo "--- Librerías recolectadas en build/src ---"
+          ls build/src/*.a
 
       - name: Build whisper.cpp (Windows Cross-Compile)
         if: matrix.platform == 'windows'
