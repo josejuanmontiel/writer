@@ -146,6 +146,9 @@ jobs:
             -DCMAKE_CXX_FLAGS="-D_WIN32_WINNT=0x0601" \
             -DWHISPER_BUILD_EXAMPLES=OFF -DWHISPER_BUILD_TESTS=OFF -DBUILD_SHARED_LIBS=OFF
           cmake --build build-win --config Release
+          
+          # Renombramos las librerías para que el linker las encuentre con el prefijo 'lib'
+          find build-win -name "*.a" -exec bash -c 'dir=$(dirname "{}"); base=$(basename "{}"); if [[ ! $base =~ ^lib ]]; then mv "{}" "$dir/lib$base"; fi' \;
 
       - name: Build and Package
         run: |
