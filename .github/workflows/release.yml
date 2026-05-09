@@ -58,7 +58,22 @@ jobs:
           wget -q -O lib/windows/SDL2.dll https://huggingface.co/josejuanmontiel/writer-models/resolve/main/lib/windows/SDL2.dll
           wget -q -O lib/windows/whisper.dll https://huggingface.co/josejuanmontiel/writer-models/resolve/main/lib/windows/whisper.dll
           
-          # Nota: Si faltan archivos estáticos (.a), asegúrate de haberlos subido a HF
+          # Descarga de libtokenizers para Linux (necesaria para el enlazado)
+          if [ "${{ matrix.platform }}" == "linux" ]; then
+            mkdir -p lib/tokenizers
+            wget -q -O libtokenizers.tar.gz https://github.com/daulet/tokenizers/releases/download/v1.26.0/libtokenizers.linux-amd64.tar.gz
+            tar -xzf libtokenizers.tar.gz -C lib/tokenizers
+            rm libtokenizers.tar.gz
+          elif [ "${{ matrix.platform }}" == "macos" ]; then
+            mkdir -p lib/tokenizers
+            wget -q -O libtokenizers.tar.gz https://github.com/daulet/tokenizers/releases/download/v1.26.0/libtokenizers.darwin-x86_64.tar.gz
+            tar -xzf libtokenizers.tar.gz -C lib/tokenizers
+            rm libtokenizers.tar.gz
+          elif [ "${{ matrix.platform }}" == "windows" ]; then
+            # Windows usa la librería estática que subimos a HF (compilada manualmente)
+            mkdir -p lib/windows
+            wget -q -O lib/windows/libtokenizers.a https://huggingface.co/josejuanmontiel/writer-models/resolve/main/lib/windows/libtokenizers.a
+          fi
 
       - name: Setup Go
         uses: actions/setup-go@v5
