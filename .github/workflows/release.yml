@@ -32,6 +32,15 @@ jobs:
         with:
           lfs: false
 
+      - name: Cleanup LFS Pointers
+        run: |
+          # Borramos archivos que puedan ser punteros de LFS y causar conflictos
+          # Esto debe hacerse ANTES de bajar los archivos reales o restaurar la caché
+          rm -f lib/windows/libdl.a
+          rm -f lib/windows/libtokenizers.a
+          rm -f lib/windows/onnxruntime.lib
+          rm -f lib/tokenizers/libtokenizers.a
+
       - name: Cache Assets
         id: cache-assets
         uses: actions/cache@v4
@@ -87,6 +96,12 @@ jobs:
             wget -q -O lib/windows/libtokenizers.a https://huggingface.co/josejuanmontiel/writer-models/resolve/main/lib/windows/libtokenizers.a
           fi
 
+          # Verificamos qué se ha bajado y dónde (para todas las plataformas)
+          echo "--- DEBUG: Verificando archivos descargados ---"
+          ls -R lib/ || true
+          ls -R models/ || true
+          echo "----------------------------------------------"
+
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
@@ -121,14 +136,6 @@ jobs:
       - name: Install Windows Dependencies
         if: matrix.platform == 'windows'
         run: sudo apt-get install -y gcc-mingw-w64 g++-mingw-w64 binutils-mingw-w64
-
-      - name: Cleanup LFS Pointers
-        run: |
-          # Borramos archivos que puedan ser punteros de LFS y causar conflictos
-          rm -f lib/windows/libdl.a
-          rm -f lib/windows/libtokenizers.a
-          rm -f lib/windows/onnxruntime.lib
-          rm -f lib/tokenizers/libtokenizers.a
 
       - name: Build whisper.cpp (Unix)
         if: matrix.platform != 'windows'
