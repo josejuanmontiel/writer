@@ -7,7 +7,6 @@ wails.log
 # Go
 bin/
 pkg/
-src/
 *.test
 *.out
 
