@@ -30,11 +30,19 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          lfs: true
+          lfs: false
 
-      # AÑADIDO: Asegurar que los archivos LFS se descargan realmente
-      - name: Pull LFS objects
-        run: git lfs pull
+      - name: Download Models from Hugging Face
+        run: |
+          mkdir -p models/gliner2_native
+          wget -q -O models/ggml-tiny.bin https://huggingface.co/josejuanmontiel/writer-models/resolve/main/ggml-tiny.bin
+          wget -q -O models/gliner2_native/count_embed.onnx https://huggingface.co/josejuanmontiel/writer-models/resolve/main/gliner2_native/count_embed.onnx
+          wget -q -O models/gliner2_native/count_embed.onnx.data https://huggingface.co/josejuanmontiel/writer-models/resolve/main/gliner2_native/count_embed.onnx.data
+          wget -q -O models/gliner2_native/encoder.onnx https://huggingface.co/josejuanmontiel/writer-models/resolve/main/gliner2_native/encoder.onnx
+          wget -q -O models/gliner2_native/encoder.onnx.data https://huggingface.co/josejuanmontiel/writer-models/resolve/main/gliner2_native/encoder.onnx.data
+          wget -q -O models/gliner2_native/gliner_classifiers.safetensors https://huggingface.co/josejuanmontiel/writer-models/resolve/main/gliner2_native/gliner_classifiers.safetensors
+          wget -q -O models/gliner2_native/prompt_ids.json https://huggingface.co/josejuanmontiel/writer-models/resolve/main/gliner2_native/prompt_ids.json
+          wget -q -O models/gliner2_native/tokenizer.json https://huggingface.co/josejuanmontiel/writer-models/resolve/main/gliner2_native/tokenizer.json
 
       - name: Setup Go
         uses: actions/setup-go@v5
