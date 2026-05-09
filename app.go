@@ -383,3 +383,47 @@ func (a *App) SaveProject(text string, diagramJSON string) (string, error) {
 
 	return filepath, nil
 }
+
+// Métodos para gestión de modelos Whisper
+
+func (a *App) GetAvailableWhisperModels() []string {
+	return []string{"tiny", "base", "small", "medium", "large-v3-turbo"}
+}
+
+func (a *App) GetDownloadedWhisperModels() []string {
+	downloaded := []string{}
+	modelsDir := "models"
+	files, err := os.ReadDir(modelsDir)
+	if err != nil {
+		return downloaded
+	}
+
+	for _, file := range files {
+		if !file.IsDir() && strings.HasPrefix(file.Name(), "ggml-") && strings.HasSuffix(file.Name(), ".bin") {
+			name := strings.TrimPrefix(file.Name(), "ggml-")
+			name = strings.TrimSuffix(name, ".bin")
+			downloaded = append(downloaded, name)
+		}
+	}
+	return downloaded
+}
+
+func (a *App) ChangeWhisperModel(modelName string) error {
+	fmt.Printf("🔄 Cambiando modelo Whisper a: %s\n", modelName)
+	
+	// Asegurar que el modelo esté descargado con seguimiento de progreso
+	_, err := a.aiProcessor.ModelManager.EnsureModel(modelName, func(percent int) {
+		a.EmitEvent("whisper:download_progress", map[string]interface{}{
+			"model":   modelName,
+			"percent": percent,
+		})
+	})
+
+	if err != nil {
+		return err
+	}
+
+	// Actualizar configuración
+	a.config.Whisper.Local.Model = modelName
+	return config.Save(a.config)
+}

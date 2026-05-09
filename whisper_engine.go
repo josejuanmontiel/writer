@@ -13,16 +13,23 @@ import (
 	"github.com/go-audio/wav"
 )
 
+var modelURLs = map[string]string{
+	"tiny":           "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-tiny.bin",
+	"base":           "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin",
+	"small":          "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-small.bin",
+	"medium":         "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-medium.bin",
+	"large-v3-turbo": "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-large-v3-turbo.bin",
+}
+
 const (
-	defaultModelURL  = "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-tiny.bin"
-	defaultModelName = "ggml-tiny.bin"
+	defaultModelName = "tiny"
 )
 
 // ModelManager gestiona la descarga y ubicación de los modelos de Whisper
 type ModelManager struct {
-	ModelsDir    string
-	cachedModel  whisper.Model
-	cachedName   string
+	ModelsDir   string
+	cachedModel whisper.Model
+	cachedName  string
 }
 
 func NewModelManager(dir string) *ModelManager {
@@ -33,31 +40,31 @@ func NewModelManager(dir string) *ModelManager {
 }
 
 // EnsureModel verifica si el modelo existe, si no, lo descarga
-func (m *ModelManager) EnsureModel(modelName string) (string, error) {
+func (m *ModelManager) EnsureModel(modelName string, onProgress func(percent int)) (string, error) {
 	if modelName == "" {
 		modelName = defaultModelName
 	}
 
-	// Normalizar nombre para local (ej: "tiny" -> "ggml-tiny.bin")
-	fullName := modelName
-	if filepath.Ext(fullName) != ".bin" {
-		if !strings.HasPrefix(fullName, "ggml-") {
-			fullName = "ggml-" + fullName
-		}
-		fullName = fullName + ".bin"
+	// Limpiar nombre (ej: "ggml-small.bin" -> "small")
+	cleanName := strings.TrimPrefix(modelName, "ggml-")
+	cleanName = strings.TrimSuffix(cleanName, ".bin")
+
+	url, ok := modelURLs[cleanName]
+	if !ok {
+		// Si no está en nuestro mapa, intentamos construir una URL genérica o fallamos
+		return "", fmt.Errorf("modelo desconocido: %s", cleanName)
 	}
 
-
+	fullName := "ggml-" + cleanName + ".bin"
 	modelPath := filepath.Join(m.ModelsDir, fullName)
-
 
 	if _, err := os.Stat(modelPath); err == nil {
 		return modelPath, nil
 	}
 
 	// No existe, descargar
-	fmt.Printf("Modelo %s no encontrado. Iniciando descarga...\n", modelName)
-	
+	fmt.Printf("Modelo %s no encontrado localmente. Iniciando descarga desde %s...\n", cleanName, url)
+
 	if _, err := os.Stat(m.ModelsDir); os.IsNotExist(err) {
 		err = os.MkdirAll(m.ModelsDir, 0755)
 		if err != nil {
@@ -65,24 +72,17 @@ func (m *ModelManager) EnsureModel(modelName string) (string, error) {
 		}
 	}
 
-	url := defaultModelURL // Por ahora siempre tiny para pruebas
-	
-	err := m.downloadFile(modelPath, url)
+	err := m.downloadFile(modelPath, url, onProgress)
 	if err != nil {
-		return "", fmt.Errorf("error al descargar modelo: %w", err)
+		return "", fmt.Errorf("error al descargar modelo %s: %w", cleanName, err)
 	}
 
-	fmt.Println("Descarga completada.")
+	fmt.Printf("Descarga de %s completada con éxito.\n", cleanName)
 	return modelPath, nil
 }
 
-func (m *ModelManager) downloadFile(filepath string, url string) error {
-	out, err := os.Create(filepath)
-	if err != nil {
-		return err
-	}
-	defer out.Close()
-
+// downloadFile descarga un archivo con seguimiento de progreso
+func (m *ModelManager) downloadFile(filepath string, url string, onProgress func(percent int)) error {
 	resp, err := http.Get(url)
 	if err != nil {
 		return err
@@ -90,16 +90,53 @@ func (m *ModelManager) downloadFile(filepath string, url string) error {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("error en descarga: status %d", resp.StatusCode)
+		return fmt.Errorf("error de servidor: %s", resp.Status)
 	}
 
-	_, err = io.Copy(out, resp.Body)
-	return err
+	out, err := os.Create(filepath)
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+
+	// Seguimiento de progreso
+	totalSize := resp.ContentLength
+	var downloaded int64
+	
+	buffer := make([]byte, 32*1024)
+	lastPercent := -1
+
+	for {
+		n, err := resp.Body.Read(buffer)
+		if n > 0 {
+			_, writeErr := out.Write(buffer[:n])
+			if writeErr != nil {
+				return writeErr
+			}
+			downloaded += int64(n)
+			
+			if totalSize > 0 {
+				percent := int(float64(downloaded) / float64(totalSize) * 100)
+				if percent != lastPercent && onProgress != nil {
+					onProgress(percent)
+					lastPercent = percent
+				}
+			}
+		}
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // TranscribeLocal realiza la transcripción usando el modelo local
 func (m *ModelManager) TranscribeLocal(audioPath string, modelName string, lang string, threads int) (string, error) {
-	modelPath, err := m.EnsureModel(modelName)
+	modelPath, err := m.EnsureModel(modelName, nil)
 	if err != nil {
 		return "", err
 	}

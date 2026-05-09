@@ -87,7 +87,7 @@ jobs:
             rm libtokenizers.tar.gz
           elif [ "${{ matrix.platform }}" == "macos" ]; then
             mkdir -p lib/tokenizers
-            wget -q -O libtokenizers.tar.gz https://github.com/daulet/tokenizers/releases/download/v1.26.0/libtokenizers.darwin-x86_64.tar.gz
+            wget -q -O libtokenizers.tar.gz https://github.com/daulet/tokenizers/releases/download/v1.26.0/libtokenizers.darwin-arm64.tar.gz
             tar -xzf libtokenizers.tar.gz -C lib/tokenizers
             rm libtokenizers.tar.gz
           elif [ "${{ matrix.platform }}" == "windows" ]; then
@@ -188,15 +188,10 @@ jobs:
           export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:${{ github.workspace }}/lib/whisper.cpp/build/src:${{ github.workspace }}/lib/whisper.cpp/build/ggml/src
           
           if [ "${{ matrix.platform }}" == "linux" ]; then
-            export CGO_LDFLAGS="-L${{ github.workspace }}/lib/whisper.cpp/build/src -L${{ github.workspace }}/lib/whisper.cpp/build/ggml/src -L${{ github.workspace }}/lib/onnxruntime/lib"
             make package-linux
           elif [ "${{ matrix.platform }}" == "windows" ]; then
-            # Windows usa las librerías recién compiladas en build-win/src
-            # Y la de tokenizers que bajamos de HF
-            export CGO_LDFLAGS="-L${{ github.workspace }}/lib/whisper.cpp/build-win/src -L${{ github.workspace }}/lib/whisper.cpp/build-win/ggml/src -L${{ github.workspace }}/lib/windows"
             make package-windows
           elif [ "${{ matrix.platform }}" == "macos" ]; then
-            export CGO_LDFLAGS="-L${{ github.workspace }}/lib/whisper.cpp/build/src -L${{ github.workspace }}/lib/whisper.cpp/build/ggml/src"
             make package-macos
           fi
 

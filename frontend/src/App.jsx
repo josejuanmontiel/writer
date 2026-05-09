@@ -4,7 +4,19 @@ import Editor from './components/Editor';
 import { useAudioRecorder } from './hooks/useAudioRecorder';
 import { EventsOn } from '../wailsjs/runtime/runtime';
 
-import { GetConfig, UpdateConfig, ProcessText, ConnectCanva, ProcessDiagramStep, GetDiagramSteps, ResetDiagram, SaveProject } from '../wailsjs/go/main/App';
+import { 
+  GetConfig, 
+  UpdateConfig, 
+  ProcessText, 
+  ConnectCanva, 
+  ProcessDiagramStep, 
+  GetDiagramSteps, 
+  ResetDiagram, 
+  SaveProject,
+  GetAvailableWhisperModels,
+  GetDownloadedWhisperModels,
+  ChangeWhisperModel
+} from '../wailsjs/go/main/App';
 import IdeaGraph from './components/IdeaGraph';
 import { Share2, FileText, ChevronRight } from 'lucide-react';
 
@@ -18,9 +30,14 @@ function App() {
   const [editorContent, setEditorContent] = useState('');
   const [processedCount, setProcessedCount] = useState(0);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
   const [showTttInput, setShowTttInput] = useState(false);
   const [tttValue, setTttValue] = useState('');
+  
+  // Whisper Model Management
+  const [availableModels, setAvailableModels] = useState([]);
+  const [downloadedModels, setDownloadedModels] = useState([]);
+  const [downloadProgress, setDownloadProgress] = useState(null); // { model: string, percent: number }
+  
   const editorRef = useRef(null);
 
   const handleTranscribed = (text) => {
@@ -32,18 +49,47 @@ function App() {
   React.useEffect(() => {
     GetConfig().then(setConfig);
 
+    // Cargar modelos de Whisper
+    GetAvailableWhisperModels().then(setAvailableModels);
+    GetDownloadedWhisperModels().then(setDownloadedModels);
+
     // Cargar dispositivos al inicio
     window.go.main.App.GetAudioDevices().then(setDevices).catch(console.error);
 
-    console.log("Suscribiendo a eventos MCP...");
-    const unsubscribe = EventsOn('mcp:insert_text', (text) => {
+    console.log("Suscribiendo a eventos...");
+    const unsubscribeMcp = EventsOn('mcp:insert_text', (text) => {
       console.log("Evento mcp:insert_text recibido:", text);
       if (editorRef.current) {
         editorRef.current.insertText(text);
       }
     });
-    return () => unsubscribe();
+
+    const unsubscribeDownload = EventsOn('whisper:download_progress', (data) => {
+      console.log("Progreso de descarga:", data);
+      setDownloadProgress(data);
+      if (data.percent === 100) {
+        setTimeout(() => {
+          setDownloadProgress(null);
+          window.go.main.App.GetDownloadedWhisperModels().then(setDownloadedModels);
+        }, 1000);
+      }
+    });
+
+    return () => {
+      unsubscribeMcp();
+      unsubscribeDownload();
+    };
   }, []);
+
+  const handleModelChange = async (modelName) => {
+    try {
+      await ChangeWhisperModel(modelName);
+      const newConfig = await GetConfig();
+      setConfig(newConfig);
+    } catch (err) {
+      alert("Error al cambiar modelo: " + err);
+    }
+  };
 
   const toggleTtt = async () => {
     const newConfig = { ...config, only_ttt: !config.only_ttt };
@@ -352,19 +398,39 @@ function App() {
             {config?.whisper?.use_local ? (
               <>
                 <div className="space-y-2">
-                  <label className="text-xs font-medium text-gray-500 px-1">Modelo Local (tiny, base, small)</label>
-                  <input 
-                    type="text" 
-                    value={config?.whisper?.local?.model || ''} 
-                    onChange={(e) => {
-                      const nc = { ...config };
-                      nc.whisper.local.model = e.target.value;
-                      setConfig(nc);
-                    }}
-                    onBlur={() => UpdateConfig(config)}
-                    className="w-full bg-black/20 border border-white/5 rounded-xl px-4 py-2 text-sm outline-none focus:border-brand-accent transition-colors"
-                  />
+                  <label className="text-xs font-medium text-gray-500 px-1">Modelo Local</label>
+                  <div className="relative group">
+                    <select 
+                      value={config?.whisper?.local?.model || 'tiny'} 
+                      onChange={(e) => handleModelChange(e.target.value)}
+                      className="w-full bg-black/20 border border-white/5 rounded-xl px-4 py-2 text-sm outline-none focus:border-brand-accent transition-colors appearance-none cursor-pointer"
+                    >
+                      {availableModels.map(m => (
+                        <option key={m} value={m} className="bg-brand-bg">
+                          {m.toUpperCase()} {downloadedModels.includes(m) ? '✓' : '(Requiere descarga)'}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronRight size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none group-hover:text-white transition-colors rotate-90" />
+                  </div>
+                  
+                  {/* Download Progress Bar */}
+                  {downloadProgress && (
+                    <div className="mt-4 space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                      <div className="flex justify-between text-[10px] font-bold uppercase tracking-wider">
+                        <span className="text-brand-accent">Descargando {downloadProgress.model}...</span>
+                        <span>{downloadProgress.percent}%</span>
+                      </div>
+                      <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
+                        <div 
+                          className="h-full bg-brand-accent transition-all duration-300 ease-out shadow-[0_0_10px_rgba(var(--brand-accent-rgb),0.5)]"
+                          style={{ width: `${downloadProgress.percent}%` }}
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
+                
                 <div className="space-y-2">
                   <label className="text-xs font-medium text-gray-500 px-1">Hilos CPU (Threads)</label>
                   <input 
