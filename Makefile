@@ -23,9 +23,10 @@ build-windows:
 	@echo "🚀 Construyendo para Windows..."
 	@echo "Nota: Requiere tener instalado x86_64-w64-mingw32-gcc y whisper.cpp compilado para Windows"
 	GOOS=windows GOARCH=amd64 CGO_ENABLED=1 \
+	CGO_CFLAGS="-I$(WHISPER_DIR)/include -I$(WHISPER_DIR)/ggml/include" \
 	CC=x86_64-w64-mingw32-gcc \
 	CXX=x86_64-w64-mingw32-g++ \
-	wails build -platform windows/amd64 -ldflags "-extldflags '-static'"
+	wails build -platform windows/amd64 -skipbindings
 
 DIST_DIR=dist
 package-linux: build-linux
@@ -55,9 +56,10 @@ package-windows:
 	mkdir -p $(DIST_WIN_DIR)/models
 	# Pasamos CC y CXX para que CGO use los correctos de MinGW
 	GOOS=windows GOARCH=amd64 CGO_ENABLED=1 \
+	CGO_CFLAGS="-I$(WHISPER_DIR)/include -I$(WHISPER_DIR)/ggml/include" \
 	CC=x86_64-w64-mingw32-gcc \
 	CXX=x86_64-w64-mingw32-g++ \
-	wails build -platform windows/amd64 -ldflags "-extldflags '-static'"
+	wails build -platform windows/amd64 -skipbindings
 	
 	cp build/bin/writer.exe $(DIST_WIN_DIR)/
 	cp config.json $(DIST_WIN_DIR)/

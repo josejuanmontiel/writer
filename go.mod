@@ -58,3 +58,7 @@ require (
 replace github.com/yalue/onnxruntime_go => ./internal/vendor/onnxruntime_go
 
 replace hugot-gliner2 => github.com/josejuanmontiel/hugot-gliner2 v0.0.0-20260509181340-0918ca69f7cd
+
+replace github.com/daulet/tokenizers => ./internal/vendor/tokenizers
+
+replace github.com/gen2brain/malgo => ./internal/vendor/malgo
