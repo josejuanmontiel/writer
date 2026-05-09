@@ -54,6 +54,7 @@ package-windows:
 	# Nota: CGO_CFLAGS se pasa para que los bindings de whisper encuentren los headers
 	GOOS=windows GOARCH=amd64 CGO_ENABLED=1 CC=x86_64-w64-mingw32-gcc \
 	CGO_CFLAGS="-I$(WHISPER_DIR)/include -I$(WHISPER_DIR)/ggml/include" \
+	CGO_LDFLAGS="-L$(CURDIR)/lib/windows -lwhisper -lggml -lggml-base -lggml-cpu -ltokenizers -ldl -lm -lstdc++" \
 	wails build -platform windows/amd64 -tags webkit2_41
 	
 	cp build/bin/writer.exe $(DIST_WIN_DIR)/
