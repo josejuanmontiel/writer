@@ -25,7 +25,7 @@ build-windows:
 	GOOS=windows GOARCH=amd64 CGO_ENABLED=1 \
 	CC=x86_64-w64-mingw32-gcc \
 	CXX=x86_64-w64-mingw32-g++ \
-	wails build -platform windows/amd64 -tags webkit2_41
+	wails build -platform windows/amd64 -ldflags "-extldflags '-static'"
 
 DIST_DIR=dist
 package-linux: build-linux
@@ -57,7 +57,7 @@ package-windows:
 	GOOS=windows GOARCH=amd64 CGO_ENABLED=1 \
 	CC=x86_64-w64-mingw32-gcc \
 	CXX=x86_64-w64-mingw32-g++ \
-	wails build -platform windows/amd64 -tags webkit2_41
+	wails build -platform windows/amd64 -ldflags "-extldflags '-static'"
 	
 	cp build/bin/writer.exe $(DIST_WIN_DIR)/
 	cp config.json $(DIST_WIN_DIR)/

@@ -31,7 +31,11 @@ type App struct {
 
 // NewApp creates a new App application struct
 func NewApp() *App {
-	return &App{}
+	// Inicializar managers básicos de inmediato para evitar race conditions
+	return &App{
+		diagram:     diagram.NewManager(),
+		aiProcessor: ai.NewAIProcessor("models", "models/gliner2_native"), // Valores por defecto, se pueden ajustar luego
+	}
 }
 
 // startup is called when the app starts. The context is saved
@@ -52,8 +56,10 @@ func (a *App) startup(ctx context.Context) {
 	}
 	a.recorder = rec
 
-	// Inicializar IA
-	a.aiProcessor = ai.NewAIProcessor("models", a.config.GLiNER.ModelPath)
+	// Actualizar IA con el path de la configuración si es necesario
+	if a.config != nil && a.config.GLiNER.ModelPath != "" {
+		a.aiProcessor = ai.NewAIProcessor("models", a.config.GLiNER.ModelPath)
+	}
 
 	// Inicializar Canva
 	a.canvaClient = canva.NewCanvaClient(
@@ -68,8 +74,7 @@ func (a *App) startup(ctx context.Context) {
 		},
 	)
 
-	// Inicializar Diagrama
-	a.diagram = diagram.NewManager()
+	// El diagrama ya ha sido inicializado en NewApp
 
 	// Inicializar MCP
 	a.mcpServer = mcp.NewMCPEditorServer(a)
@@ -177,9 +182,31 @@ func (a *App) ConnectCanva() error {
 	})
 }
 
+// ProcessDiagramStep es el método que llama la UI (NO inserta texto en el editor)
 func (a *App) ProcessDiagramStep(text string) (string, error) {
+	return a.internalProcessDiagramStep(text, false)
+}
+
+// ProcessDiagramStepFromMCP es el método que llama el servidor MCP (SÍ inserta texto)
+func (a *App) ProcessDiagramStepFromMCP(text string) (string, error) {
+	return a.internalProcessDiagramStep(text, true)
+}
+
+func (a *App) internalProcessDiagramStep(text string, shouldInsertText bool) (string, error) {
 	fmt.Printf("📊 Procesando paso de diagrama para: %.50s...\n", text)
 	startTime := time.Now()
+
+	// Evitar duplicados
+	steps := a.diagram.GetSteps()
+	if len(steps) > 0 && strings.TrimSpace(steps[len(steps)-1].ContextText) == strings.TrimSpace(text) {
+		fmt.Println("ℹ️ Saltando procesamiento: el párrafo ya ha sido procesado.")
+		return a.diagram.ToJSON(), nil
+	}
+
+	if shouldInsertText {
+		// Insertar el texto en el editor también (efecto "escritor fantasma")
+		a.EmitEvent("mcp:insert_text", text+"\n\n")
+	}
 
 	// 1. Intentar extracción local si está habilitada
 	if a.config.GLiNER.UseLocal && a.aiProcessor.GLiNERProcessor != nil {
@@ -208,16 +235,42 @@ func (a *App) ProcessDiagramStep(text string) (string, error) {
 			nodesMap := make(map[string]diagram.Node)
 			validRelationsCount := 0
 
+			// MEMORIA: Obtener entidades previas para continuidad
+			existingEntities := make(map[string]string) // label -> id
+			for _, step := range a.diagram.GetSteps() {
+				for _, node := range step.Nodes {
+					existingEntities[strings.ToLower(node.Label)] = node.ID
+				}
+			}
+
+			// Función para encontrar o crear ID con continuidad
+			resolveID := func(label string) string {
+				l := strings.ToLower(label)
+				// 1. Match exacto
+				if id, ok := existingEntities[l]; ok {
+					return id
+				}
+				// 2. Match parcial (ej: "Rodríguez" coincide con "Elena Rodríguez")
+				for existingLabel, id := range existingEntities {
+					if (strings.Contains(existingLabel, l) || strings.Contains(l, existingLabel)) && len(l) > 3 {
+						return id
+					}
+				}
+				// 3. Fallback: ID determinista
+				return fmt.Sprintf("node_%s", strings.ReplaceAll(label, " ", "_"))
+			}
+
 			// Filtrar ruido: Solo añadimos al diagrama las entidades que forman parte de una relación
 			for _, r := range relations {
 				if r.Score >= a.config.GLiNER.Threshold {
 					validRelationsCount++
-					headID := fmt.Sprintf("node_%s", strings.ReplaceAll(r.Head, " ", "_"))
+					
+					headID := resolveID(r.Head)
 					if _, exists := nodesMap[headID]; !exists {
-						nodesMap[headID] = diagram.Node{ID: headID, Label: r.Head, Type: "Concept"} // Opcionalmente podríamos buscar su Type real en entities
+						nodesMap[headID] = diagram.Node{ID: headID, Label: r.Head, Type: "Concept"}
 					}
 					
-					tailID := fmt.Sprintf("node_%s", strings.ReplaceAll(r.Tail, " ", "_"))
+					tailID := resolveID(r.Tail)
 					if _, exists := nodesMap[tailID]; !exists {
 						nodesMap[tailID] = diagram.Node{ID: tailID, Label: r.Tail, Type: "Concept"}
 					}
@@ -250,9 +303,40 @@ func (a *App) ProcessDiagramStep(text string) (string, error) {
 		fmt.Println("🔄 Reintentando con LLM remoto...")
 	}
 	
+	// Preparar contexto previo para continuidad del grafo (solo nodos y aristas)
+	steps = a.diagram.GetSteps()
+	contextHistory := ""
+	if len(steps) > 0 {
+		start := len(steps) - 2
+		if start < 0 {
+			start = 0
+		}
+		recentSteps := steps[start:]
+		
+		// Simplificamos para no saturar al LLM: solo IDs y Labels
+		type SimpleStep struct {
+			Nodes []diagram.Node `json:"nodes"`
+			Edges []diagram.Edge `json:"edges"`
+		}
+		var simplifiedContext []SimpleStep
+		for _, s := range recentSteps {
+			simplifiedContext = append(simplifiedContext, SimpleStep{
+				Nodes: s.Nodes,
+				Edges: s.Edges,
+			})
+		}
+
+		historyJSON, _ := json.MarshalIndent(simplifiedContext, "", "  ")
+		contextHistory = fmt.Sprintf("\n--- CONTEXTO PREVIO DEL GRAFO (para continuidad) ---\n%s\n--- FIN DEL CONTEXTO ---\n", string(historyJSON))
+	}
+
 	// Prompt EXTREMADAMENTE directo para evitar razonamientos
 	prompt := fmt.Sprintf(`Eres un extractor de datos JSON para grafos relacionales.
 Tu única tarea es analizar el texto y extraer entidades y sus relaciones.
+
+REGLA DE CONTINUIDAD: Si las entidades mencionadas en el texto actual ya aparecen en el "CONTEXTO PREVIO", DEBES usar exactamente el mismo "id" para referirte a ellas. Esto permite que el grafo sea conexo y coherente.
+Si detectas que una entidad nueva tiene una relación con una del contexto previo, crea el enlace correspondiente usando los IDs existentes.
+
 REGLA 1: NO pienses, no uses etiquetas <think>.
 REGLA 2: NO uses markdown para el JSON, responde solo con las llaves.
 REGLA 3: Responde EXCLUSIVAMENTE con un objeto JSON crudo y válido.
@@ -264,11 +348,12 @@ Formato requerido:
   "explanation": "resumen muy breve de la acción principal"
 }
 
-Texto a analizar:
-%s`, text)
+%s
 
-	// Podemos pasar "json" format si el LLM local lo soporta en payload, 
-	// pero por ahora dependemos del prompt estricto.
+Texto a analizar:
+%s`, contextHistory, text)
+
+	fmt.Printf("📡 Enviando prompt al LLM (%d bytes)...\n", len(prompt))
 	respText, err := ai.SimpleLLMCall(a.config.LLMURL, prompt)
 	duration := time.Since(startTime)
 	
@@ -277,7 +362,7 @@ Texto a analizar:
 		return "", err
 	}
 
-	fmt.Printf("⏱️ Respuesta del LLM recibida en %.2fs\n", duration.Seconds())
+	fmt.Printf("⏱️ Respuesta del LLM recibida en %.2fs. Longitud: %d caracteres.\n", duration.Seconds(), len(respText))
 	
 	// Limpieza agresiva: buscar el primer '{' y el último '}' en TODA la respuesta original
 	// Ignoramos cualquier lógica de <think> previa, vamos directo a la estructura JSON
@@ -307,6 +392,14 @@ Texto a analizar:
 		}
 	}
 
+	// Normalización
+	if newStep.Nodes == nil {
+		newStep.Nodes = []diagram.Node{}
+	}
+	if newStep.Edges == nil {
+		newStep.Edges = []diagram.Edge{}
+	}
+
 	newStep.ContextText = text
 	a.diagram.AddStep(newStep)
 	
@@ -319,6 +412,39 @@ func (a *App) GetDiagramSteps() string {
 
 func (a *App) ResetDiagram() {
 	a.diagram.Reset()
+}
+
+// SaveDiagramStep guarda los cambios manuales en un paso específico
+func (a *App) SaveDiagramStep(index int, nodes []diagram.Node, edges []diagram.Edge) bool {
+	if a.diagram == nil {
+		return false
+	}
+	
+	// Obtener el paso original para conservar el texto de contexto y la explicación
+	steps := a.diagram.GetSteps()
+	if index < 0 || index >= len(steps) {
+		return false
+	}
+	
+	updatedStep := steps[index]
+	updatedStep.Nodes = nodes
+	updatedStep.Edges = edges
+	
+	return a.diagram.UpdateStep(index, updatedStep)
+}
+
+func (a *App) UpdateDiagramStep(index int, stepJSON string) error {
+	var step diagram.DiagramStep
+	if err := json.Unmarshal([]byte(stepJSON), &step); err != nil {
+		return fmt.Errorf("error parseando JSON del paso: %v", err)
+	}
+
+	if !a.diagram.UpdateStep(index, step) {
+		return fmt.Errorf("índice de paso no válido: %d", index)
+	}
+
+	fmt.Printf("✏️ Paso de diagrama %d actualizado manualmente\n", index)
+	return nil
 }
 
 // Implementación de AppInterface para MCP

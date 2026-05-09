@@ -3,6 +3,9 @@
 # Asegurarnos de que estamos en la raíz del proyecto
 cd "$(dirname "$0")/.."
 
+# Asegurarnos de que las librerías binarias estén presentes
+./scripts/setup_libs.sh
+
 # Variables de entorno para CGO (Whisper y ONNX Runtime local)
 export CWD=$(pwd)
 export LD_LIBRARY_PATH="$CWD/lib/onnxruntime/lib:$CWD/lib/tokenizers:$LD_LIBRARY_PATH"

@@ -4,15 +4,104 @@ import ReactFlow, {
   Controls, 
   useNodesState, 
   useEdgesState,
-  MarkerType 
+  MarkerType,
+  addEdge
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { ChevronLeft, ChevronRight, RefreshCw, Layers } from 'lucide-react';
+import { SaveDiagramStep } from '../../wailsjs/go/main/App';
 
 const IdeaGraph = ({ steps = [] }) => {
   const [currentStepIdx, setCurrentStepIdx] = useState(0);
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+
+  // Función para persistir cambios al backend
+  const persistChanges = useCallback(async (currentNodes, currentEdges) => {
+    // Convertir de formato ReactFlow a formato Diagram
+    const diagramNodes = currentNodes.map(n => {
+      const labelParts = n.data.label.split('\n[');
+      return {
+        id: n.id,
+        label: labelParts[0],
+        type: labelParts[1]?.replace(']', '') || 'item',
+        x: n.position.x,
+        y: n.position.y
+      };
+    });
+
+    const diagramEdges = currentEdges.map(e => ({
+      source: e.source,
+      target: e.target,
+      label: e.label || ''
+    }));
+
+    try {
+      await SaveDiagramStep(currentStepIdx, diagramNodes, diagramEdges);
+      console.log("Paso guardado correctamente");
+    } catch (err) {
+      console.error("Error guardando paso:", err);
+    }
+  }, [currentStepIdx]);
+
+  const onNodeDragStop = useCallback((event, node) => {
+    persistChanges(nodes, edges);
+  }, [nodes, edges, persistChanges]);
+
+  const onConnect = useCallback((params) => {
+    const newEdge = { 
+      ...params, 
+      label: 'relación',
+      animated: true, 
+      style: { stroke: '#fbbf24', strokeWidth: 3 },
+      markerEnd: { type: MarkerType.ArrowClosed, color: '#fbbf24' } 
+    };
+    setEdges((eds) => {
+      const updatedEdges = addEdge(newEdge, eds);
+      persistChanges(nodes, updatedEdges);
+      return updatedEdges;
+    });
+  }, [nodes, setEdges, persistChanges]);
+
+  const onNodesDelete = useCallback((deleted) => {
+    const remainingNodes = nodes.filter(n => !deleted.find(d => d.id === n.id));
+    persistChanges(remainingNodes, edges);
+  }, [nodes, edges, persistChanges]);
+
+  const onEdgesDelete = useCallback((deleted) => {
+    const remainingEdges = edges.filter(e => !deleted.find(d => d.id === e.id));
+    persistChanges(nodes, remainingEdges);
+  }, [nodes, edges, persistChanges]);
+
+  const onNodeDoubleClick = useCallback((event, node) => {
+    const currentLabel = node.data.label.split('\n[')[0];
+    const newLabel = prompt("Editar nombre de la entidad:", currentLabel);
+    if (newLabel && newLabel !== currentLabel) {
+      const typeStr = node.data.label.split('\n[')[1] || 'Concept]';
+      const updatedNodes = nodes.map((n) => {
+        if (n.id === node.id) {
+          return { ...n, data: { ...n.data, label: `${newLabel}\n[${typeStr}` } };
+        }
+        return n;
+      });
+      setNodes(updatedNodes);
+      persistChanges(updatedNodes, edges);
+    }
+  }, [nodes, edges, persistChanges, setNodes]);
+
+  const onEdgeDoubleClick = useCallback((event, edge) => {
+    const newLabel = prompt("Editar relación:", edge.label);
+    if (newLabel && newLabel !== edge.label) {
+      const updatedEdges = edges.map((e) => {
+        if (e.id === edge.id) {
+          return { ...e, label: newLabel };
+        }
+        return e;
+      });
+      setEdges(updatedEdges);
+      persistChanges(nodes, updatedEdges);
+    }
+  }, [nodes, edges, persistChanges, setEdges]);
 
   useEffect(() => {
     if (steps.length > 0) {
@@ -31,17 +120,14 @@ const IdeaGraph = ({ steps = [] }) => {
         const step = steps[i];
         const isLatestStep = (i === currentStepIdx);
 
-        step.nodes.forEach((node) => {
-          // El ID puede colisionar si el LLM no es consistente, 
-          // usaremos el label normalizado como ID de respaldo si es necesario, 
-          // pero confiaremos en el node.id por ahora.
+        (step.nodes || []).forEach((node) => {
           accumulatedNodes.set(node.id, {
             ...node,
             isNew: isLatestStep
           });
         });
 
-        step.edges.forEach((edge, idx) => {
+        (step.edges || []).forEach((edge, idx) => {
           accumulatedEdges.set(`${edge.source}-${edge.target}-${edge.label}`, {
             ...edge,
             id: `e-${i}-${idx}`,
@@ -53,9 +139,16 @@ const IdeaGraph = ({ steps = [] }) => {
       // Convertir nodos acumulados a flowNodes
       const nodesArray = Array.from(accumulatedNodes.values());
       const flowNodes = nodesArray.map((node, idx) => {
-        // Disposición en círculo (fuerza bruta simple)
-        const angle = (idx / nodesArray.length) * 2 * Math.PI;
-        const radius = 200 + (Math.random() * 50); // Un poco de ruido para que no se superpongan perfectamente
+        // Disposición en círculo SOLO si no tienen coordenadas (x e y son 0)
+        let position = { x: node.x || 0, y: node.y || 0 };
+        if (position.x === 0 && position.y === 0) {
+          const angle = (idx / nodesArray.length) * 2 * Math.PI;
+          const radius = 200 + (Math.random() * 50);
+          position = { 
+            x: 400 + Math.cos(angle) * radius, 
+            y: 300 + Math.sin(angle) * radius 
+          };
+        }
         
         // Colores por tipo de entidad
         const typeColors = {
@@ -80,10 +173,7 @@ const IdeaGraph = ({ steps = [] }) => {
         return {
           id: node.id,
           data: { label: `${node.label}\n[${node.type}]` },
-          position: { 
-            x: 400 + Math.cos(angle) * radius, 
-            y: 300 + Math.sin(angle) * radius 
-          },
+          position: position,
           style: {
             background: colors.bg,
             color: colors.color,
@@ -170,6 +260,12 @@ const IdeaGraph = ({ steps = [] }) => {
           edges={edges}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
+          onConnect={onConnect}
+          onNodesDelete={onNodesDelete}
+          onEdgesDelete={onEdgesDelete}
+          onNodeDoubleClick={onNodeDoubleClick}
+          onEdgeDoubleClick={onEdgeDoubleClick}
+          onNodeDragStop={onNodeDragStop}
           fitView
           style={{ width: '100%', height: '100%' }}
         >

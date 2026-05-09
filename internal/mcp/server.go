@@ -10,17 +10,18 @@ import (
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
 
-// AppInterface define lo que necesitamos de App para el servidor MCP
 type AppInterface interface {
 	EmitEvent(name string, data interface{})
 	GetCanvaClient() *canva.CanvaClient
 	ExtractEntities(text string, labels []string) ([]ai.Entity, error)
 	ExtractFromText(text string) ([]ai.Entity, []ai.Relation, error)
+	ProcessDiagramStep(text string) (string, error)
+	ProcessDiagramStepFromMCP(text string) (string, error)
 }
 
 type MCPEditorServer struct {
 	app    AppInterface
-	server *mcp.Server
+	Server *mcp.Server
 }
 
 func NewMCPEditorServer(app AppInterface) *MCPEditorServer {
@@ -63,13 +64,13 @@ func NewMCPEditorServer(app AppInterface) *MCPEditorServer {
 
 	mcp.AddTool(s, &mcp.Tool{
 		Name:        "extract_relations",
-		Description: "Extrae un grafo completo de entidades y relaciones directamente de un texto usando el modelo E2E GLiNER2 local.",
+		Description: "Extrae un grafo completo de entidades y relaciones usando GLiNER2 local.",
 	}, func(ctx context.Context, req *mcp.CallToolRequest, args struct {
-		Text string `json:"text" jsonschema:"El texto del cual extraer relaciones y entidades"`
+		Text string `json:"text" jsonschema:"El texto a analizar"`
 	}) (*mcp.CallToolResult, any, error) {
 		entities, relations, err := app.ExtractFromText(args.Text)
 		if err != nil {
-			return nil, fmt.Errorf("error en extracción de relaciones: %v", err), nil
+			return nil, fmt.Errorf("error: %v", err), nil
 		}
 		return nil, map[string]interface{}{
 			"entities":  entities,
@@ -77,15 +78,25 @@ func NewMCPEditorServer(app AppInterface) *MCPEditorServer {
 		}, nil
 	})
 
-	return &MCPEditorServer{
-		app:    app,
-		server: s,
-	}
+	mcp.AddTool(s, &mcp.Tool{
+		Name:        "process_diagram_step",
+		Description: "Analiza un texto y añade un nuevo paso al grafo evolutivo del Director Mode.",
+	}, func(ctx context.Context, req *mcp.CallToolRequest, args struct {
+		Text string `json:"text" jsonschema:"El texto a analizar para el grafo"`
+	}) (*mcp.CallToolResult, any, error) {
+		jsonResult, err := app.ProcessDiagramStepFromMCP(args.Text)
+		if err != nil {
+			return nil, fmt.Errorf("error procesando paso: %v", err), nil
+		}
+		return nil, jsonResult, nil
+	})
+
+	return &MCPEditorServer{app: app, Server: s}
 }
 
 func (m *MCPEditorServer) StartSSE(port int) error {
 	handler := mcp.NewSSEHandler(func(req *http.Request) *mcp.Server {
-		return m.server
+		return m.Server
 	}, nil)
 	
 	mux := http.NewServeMux()

@@ -15,7 +15,9 @@ import {
   SaveProject,
   GetAvailableWhisperModels,
   GetDownloadedWhisperModels,
-  ChangeWhisperModel
+  ChangeWhisperModel,
+  GetAudioDevices,
+  SaveDiagramStep
 } from '../wailsjs/go/main/App';
 import IdeaGraph from './components/IdeaGraph';
 import { Share2, FileText, ChevronRight } from 'lucide-react';
@@ -37,6 +39,7 @@ function App() {
   const [availableModels, setAvailableModels] = useState([]);
   const [downloadedModels, setDownloadedModels] = useState([]);
   const [downloadProgress, setDownloadProgress] = useState(null); // { model: string, percent: number }
+  const [showSettings, setShowSettings] = useState(false);
   
   const editorRef = useRef(null);
 
@@ -52,9 +55,18 @@ function App() {
     // Cargar modelos de Whisper
     GetAvailableWhisperModels().then(setAvailableModels);
     GetDownloadedWhisperModels().then(setDownloadedModels);
+    
+    // Cargar pasos del diagrama
+    GetDiagramSteps().then(json => {
+      if (json) {
+        const steps = JSON.parse(json);
+        setDiagramSteps(steps);
+        setProcessedCount(steps.length); // Sincronizamos el contador
+      }
+    });
 
     // Cargar dispositivos al inicio
-    window.go.main.App.GetAudioDevices().then(setDevices).catch(console.error);
+    GetAudioDevices().then(setDevices).catch(console.error);
 
     console.log("Suscribiendo a eventos...");
     const unsubscribeMcp = EventsOn('mcp:insert_text', (text) => {
@@ -70,14 +82,20 @@ function App() {
       if (data.percent === 100) {
         setTimeout(() => {
           setDownloadProgress(null);
-          window.go.main.App.GetDownloadedWhisperModels().then(setDownloadedModels);
+          GetDownloadedWhisperModels().then(setDownloadedModels);
         }, 1000);
       }
+    });
+
+    const unsubscribeDiagram = EventsOn('diagram:step_added', (json) => {
+      console.log("Evento diagram:step_added recibido");
+      if (json) setDiagramSteps(JSON.parse(json));
     });
 
     return () => {
       unsubscribeMcp();
       unsubscribeDownload();
+      unsubscribeDiagram();
     };
   }, []);
 

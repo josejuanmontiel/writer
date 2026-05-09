@@ -25,6 +25,6 @@
   "gliner": {
     "use_local": true,
     "model_path": "models/gliner2_native",
-    "threshold": 0.8
+    "threshold": 0.5
   }
 }

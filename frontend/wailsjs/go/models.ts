@@ -112,3 +112,44 @@ export namespace config {
 
 }
 
+export namespace diagram {
+	
+	export class Edge {
+	    source: string;
+	    target: string;
+	    label: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new Edge(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.source = source["source"];
+	        this.target = source["target"];
+	        this.label = source["label"];
+	    }
+	}
+	export class Node {
+	    id: string;
+	    label: string;
+	    type: string;
+	    x: number;
+	    y: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new Node(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.label = source["label"];
+	        this.type = source["type"];
+	        this.x = source["x"];
+	        this.y = source["y"];
+	    }
+	}
+
+}
+

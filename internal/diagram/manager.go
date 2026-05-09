@@ -6,9 +6,11 @@ import (
 )
 
 type Node struct {
-	ID    string `json:"id"`
-	Label string `json:"label"`
-	Type  string `json:"type"` // e.g., "character", "event", "location"
+	ID    string  `json:"id"`
+	Label string  `json:"label"`
+	Type  string  `json:"type"` // e.g., "character", "event", "location"
+	X     float64 `json:"x"`
+	Y     float64 `json:"y"`
 }
 
 type Edge struct {
@@ -45,6 +47,16 @@ func (m *Manager) GetSteps() []DiagramStep {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 	return m.Steps
+}
+
+func (m *Manager) UpdateStep(index int, step DiagramStep) bool {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	if index < 0 || index >= len(m.Steps) {
+		return false
+	}
+	m.Steps[index] = step
+	return true
 }
 
 func (m *Manager) Reset() {

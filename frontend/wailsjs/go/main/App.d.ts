@@ -3,6 +3,9 @@
 import {ai} from '../models';
 import {canva} from '../models';
 import {config} from '../models';
+import {diagram} from '../models';
+
+export function ChangeWhisperModel(arg1:string):Promise<void>;
 
 export function ConnectCanva():Promise<void>;
 
@@ -14,17 +17,25 @@ export function ExtractFromText(arg1:string):Promise<Array<ai.Entity>>;
 
 export function GetAudioDevices():Promise<Array<string>>;
 
+export function GetAvailableWhisperModels():Promise<Array<string>>;
+
 export function GetCanvaClient():Promise<canva.CanvaClient>;
 
 export function GetConfig():Promise<config.Config>;
 
 export function GetDiagramSteps():Promise<string>;
 
+export function GetDownloadedWhisperModels():Promise<Array<string>>;
+
 export function ProcessDiagramStep(arg1:string):Promise<string>;
+
+export function ProcessDiagramStepFromMCP(arg1:string):Promise<string>;
 
 export function ProcessText(arg1:string,arg2:boolean):Promise<void>;
 
 export function ResetDiagram():Promise<void>;
+
+export function SaveDiagramStep(arg1:number,arg2:Array<diagram.Node>,arg3:Array<diagram.Edge>):Promise<boolean>;
 
 export function SaveProject(arg1:string,arg2:string):Promise<string>;
 
@@ -33,3 +44,5 @@ export function StartRecording():Promise<void>;
 export function StopRecording(arg1:string,arg2:boolean):Promise<string>;
 
 export function UpdateConfig(arg1:config.Config):Promise<void>;
+
+export function UpdateDiagramStep(arg1:number,arg2:string):Promise<void>;

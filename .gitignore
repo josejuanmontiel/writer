@@ -31,3 +31,9 @@ models/*.bin
 models/gliner2_native/*.onnx
 models/gliner2_native/*.data
 models/gliner2_native/*.safetensors
+
+# Librerías binarias locales
+lib/tokenizers/
+lib/onnxruntime/lib/
+lib/windows/
+lib/whisper.cpp/build*/

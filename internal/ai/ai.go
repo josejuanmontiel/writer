@@ -2,7 +2,6 @@ package ai
 
 import (
 	"bytes"
-	"encoding/binary"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -12,7 +11,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ggerganov/whisper.cpp/bindings/go"
+	"github.com/ggerganov/whisper.cpp/bindings/go/pkg/whisper"
+	"github.com/go-audio/wav"
+	"path/filepath"
 )
 
 type AIProcessor struct {
@@ -34,81 +35,200 @@ func NewAIProcessor(whisperModelPath string, glinerModelPath string) *AIProcesso
 	}
 }
 
+var modelURLs = map[string]string{
+	"tiny":           "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-tiny.bin",
+	"base":           "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin",
+	"small":          "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-small.bin",
+	"medium":         "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-medium.bin",
+	"large-v3-turbo": "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-large-v3-turbo.bin",
+}
+
+const (
+	defaultModelName = "tiny"
+)
+
 // ModelManager gestiona la descarga y carga de modelos Whisper
 type ModelManager struct {
-	ModelsPath string
+	ModelsPath  string
+	cachedModel whisper.Model
+	cachedName  string
 }
 
 func NewModelManager(path string) *ModelManager {
+	if path == "" {
+		path = "models"
+	}
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		os.MkdirAll(path, 0755)
 	}
 	return &ModelManager{ModelsPath: path}
 }
 
-// readWav manual para convertir de bytes a []float32
-func readWav(wavPath string) ([]float32, error) {
-	file, err := os.Open(wavPath)
-	if err != nil {
-		return nil, err
+// EnsureModel verifica si el modelo existe, si no, lo descarga
+func (m *ModelManager) EnsureModel(modelName string, onProgress func(percent int)) (string, error) {
+	if modelName == "" {
+		modelName = defaultModelName
 	}
-	defer file.Close()
 
-	// Saltar cabecera WAV (44 bytes aprox)
-	file.Seek(44, 0)
+	// Limpiar nombre (ej: "ggml-small.bin" -> "small")
+	cleanName := strings.TrimPrefix(modelName, "ggml-")
+	cleanName = strings.TrimSuffix(cleanName, ".bin")
+
+	url, ok := modelURLs[cleanName]
+	if !ok {
+		return "", fmt.Errorf("modelo desconocido: %s", cleanName)
+	}
+
+	fullName := "ggml-" + cleanName + ".bin"
+	modelPath := filepath.Join(m.ModelsPath, fullName)
+
+	if _, err := os.Stat(modelPath); err == nil {
+		return modelPath, nil
+	}
+
+	// No existe, descargar
+	fmt.Printf("Modelo %s no encontrado localmente. Iniciando descarga desde %s...\n", cleanName, url)
+
+	err := m.downloadFile(modelPath, url, onProgress)
+	if err != nil {
+		return "", fmt.Errorf("error al descargar modelo %s: %w", cleanName, err)
+	}
+
+	fmt.Printf("Descarga de %s completada con éxito.\n", cleanName)
+	return modelPath, nil
+}
+
+// downloadFile descarga un archivo con seguimiento de progreso
+func (m *ModelManager) downloadFile(filepath string, url string, onProgress func(percent int)) error {
+	resp, err := http.Get(url)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("error de servidor: %s", resp.Status)
+	}
+
+	out, err := os.Create(filepath)
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+
+	totalSize := resp.ContentLength
+	var downloaded int64
 	
-	content, err := io.ReadAll(file)
-	if err != nil {
-		return nil, err
+	buffer := make([]byte, 32*1024)
+	lastPercent := -1
+
+	for {
+		n, err := resp.Body.Read(buffer)
+		if n > 0 {
+			_, writeErr := out.Write(buffer[:n])
+			if writeErr != nil {
+				return writeErr
+			}
+			downloaded += int64(n)
+			
+			if totalSize > 0 {
+				percent := int(float64(downloaded) / float64(totalSize) * 100)
+				if percent != lastPercent && onProgress != nil {
+					onProgress(percent)
+					lastPercent = percent
+				}
+			}
+		}
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return err
+		}
 	}
 
-	samplesCount := len(content) / 2
-	data := make([]float32, samplesCount)
-	for i := 0; i < samplesCount; i++ {
-		sample := int16(binary.LittleEndian.Uint16(content[i*2 : i*2+2]))
-		data[i] = float32(sample) / 32768.0
-	}
-	return data, nil
+	return nil
 }
 
 func (m *ModelManager) TranscribeLocal(wavPath, modelName, language string, threads int) (string, error) {
-	fullModelPath := fmt.Sprintf("%s/ggml-%s.bin", m.ModelsPath, modelName)
-	if _, err := os.Stat(fullModelPath); os.IsNotExist(err) {
-		return "", fmt.Errorf("modelo no encontrado en %s. Por favor descárgalo", fullModelPath)
-	}
-
-	ctx := whisper.Whisper_init(fullModelPath)
-	if ctx == nil {
-		return "", fmt.Errorf("error al inicializar whisper con modelo %s", fullModelPath)
-	}
-	defer ctx.Whisper_free()
-
-	params := ctx.Whisper_full_default_params(whisper.SAMPLING_GREEDY)
-	
-	// El idioma debe ser el ID numérico
-	langID := ctx.Whisper_lang_id(language)
-	params.SetLanguage(langID)
-	
-	params.SetThreads(threads)
-	params.SetPrintProgress(false)
-	params.SetPrintRealtime(false)
-
-	data, err := readWav(wavPath)
+	modelPath, err := m.EnsureModel(modelName, nil)
 	if err != nil {
-		return "", fmt.Errorf("error al leer WAV: %v", err)
+		return "", err
 	}
 
-	if err := ctx.Whisper_full(params, data, nil, nil, nil); err != nil {
-		return "", fmt.Errorf("error en la transcripción: %v", err)
+	// Cargar modelo si no está en caché o es distinto
+	if m.cachedModel == nil || m.cachedName != modelName {
+		if m.cachedModel != nil {
+			m.cachedModel.Close()
+		}
+		
+		fmt.Printf("Cargando modelo Whisper en memoria: %s...\n", modelPath)
+		model, err := whisper.New(modelPath)
+		if err != nil {
+			return "", fmt.Errorf("error al cargar modelo whisper: %w", err)
+		}
+		m.cachedModel = model
+		m.cachedName = modelName
+	}
+
+	model := m.cachedModel
+
+	// Preparar audio (Whisper requiere float32 16kHz)
+	samples, err := m.readWavToFloat32(wavPath)
+	if err != nil {
+		return "", fmt.Errorf("error al procesar audio: %w", err)
+	}
+
+	// Inferencia
+	context, err := model.NewContext()
+	if err != nil {
+		return "", fmt.Errorf("error al crear contexto whisper: %w", err)
+	}
+	
+	if language != "" && language != "auto" {
+		context.SetLanguage(language)
+	}
+	if threads > 0 {
+		context.SetThreads(uint(threads))
+	} else {
+		context.SetThreads(4)
+	}
+
+	if err := context.Process(samples, nil, nil, nil); err != nil {
+		return "", fmt.Errorf("error en procesamiento whisper: %w", err)
 	}
 
 	var result strings.Builder
-	segments := ctx.Whisper_full_n_segments()
-	for i := 0; i < segments; i++ {
-		result.WriteString(ctx.Whisper_full_get_segment_text(i))
+	for {
+		segment, err := context.NextSegment()
+		if err != nil {
+			break
+		}
+		result.WriteString(segment.Text + " ")
 	}
 
 	return result.String(), nil
+}
+
+func (m *ModelManager) readWavToFloat32(path string) ([]float32, error) {
+	f, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+
+	d := wav.NewDecoder(f)
+	buf, err := d.FullPCMBuffer()
+	if err != nil {
+		return nil, fmt.Errorf("error al leer buffer WAV: %w", err)
+	}
+
+	floatSamples := make([]float32, len(buf.Data))
+	for i, sample := range buf.Data {
+		floatSamples[i] = float32(sample) / 32768.0
+	}
+
+	return floatSamples, nil
 }
 
 func ProcessAudioRemote(url string, model string, language string, wavPath string) (string, error) {
@@ -271,7 +391,8 @@ func SimpleLLMCall(llmURL string, prompt string) (string, error) {
 	}
 
 	jsonData, _ := json.Marshal(payload)
-	resp, err := http.Post(llmURL, "application/json", bytes.NewBuffer(jsonData))
+	client := &http.Client{Timeout: 60 * time.Second}
+	resp, err := client.Post(llmURL, "application/json", bytes.NewBuffer(jsonData))
 	if err != nil {
 		return "", err
 	}
