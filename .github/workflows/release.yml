@@ -83,20 +83,23 @@ jobs:
           cmake --build build --config Release
 
       - name: Build and Package
-        env:
-          CGO_ENABLED: "1"
-          # Definimos las rutas para que los bindings encuentren whisper y ggml
-          CGO_CFLAGS: "-I${{ github.workspace }}/lib/whisper.cpp/include -I${{ github.workspace }}/lib/whisper.cpp/ggml/include"
-          # LDFLAGS apunta a las carpetas donde cmake dejó las librerías .a (y a lib/windows para windows)
-          CGO_LDFLAGS: "-L${{ github.workspace }}/lib/whisper.cpp/build/src -L${{ github.workspace }}/lib/whisper.cpp/build/ggml/src -L${{ github.workspace }}/lib/windows -L${{ github.workspace }}/lib/onnxruntime/lib"
         run: |
           # Aseguramos que wails esté en el path
           export PATH=$PATH:$(go env GOPATH)/bin
+          
+          # Definimos variables base comunes
+          export CGO_ENABLED=1
+          export CGO_CFLAGS="-I${{ github.workspace }}/lib/whisper.cpp/include -I${{ github.workspace }}/lib/whisper.cpp/ggml/include"
+          
           if [ "${{ matrix.platform }}" == "linux" ]; then
+            export CGO_LDFLAGS="-L${{ github.workspace }}/lib/whisper.cpp/build/src -L${{ github.workspace }}/lib/whisper.cpp/build/ggml/src -L${{ github.workspace }}/lib/onnxruntime/lib"
             make package-linux
           elif [ "${{ matrix.platform }}" == "windows" ]; then
+            # Windows usa las precompiladas en lib/windows
+            export CGO_LDFLAGS="-L${{ github.workspace }}/lib/windows"
             make package-windows
           elif [ "${{ matrix.platform }}" == "macos" ]; then
+            export CGO_LDFLAGS="-L${{ github.workspace }}/lib/whisper.cpp/build/src -L${{ github.workspace }}/lib/whisper.cpp/build/ggml/src"
             make package-macos
           fi
 

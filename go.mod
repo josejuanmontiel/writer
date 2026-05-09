@@ -1,6 +1,6 @@
 module antigravity-writer
 
-go 1.24
+go 1.25.0
 
 require (
 	github.com/gen2brain/malgo v0.11.24
@@ -57,4 +57,4 @@ require (
 
 replace github.com/yalue/onnxruntime_go => ./internal/vendor/onnxruntime_go
 
-replace hugot-gliner2 => github.com/josejuanmontiel/hugot-gliner2 v0.0.0-20260508182048-8c74ddcb0327
+replace hugot-gliner2 => github.com/josejuanmontiel/hugot-gliner2 v0.0.0-20260509112325-04e5d0a4c817
