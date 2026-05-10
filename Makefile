@@ -17,6 +17,7 @@ WHISPER_DIR=$(CURDIR)/lib/whisper.cpp
 
 build-linux:
 	@echo "🚀 Construyendo para Linux..."
+	@echo "Nota: Si tienes errores de GLIBC, compila en una distro más antigua (ej. Ubuntu 20.04)"
 	CGO_ENABLED=1 CGO_CFLAGS="-I$(WHISPER_DIR)/include -I$(WHISPER_DIR)/ggml/include" wails build -tags webkit2_41
 
 build-windows:
@@ -24,6 +25,7 @@ build-windows:
 	@echo "Nota: Requiere tener instalado x86_64-w64-mingw32-gcc y whisper.cpp compilado para Windows"
 	GOOS=windows GOARCH=amd64 CGO_ENABLED=1 \
 	CGO_CFLAGS="-I$(WHISPER_DIR)/include -I$(WHISPER_DIR)/ggml/include" \
+	CGO_LDFLAGS="-static-libstdc++ -static-libgcc" \
 	CC=x86_64-w64-mingw32-gcc \
 	CXX=x86_64-w64-mingw32-g++ \
 	wails build -platform windows/amd64 -skipbindings
@@ -57,6 +59,7 @@ package-windows:
 	# Pasamos CC y CXX para que CGO use los correctos de MinGW
 	GOOS=windows GOARCH=amd64 CGO_ENABLED=1 \
 	CGO_CFLAGS="-I$(WHISPER_DIR)/include -I$(WHISPER_DIR)/ggml/include" \
+	CGO_LDFLAGS="-static-libstdc++ -static-libgcc" \
 	CC=x86_64-w64-mingw32-gcc \
 	CXX=x86_64-w64-mingw32-g++ \
 	wails build -platform windows/amd64 -skipbindings
@@ -73,12 +76,24 @@ package-windows:
 	@echo "✅ Paquete creado: antigravity-writer-windows-offline.zip"
 
 DIST_MAC_DIR=dist-mac
+
+# Compilar para macOS (Arquitecturas específicas si falla universal)
+build-mac-universal:
+	CGO_ENABLED=1 wails build -platform darwin/universal
+
+build-mac-arm64:
+	CGO_ENABLED=1 wails build -platform darwin/arm64
+
+build-mac-amd64:
+	CGO_ENABLED=1 wails build -platform darwin/amd64
+
 package-macos:
 	@echo "📦 Empaquetando para macOS (Offline)..."
+	@echo "Nota: Si falla darwin/universal, usa build-mac-arm64 o build-mac-amd64"
 	rm -rf $(DIST_MAC_DIR)
 	mkdir -p $(DIST_MAC_DIR)/models
-	# Compilar para macOS (Intel y Apple Silicon si es posible)
-	CGO_ENABLED=1 wails build -platform darwin/universal
+	# Intentar universal, si falla avisar
+	CGO_ENABLED=1 wails build -platform darwin/universal || (echo "❌ Falló build universal. Intenta compilar para tu arquitectura específica." && exit 1)
 	
 	cp -r build/bin/antigravity-writer.app $(DIST_MAC_DIR)/
 	cp config.json $(DIST_MAC_DIR)/

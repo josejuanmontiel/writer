@@ -16,7 +16,7 @@ require (
 require (
 	git.sr.ht/~jackmordaunt/go-toast/v2 v2.0.3 // indirect
 	github.com/bep/debounce v1.2.1 // indirect
-	github.com/daulet/tokenizers v1.26.0 // indirect
+	github.com/daulet/tokenizers v1.27.0 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/go-audio/riff v1.0.0 // indirect
 	github.com/go-ole/go-ole v1.3.0 // indirect
@@ -53,12 +53,4 @@ require (
 	gonum.org/v1/gonum v0.17.0 // indirect
 )
 
-// replace github.com/wailsapp/wails/v2 v2.12.0 => /home/jose/go/pkg/mod
-
-replace github.com/yalue/onnxruntime_go => ./internal/vendor/onnxruntime_go
-
 replace hugot-gliner2 => github.com/josejuanmontiel/hugot-gliner2 v0.0.0-20260509181340-0918ca69f7cd
-
-replace github.com/daulet/tokenizers => ./internal/vendor/tokenizers
-
-replace github.com/gen2brain/malgo => ./internal/vendor/malgo
