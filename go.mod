@@ -53,4 +53,4 @@ require (
 	gonum.org/v1/gonum v0.17.0 // indirect
 )
 
-replace hugot-gliner2 => github.com/josejuanmontiel/hugot-gliner2 v0.0.0-20260509181340-0918ca69f7cd
+replace hugot-gliner2 => github.com/josejuanmontiel/hugot-gliner2 v0.0.0-20260525083133-b5f8a38ca147

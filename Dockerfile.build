@@ -1,0 +1,35 @@
+# Imagen base de Ubuntu 20.04 para asegurar compatibilidad con GLIBC antiguo (2.31)
+FROM ubuntu:20.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=Etc/UTC
+
+# Instalamos las dependencias del sistema requeridas para compilar Wails, CGO y Whisper
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    curl \
+    git \
+    pkg-config \
+    libgtk-3-dev \
+    libwebkit2gtk-4.0-dev \
+    nodejs \
+    npm \
+    cmake \
+    && rm -rf /var/lib/apt/lists/*
+
+# Instalamos Go 1.22 (Ajusta si necesitas otra versión)
+RUN curl -L https://go.dev/dl/go1.22.4.linux-amd64.tar.gz -o go.tar.gz \
+    && tar -C /usr/local -xzf go.tar.gz \
+    && rm go.tar.gz
+
+ENV PATH="/usr/local/go/bin:${PATH}"
+ENV GOPATH="/go"
+ENV PATH="${GOPATH}/bin:${PATH}"
+
+# Instalamos Wails
+RUN go install github.com/wailsapp/wails/v2/cmd/wails@latest
+
+WORKDIR /app
+
+# Al arrancar, ejecutará el make que le pasemos
+ENTRYPOINT ["make"]

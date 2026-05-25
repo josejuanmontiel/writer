@@ -11,6 +11,7 @@ help:
 	@echo "  make build-linux   - Compila la aplicación para Linux"
 	@echo "  make build-windows - Compila la aplicación para Windows"
 	@echo "  make package-linux - Crea un tar.gz con modelos para uso offline"
+	@echo "  make package-linux-docker - Crea el paquete de Linux dentro de un contenedor Ubuntu 20.04 (Evita error GLIBC)"
 	@echo "  make clean         - Elimina los binarios generados"
 
 WHISPER_DIR=$(CURDIR)/lib/whisper.cpp
@@ -38,8 +39,9 @@ package-linux: build-linux
 	mkdir -p $(DIST_DIR)/models
 	cp $(BINARY_LINUX) $(DIST_DIR)/
 	cp config.json $(DIST_DIR)/
-	# Copiar ONNX Runtime (necesario para GLiNER local)
+	# Copiar ONNX Runtime y dependencias C/C++ dinámicas (OpenMP)
 	cp lib/onnxruntime/lib/libonnxruntime.so.1.20.1 $(DIST_DIR)/lib/libonnxruntime.so
+	cp $$(ldd $(BINARY_LINUX) | grep libgomp | awk '{print $$3}') $(DIST_DIR)/lib/libgomp.so.1
 	# Copiar modelos (ajustar según necesidad de espacio)
 	cp models/ggml-tiny.bin $(DIST_DIR)/models/
 	cp -r models/gliner2_native $(DIST_DIR)/models/
@@ -50,6 +52,14 @@ package-linux: build-linux
 	chmod +x $(DIST_DIR)/run.sh
 	tar -czf antigravity-writer-linux-offline.tar.gz -C $(DIST_DIR) .
 	@echo "✅ Paquete creado: antigravity-writer-linux-offline.tar.gz"
+
+package-linux-docker:
+	@echo "🐳 Construyendo contenedor de compilación (Ubuntu 20.04)..."
+	docker build -t antigravity-builder -f Dockerfile.build .
+	@echo "🐳 Compilando paquete de Linux dentro del contenedor..."
+	# Montamos el directorio actual y el caché de go para no descargar todo cada vez
+	docker run --rm -v $(CURDIR):/app -v go_mod_cache:/go/pkg/mod antigravity-builder package-linux
+	@echo "✅ Paquete compilado en Docker exportado con éxito."
 
 DIST_WIN_DIR=dist-win
 package-windows:
