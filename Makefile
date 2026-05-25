@@ -15,11 +15,22 @@ help:
 	@echo "  make clean         - Elimina los binarios generados"
 
 WHISPER_DIR=$(CURDIR)/lib/whisper.cpp
+WHISPER_BUILD_DIR ?= $(WHISPER_DIR)/build-linux
+WHISPER_CMAKE_FLAGS ?= -DBUILD_SHARED_LIBS=OFF 
 
-build-linux:
+build-whisper:
+	@echo "🔨 Compilando whisper.cpp en $$(basename $(WHISPER_BUILD_DIR))..."
+	cmake -B $(WHISPER_BUILD_DIR) -S $(WHISPER_DIR) $(WHISPER_CMAKE_FLAGS)
+	cmake --build $(WHISPER_BUILD_DIR) --config Release
+
+WAILS_BUILD_TAGS ?= -tags webkit2_41
+
+build-linux: build-whisper
 	@echo "🚀 Construyendo para Linux..."
 	@echo "Nota: Si tienes errores de GLIBC, compila en una distro más antigua (ej. Ubuntu 20.04)"
-	CGO_ENABLED=1 CGO_CFLAGS="-I$(WHISPER_DIR)/include -I$(WHISPER_DIR)/ggml/include" wails build -tags webkit2_41
+	CGO_ENABLED=1 CGO_CFLAGS="-I$(WHISPER_DIR)/include -I$(WHISPER_DIR)/ggml/include" \
+	CGO_LDFLAGS="-L$(WHISPER_BUILD_DIR)/src -L$(WHISPER_BUILD_DIR)/ggml/src" \
+	wails build $(WAILS_BUILD_TAGS)
 
 build-windows:
 	@echo "🚀 Construyendo para Windows..."
@@ -58,7 +69,7 @@ package-linux-docker:
 	docker build -t antigravity-builder -f Dockerfile.build .
 	@echo "🐳 Compilando paquete de Linux dentro del contenedor..."
 	# Montamos el directorio actual y el caché de go para no descargar todo cada vez
-	docker run --rm -v $(CURDIR):/app -v go_mod_cache:/go/pkg/mod antigravity-builder package-linux
+	docker run --entrypoint bash --rm -v $(CURDIR):/app -v go_mod_cache:/go/pkg/mod -e WHISPER_BUILD_DIR=/app/lib/whisper.cpp/build-docker -e WAILS_BUILD_TAGS="" antigravity-builder -c "make package-linux && chown -R $(shell id -u):$(shell id -g) /app/frontend /app/build /app/dist /app/lib/whisper.cpp/build-docker"
 	@echo "✅ Paquete compilado en Docker exportado con éxito."
 
 DIST_WIN_DIR=dist-win
@@ -89,13 +100,28 @@ DIST_MAC_DIR=dist-mac
 
 # Compilar para macOS (Arquitecturas específicas si falla universal)
 build-mac-universal:
-	CGO_ENABLED=1 wails build -platform darwin/universal
+	@echo "🔨 Compilando whisper.cpp para macOS Universal..."
+	cmake -B $(WHISPER_DIR)/build-mac -S $(WHISPER_DIR) -DGGML_METAL=ON -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
+	cmake --build $(WHISPER_DIR)/build-mac --config Release
+	CGO_ENABLED=1 CGO_CFLAGS="-I$(WHISPER_DIR)/include -I$(WHISPER_DIR)/ggml/include" \
+	CGO_LDFLAGS="-L$(WHISPER_DIR)/build-mac/src -L$(WHISPER_DIR)/build-mac/ggml/src" \
+	wails build -platform darwin/universal
 
 build-mac-arm64:
-	CGO_ENABLED=1 wails build -platform darwin/arm64
+	@echo "🔨 Compilando whisper.cpp para macOS arm64..."
+	cmake -B $(WHISPER_DIR)/build-mac -S $(WHISPER_DIR) -DGGML_METAL=ON
+	cmake --build $(WHISPER_DIR)/build-mac --config Release
+	CGO_ENABLED=1 CGO_CFLAGS="-I$(WHISPER_DIR)/include -I$(WHISPER_DIR)/ggml/include" \
+	CGO_LDFLAGS="-L$(WHISPER_DIR)/build-mac/src -L$(WHISPER_DIR)/build-mac/ggml/src" \
+	wails build -platform darwin/arm64
 
 build-mac-amd64:
-	CGO_ENABLED=1 wails build -platform darwin/amd64
+	@echo "🔨 Compilando whisper.cpp para macOS amd64..."
+	cmake -B $(WHISPER_DIR)/build-mac -S $(WHISPER_DIR) -DGGML_METAL=ON
+	cmake --build $(WHISPER_DIR)/build-mac --config Release
+	CGO_ENABLED=1 CGO_CFLAGS="-I$(WHISPER_DIR)/include -I$(WHISPER_DIR)/ggml/include" \
+	CGO_LDFLAGS="-L$(WHISPER_DIR)/build-mac/src -L$(WHISPER_DIR)/build-mac/ggml/src" \
+	wails build -platform darwin/amd64
 
 package-macos:
 	@echo "📦 Empaquetando para macOS (Offline)..."
@@ -117,6 +143,8 @@ package-macos:
 clean:
 	@echo "🧹 Limpiando..."
 	rm -rf build/bin/*
-	rm -rf $(DIST_DIR) $(DIST_WIN_DIR)
+	rm -rf $(DIST_DIR) $(DIST_WIN_DIR) $(DIST_MAC_DIR)
 	rm -f antigravity-writer-linux-offline.tar.gz
 	rm -f antigravity-writer-windows-offline.zip
+	rm -f antigravity-writer-macos-offline.zip
+	rm -rf $(WHISPER_DIR)/build-*
