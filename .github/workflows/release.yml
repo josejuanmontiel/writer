@@ -10,8 +10,25 @@ permissions:
   contents: write
 
 jobs:
+  prepare-msvc-dlls:
+    name: Prepare Windows MSVC DLLs
+    runs-on: windows-latest
+    steps:
+      - name: Copy DLLs
+        run: |
+          mkdir msvc_dlls
+          copy C:\Windows\System32\vcruntime140.dll msvc_dlls\
+          copy C:\Windows\System32\vcruntime140_1.dll msvc_dlls\
+          copy C:\Windows\System32\msvcp140.dll msvc_dlls\
+      - name: Upload DLLs
+        uses: actions/upload-artifact@v4
+        with:
+          name: msvc_dlls
+          path: msvc_dlls/
+
   release:
     name: Build and Release
+    needs: prepare-msvc-dlls
     strategy:
       fail-fast: false
       matrix:
@@ -71,13 +88,10 @@ jobs:
           mkdir -p lib/windows lib/onnxruntime/lib
           wget -q -O lib/onnxruntime/lib/libonnxruntime.so.1.22.0 https://huggingface.co/josejuanmontiel/writer-models/resolve/main/lib/onnxruntime/lib/libonnxruntime.so.1.22.0
           
-          # DLLs para Windows
-          wget -q -O lib/windows/ggml-base.dll https://huggingface.co/josejuanmontiel/writer-models/resolve/main/lib/windows/ggml-base.dll
-          wget -q -O lib/windows/ggml-cpu.dll https://huggingface.co/josejuanmontiel/writer-models/resolve/main/lib/windows/ggml-cpu.dll
-          wget -q -O lib/windows/ggml.dll https://huggingface.co/josejuanmontiel/writer-models/resolve/main/lib/windows/ggml.dll
+          # Bajamos onnxruntime.dll (única DLL externa necesaria ahora)
           wget -q -O lib/windows/onnxruntime.dll https://huggingface.co/josejuanmontiel/writer-models/resolve/main/lib/windows/onnxruntime.dll
-          wget -q -O lib/windows/SDL2.dll https://huggingface.co/josejuanmontiel/writer-models/resolve/main/lib/windows/SDL2.dll
-          wget -q -O lib/windows/whisper.dll https://huggingface.co/josejuanmontiel/writer-models/resolve/main/lib/windows/whisper.dll
+          
+          # Las DLLs de MSVC se descargarán después a través del artefacto de Github Actions
           
           # Descarga de libtokenizers para Linux (necesaria para el enlazado)
           if [ "${{ matrix.platform }}" == "linux" ]; then
@@ -96,7 +110,14 @@ jobs:
             wget -q -O lib/windows/libtokenizers.a https://huggingface.co/josejuanmontiel/writer-models/resolve/main/lib/windows/libtokenizers.a
           fi
 
-          # Verificamos qué se ha bajado y dónde (para todas las plataformas)
+      - name: Download MSVC DLLs
+        if: matrix.platform == 'windows'
+        uses: actions/download-artifact@v4
+        with:
+          name: msvc_dlls
+          path: lib/windows/
+
+      - name: Verificamos qué se ha bajado y dónde (para todas las plataformas)
           echo "--- DEBUG: Verificando archivos descargados ---"
           ls -R lib/ || true
           ls -R models/ || true
@@ -173,6 +194,11 @@ jobs:
           
           # Renombramos las librerías para que el linker las encuentre con el prefijo 'lib'
           find build-win -name "*.a" -exec bash -c 'dir=$(dirname "{}"); base=$(basename "{}"); if [[ ! $base =~ ^lib ]]; then mv "{}" "$dir/lib$base"; fi' \;
+          
+          # Copiamos las librerías estáticas generadas a lib/windows para que CGO las enlace
+          find build-win -name "lib*.a" -exec cp "{}" ../windows/ \;
+          echo "--- Librerías estáticas compiladas para Windows ---"
+          ls ../windows/*.a
 
       - name: Build and Package
         run: |
