@@ -118,6 +118,7 @@ jobs:
           path: lib/windows/
 
       - name: Verificamos qué se ha bajado y dónde (para todas las plataformas)
+        run: |
           echo "--- DEBUG: Verificando archivos descargados ---"
           ls -R lib/ || true
           ls -R models/ || true
