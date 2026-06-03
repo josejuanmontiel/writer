@@ -206,18 +206,20 @@ jobs:
         run: |
           export PATH=$PATH:$(go env GOPATH)/bin
           export CGO_ENABLED=1
-          export CGO_CFLAGS="-I./lib/whisper.cpp/include -I./lib/whisper.cpp/ggml/include"
-          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:./lib/whisper.cpp/build/src:./lib/whisper.cpp/build/ggml/src:./lib/onnxruntime/lib
-          export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:./lib/whisper.cpp/build/src:./lib/whisper.cpp/build/ggml/src
+          export CGO_CFLAGS_ALLOW=".*"
+          export CGO_LDFLAGS_ALLOW=".*"
+          export CGO_CFLAGS="-I${{ github.workspace }}/lib/whisper.cpp/include -I${{ github.workspace }}/lib/whisper.cpp/ggml/include"
+          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${{ github.workspace }}/lib/whisper.cpp/build/src:${{ github.workspace }}/lib/whisper.cpp/build/ggml/src:${{ github.workspace }}/lib/onnxruntime/lib
+          export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:${{ github.workspace }}/lib/whisper.cpp/build/src:${{ github.workspace }}/lib/whisper.cpp/build/ggml/src
           
           if [ "${{ matrix.platform }}" == "windows" ]; then
             export GOOS=windows
             export GOARCH=amd64
             export CC=x86_64-w64-mingw32-gcc
             export CXX=x86_64-w64-mingw32-g++
-            export CGO_LDFLAGS="-L./lib/windows -static-libstdc++ -static-libgcc -fopenmp -Wl,-Bstatic -lgomp -Wl,-Bdynamic -lpthread"
+            export CGO_LDFLAGS="-L${{ github.workspace }}/lib/windows -static-libstdc++ -static-libgcc -fopenmp -Wl,-Bstatic -lgomp -Wl,-Bdynamic -lpthread"
           else
-            export CGO_LDFLAGS="-L./lib/whisper.cpp/build/src -L./lib/whisper.cpp/build/ggml/src -L./lib/tokenizers -L./lib/onnxruntime/lib"
+            export CGO_LDFLAGS="-L${{ github.workspace }}/lib/whisper.cpp/build/src -L${{ github.workspace }}/lib/whisper.cpp/build/ggml/src -L${{ github.workspace }}/lib/tokenizers -L${{ github.workspace }}/lib/onnxruntime/lib"
           fi
           
           echo "Compiling cmd/test-cgo..."
