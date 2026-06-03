@@ -36,7 +36,7 @@ jobs:
         include:
           - os: ubuntu-latest
             platform: linux
-            artifact: antigravity-writer-linux-offline.tar.gz
+            artifact: AntigravityWriter-x86_64.AppImage
           - os: ubuntu-latest
             platform: windows
             artifact: antigravity-writer-windows-offline.zip

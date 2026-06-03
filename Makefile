@@ -43,26 +43,46 @@ build-windows:
 	wails build -platform windows/amd64 -skipbindings
 
 DIST_DIR=dist
+APPDIR=$(DIST_DIR)/AppDir
 package-linux: build-linux
-	@echo "📦 Empaquetando para Linux (Offline)..."
+	@echo "📦 Empaquetando para Linux (AppImage)..."
 	rm -rf $(DIST_DIR)
-	mkdir -p $(DIST_DIR)/lib
-	mkdir -p $(DIST_DIR)/models
-	cp $(BINARY_LINUX) $(DIST_DIR)/
-	cp config.json $(DIST_DIR)/
-	# Copiar ONNX Runtime y dependencias C/C++ dinámicas (OpenMP)
-	cp lib/onnxruntime/lib/libonnxruntime.so.1.20.1 $(DIST_DIR)/lib/libonnxruntime.so
-	cp $$(ldd $(BINARY_LINUX) | grep libgomp | awk '{print $$3}') $(DIST_DIR)/lib/libgomp.so.1
-	# Copiar modelos (ajustar según necesidad de espacio)
-	cp models/ggml-tiny.bin $(DIST_DIR)/models/
-	cp -r models/gliner2_native $(DIST_DIR)/models/
-	# Crear script de arranque para configurar librerías
-	@echo '#!/bin/bash' > $(DIST_DIR)/run.sh
-	@echo 'export LD_LIBRARY_PATH=./lib:$$LD_LIBRARY_PATH' >> $(DIST_DIR)/run.sh
-	@echo './writer' >> $(DIST_DIR)/run.sh
-	chmod +x $(DIST_DIR)/run.sh
-	tar -czf antigravity-writer-linux-offline.tar.gz -C $(DIST_DIR) .
-	@echo "✅ Paquete creado: antigravity-writer-linux-offline.tar.gz"
+	mkdir -p $(APPDIR)/usr/bin
+	mkdir -p $(APPDIR)/usr/lib
+	mkdir -p $(APPDIR)/usr/share/applications
+	mkdir -p $(APPDIR)/usr/share/icons/hicolor/256x256/apps
+	
+	# Copiar ejecutable principal
+	cp $(BINARY_LINUX) $(APPDIR)/usr/bin/
+	
+	# Copiar recursos adicionales (config, modelos)
+	cp config.json $(APPDIR)/usr/bin/
+	mkdir -p $(APPDIR)/usr/bin/models
+	cp models/ggml-tiny.bin $(APPDIR)/usr/bin/models/
+	cp -r models/gliner2_native $(APPDIR)/usr/bin/models/
+	
+	# Copiar ONNX Runtime para que linuxdeploy lo intercepte (si no lo hace solo)
+	cp lib/onnxruntime/lib/libonnxruntime.so.1.20.1 $(APPDIR)/usr/lib/libonnxruntime.so.1.20.1
+	ln -s libonnxruntime.so.1.20.1 $(APPDIR)/usr/lib/libonnxruntime.so || true
+	
+	# Crear archivo .desktop
+	echo "[Desktop Entry]" > $(APPDIR)/usr/share/applications/antigravity-writer.desktop
+	echo "Name=Antigravity Writer" >> $(APPDIR)/usr/share/applications/antigravity-writer.desktop
+	echo "Exec=writer" >> $(APPDIR)/usr/share/applications/antigravity-writer.desktop
+	echo "Icon=antigravity-writer" >> $(APPDIR)/usr/share/applications/antigravity-writer.desktop
+	echo "Type=Application" >> $(APPDIR)/usr/share/applications/antigravity-writer.desktop
+	echo "Categories=Utility;" >> $(APPDIR)/usr/share/applications/antigravity-writer.desktop
+	
+	# Copiar icono redimensionado a 256x256
+	convert build/appicon.png -resize 256x256 $(APPDIR)/usr/share/icons/hicolor/256x256/apps/antigravity-writer.png
+	
+	# Ejecutar linuxdeploy
+	@echo "Empaquetando con linuxdeploy..."
+	export OUTPUT=AntigravityWriter-x86_64.AppImage; \
+	linuxdeploy --appdir $(APPDIR) -d $(APPDIR)/usr/share/applications/antigravity-writer.desktop -i $(APPDIR)/usr/share/icons/hicolor/256x256/apps/antigravity-writer.png -e $(APPDIR)/usr/bin/writer --plugin gtk --output appimage
+	
+	mv AntigravityWriter-x86_64.AppImage ./
+	@echo "✅ Paquete creado: ./AntigravityWriter-x86_64.AppImage"
 
 package-linux-docker:
 	@echo "🐳 Construyendo contenedor de compilación (Ubuntu 20.04)..."
