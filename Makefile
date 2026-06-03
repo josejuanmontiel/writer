@@ -40,7 +40,7 @@ build-windows:
 	CGO_LDFLAGS="-static-libstdc++ -static-libgcc -fopenmp -Wl,-Bstatic -lgomp -Wl,-Bdynamic -lpthread" \
 	CC=x86_64-w64-mingw32-gcc \
 	CXX=x86_64-w64-mingw32-g++ \
-	wails build -platform windows/amd64 -skipbindings
+	wails build -platform windows/amd64 -skipbindings -ldflags "-extldflags '-lntdll -lbcrypt -luserenv -lws2_32'"
 
 DIST_DIR=dist
 APPDIR=$(DIST_DIR)/AppDir
