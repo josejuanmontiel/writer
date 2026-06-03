@@ -7,7 +7,7 @@ import (
 	// Uncomment these one by one to see which one breaks the build with libc6 issues
 	_ "github.com/ggerganov/whisper.cpp/bindings/go"
 	_ "github.com/yalue/onnxruntime_go"
-	_ "hugot-gliner2"
+	_ "github.com/josejuanmontiel/hugot-gliner2"
 )
 
 func main() {

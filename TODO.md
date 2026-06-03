@@ -1,5 +1,8 @@
 # Antigravity Writer - TODO
 
+Ultimo tag subido antes de todo el refactor ... v1.0.36 ... 
+
+
 ## Llm local con hugot
 - La idea es descargar Qwen 0.3b para que tengamos opcion de cerebro locals sin necesidad de internet y usando hugot para la inferencia.
 
