@@ -1,5 +1,10 @@
 package main
 
+/*
+#cgo windows LDFLAGS: -lntdll -lbcrypt -luserenv -lws2_32
+*/
+import "C"
+
 import (
 	"embed"
 
