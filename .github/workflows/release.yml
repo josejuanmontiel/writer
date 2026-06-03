@@ -217,7 +217,7 @@ jobs:
             export GOARCH=amd64
             export CC=x86_64-w64-mingw32-gcc
             export CXX=x86_64-w64-mingw32-g++
-            export CGO_LDFLAGS="-L${{ github.workspace }}/lib/windows -static-libstdc++ -static-libgcc -fopenmp -Wl,-Bstatic -lgomp -Wl,-Bdynamic -lpthread"
+            export CGO_LDFLAGS="-L${{ github.workspace }}/lib/windows -static-libstdc++ -static-libgcc -fopenmp -Wl,-Bstatic -lgomp -Wl,-Bdynamic -lpthread -lntdll -lbcrypt"
           else
             export CGO_LDFLAGS="-L${{ github.workspace }}/lib/whisper.cpp/build/src -L${{ github.workspace }}/lib/whisper.cpp/build/ggml/src -L${{ github.workspace }}/lib/tokenizers -L${{ github.workspace }}/lib/onnxruntime/lib"
           fi

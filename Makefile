@@ -80,7 +80,7 @@ package-windows:
 	# Pasamos CC y CXX para que CGO use los correctos de MinGW
 	GOOS=windows GOARCH=amd64 CGO_ENABLED=1 \
 	CGO_CFLAGS="-I$(WHISPER_DIR)/include -I$(WHISPER_DIR)/ggml/include" \
-	CGO_LDFLAGS="-static-libstdc++ -static-libgcc -fopenmp -Wl,-Bstatic -lgomp -Wl,-Bdynamic -lpthread" \
+	CGO_LDFLAGS="-L$(CURDIR)/lib/windows -static-libstdc++ -static-libgcc -fopenmp -Wl,-Bstatic -lgomp -Wl,-Bdynamic -lpthread -lntdll -lbcrypt" \
 	CC=x86_64-w64-mingw32-gcc \
 	CXX=x86_64-w64-mingw32-g++ \
 	wails build -platform windows/amd64 -skipbindings
