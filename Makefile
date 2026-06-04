@@ -40,7 +40,7 @@ build-windows:
 	CGO_LDFLAGS="-static-libstdc++ -static-libgcc -fopenmp -Wl,-Bstatic -lgomp -Wl,-Bdynamic -lpthread" \
 	CC=x86_64-w64-mingw32-gcc \
 	CXX=x86_64-w64-mingw32-g++ \
-	wails build -platform windows/amd64 -skipbindings -ldflags "-extldflags '-lntdll -lbcrypt -luserenv -lws2_32'"
+	wails build -platform windows/amd64 -skipbindings -ldflags "-linkmode external -extldflags '-lntdll -lbcrypt -luserenv -lws2_32'"
 
 DIST_DIR=dist
 APPDIR=$(DIST_DIR)/AppDir
@@ -81,7 +81,6 @@ package-linux: build-linux
 	export OUTPUT=AntigravityWriter-x86_64.AppImage; \
 	linuxdeploy --appdir $(APPDIR) -d $(APPDIR)/usr/share/applications/antigravity-writer.desktop -i $(APPDIR)/usr/share/icons/hicolor/256x256/apps/antigravity-writer.png -e $(APPDIR)/usr/bin/writer --plugin gtk --output appimage
 	
-	mv AntigravityWriter-x86_64.AppImage ./
 	@echo "✅ Paquete creado: ./AntigravityWriter-x86_64.AppImage"
 
 package-linux-docker:
@@ -124,7 +123,7 @@ build-mac-universal:
 	cmake -B $(WHISPER_DIR)/build-mac -S $(WHISPER_DIR) -DGGML_METAL=ON -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
 	cmake --build $(WHISPER_DIR)/build-mac --config Release
 	CGO_ENABLED=1 CGO_CFLAGS="-I$(WHISPER_DIR)/include -I$(WHISPER_DIR)/ggml/include" \
-	CGO_LDFLAGS="-L$(WHISPER_DIR)/build-mac/src -L$(WHISPER_DIR)/build-mac/ggml/src" \
+	CGO_LDFLAGS="-L$(WHISPER_DIR)/build-mac/src -L$(WHISPER_DIR)/build-mac/ggml/src -L$(CURDIR)/lib/tokenizers -L$(CURDIR)/lib/onnxruntime/lib" \
 	wails build -platform darwin/universal
 
 build-mac-arm64:
@@ -132,7 +131,7 @@ build-mac-arm64:
 	cmake -B $(WHISPER_DIR)/build-mac -S $(WHISPER_DIR) -DGGML_METAL=ON
 	cmake --build $(WHISPER_DIR)/build-mac --config Release
 	CGO_ENABLED=1 CGO_CFLAGS="-I$(WHISPER_DIR)/include -I$(WHISPER_DIR)/ggml/include" \
-	CGO_LDFLAGS="-L$(WHISPER_DIR)/build-mac/src -L$(WHISPER_DIR)/build-mac/ggml/src" \
+	CGO_LDFLAGS="-L$(WHISPER_DIR)/build-mac/src -L$(WHISPER_DIR)/build-mac/ggml/src -L$(CURDIR)/lib/tokenizers -L$(CURDIR)/lib/onnxruntime/lib" \
 	wails build -platform darwin/arm64
 
 build-mac-amd64:
@@ -140,7 +139,7 @@ build-mac-amd64:
 	cmake -B $(WHISPER_DIR)/build-mac -S $(WHISPER_DIR) -DGGML_METAL=ON
 	cmake --build $(WHISPER_DIR)/build-mac --config Release
 	CGO_ENABLED=1 CGO_CFLAGS="-I$(WHISPER_DIR)/include -I$(WHISPER_DIR)/ggml/include" \
-	CGO_LDFLAGS="-L$(WHISPER_DIR)/build-mac/src -L$(WHISPER_DIR)/build-mac/ggml/src" \
+	CGO_LDFLAGS="-L$(WHISPER_DIR)/build-mac/src -L$(WHISPER_DIR)/build-mac/ggml/src -L$(CURDIR)/lib/tokenizers -L$(CURDIR)/lib/onnxruntime/lib" \
 	wails build -platform darwin/amd64
 
 package-macos:
