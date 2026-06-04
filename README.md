@@ -43,12 +43,15 @@ Ejecuta el script para retransmitir tu voz:
    - Para Linux: `make build-linux`
    - Para Windows (desde Linux): `make build-windows` (Requiere `mingw-w64`)
 
-### 🏁 Compilación Cruzada para Windows
+### 🏁 Compilación Cruzada y Empaquetado
 Si estás en Linux y quieres generar el `.exe`, instala el compilador cruzado:
 ```bash
 sudo apt install mingw-w64  # En Ubuntu/Debian
 ```
 Luego usa `make build-windows`. La aplicación utilizará automáticamente el backend de audio de Windows (WASAPI/DirectSound).
+
+> [!NOTE]
+> Para conocer a fondo cómo funciona la magia de la compilación cruzada, cómo interactúa CGO con el enlazador en Windows, o cómo resolvemos las dependencias en Linux (AppImage) y macOS (Universal Binaries), lee la **[Guía Definitiva de Cross-Compilation](./CROSS_COMPILE.md)**.
 
 ### 🤖 Integración con LLMs (MCP)
 La aplicación incluye un servidor MCP nativo. Esto permite que un LLM (como Claude o Gemini) pueda escribir en el editor.
