@@ -118,29 +118,34 @@ package-windows:
 DIST_MAC_DIR=dist-mac
 
 # Compilar para macOS (Arquitecturas específicas si falla universal)
-build-mac-universal:
+WHISPER_BUILD_DIR_MAC ?= $(WHISPER_DIR)/build-mac
+
+build-whisper-mac-universal:
 	@echo "🔨 Compilando whisper.cpp para macOS Universal..."
-	cmake -B $(WHISPER_DIR)/build-mac -S $(WHISPER_DIR) -DGGML_METAL=ON -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
-	cmake --build $(WHISPER_DIR)/build-mac --config Release
+	cmake -B $(WHISPER_BUILD_DIR_MAC) -S $(WHISPER_DIR) -DGGML_METAL=ON -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
+	cmake --build $(WHISPER_BUILD_DIR_MAC) --config Release
+	# Consolidar librerías
+	mkdir -p $(WHISPER_BUILD_DIR_MAC)/src
+	find $(WHISPER_BUILD_DIR_MAC) -name "lib*.a" -exec cp "{}" $(WHISPER_BUILD_DIR_MAC)/src/ \;
+	find $(WHISPER_BUILD_DIR_MAC) -name "*.a" -exec bash -c 'dir=$$(dirname "{}"); base=$$(basename "{}"); if [[ ! $$base =~ ^lib ]]; then cp "{}" "$$dir/lib$$base"; cp "$$dir/lib$$base" $(WHISPER_BUILD_DIR_MAC)/src/; fi' \;
+
+build-mac-universal: build-whisper-mac-universal
 	CGO_ENABLED=1 CGO_CFLAGS="-I$(WHISPER_DIR)/include -I$(WHISPER_DIR)/ggml/include" \
-	CGO_LDFLAGS="-L$(WHISPER_DIR)/build-mac/src -L$(WHISPER_DIR)/build-mac/ggml/src -L$(CURDIR)/lib/tokenizers -L$(CURDIR)/lib/onnxruntime/lib" \
+	CGO_LDFLAGS="-L$(WHISPER_BUILD_DIR_MAC)/src -L$(CURDIR)/lib/tokenizers -L$(CURDIR)/lib/onnxruntime/lib" \
 	wails build -platform darwin/universal
 
-build-mac-arm64:
+build-whisper-mac-arm64:
 	@echo "🔨 Compilando whisper.cpp para macOS arm64..."
-	cmake -B $(WHISPER_DIR)/build-mac -S $(WHISPER_DIR) -DGGML_METAL=ON
-	cmake --build $(WHISPER_DIR)/build-mac --config Release
-	CGO_ENABLED=1 CGO_CFLAGS="-I$(WHISPER_DIR)/include -I$(WHISPER_DIR)/ggml/include" \
-	CGO_LDFLAGS="-L$(WHISPER_DIR)/build-mac/src -L$(WHISPER_DIR)/build-mac/ggml/src -L$(CURDIR)/lib/tokenizers -L$(CURDIR)/lib/onnxruntime/lib" \
-	wails build -platform darwin/arm64
+	cmake -B $(WHISPER_BUILD_DIR_MAC) -S $(WHISPER_DIR) -DGGML_METAL=ON
+	cmake --build $(WHISPER_BUILD_DIR_MAC) --config Release
+	mkdir -p $(WHISPER_BUILD_DIR_MAC)/src
+	find $(WHISPER_BUILD_DIR_MAC) -name "lib*.a" -exec cp "{}" $(WHISPER_BUILD_DIR_MAC)/src/ \;
+	find $(WHISPER_BUILD_DIR_MAC) -name "*.a" -exec bash -c 'dir=$$(dirname "{}"); base=$$(basename "{}"); if [[ ! $$base =~ ^lib ]]; then cp "{}" "$$dir/lib$$base"; cp "$$dir/lib$$base" $(WHISPER_BUILD_DIR_MAC)/src/; fi' \;
 
-build-mac-amd64:
-	@echo "🔨 Compilando whisper.cpp para macOS amd64..."
-	cmake -B $(WHISPER_DIR)/build-mac -S $(WHISPER_DIR) -DGGML_METAL=ON
-	cmake --build $(WHISPER_DIR)/build-mac --config Release
+build-mac-arm64: build-whisper-mac-arm64
 	CGO_ENABLED=1 CGO_CFLAGS="-I$(WHISPER_DIR)/include -I$(WHISPER_DIR)/ggml/include" \
-	CGO_LDFLAGS="-L$(WHISPER_DIR)/build-mac/src -L$(WHISPER_DIR)/build-mac/ggml/src -L$(CURDIR)/lib/tokenizers -L$(CURDIR)/lib/onnxruntime/lib" \
-	wails build -platform darwin/amd64
+	CGO_LDFLAGS="-L$(WHISPER_BUILD_DIR_MAC)/src -L$(CURDIR)/lib/tokenizers -L$(CURDIR)/lib/onnxruntime/lib" \
+	wails build -platform darwin/arm64
 
 package-macos:
 	@echo "📦 Empaquetando para macOS (Offline)..."

@@ -76,39 +76,39 @@ jobs:
           # Usamos wget para bajar los modelos y librerías
           # Bajamos los modelos
           mkdir -p models/gliner2_native
-          wget -q -O models/ggml-tiny.bin https://huggingface.co/josejuanmontiel/writer-models/resolve/main/models/ggml-tiny.bin
-          wget -q -O models/gliner2_native/count_embed.onnx https://huggingface.co/josejuanmontiel/writer-models/resolve/main/models/gliner2_native/count_embed.onnx
-          wget -q -O models/gliner2_native/count_embed.onnx.data https://huggingface.co/josejuanmontiel/writer-models/resolve/main/models/gliner2_native/count_embed.onnx.data
-          wget -q -O models/gliner2_native/encoder.onnx https://huggingface.co/josejuanmontiel/writer-models/resolve/main/models/gliner2_native/encoder.onnx
-          wget -q -O models/gliner2_native/encoder.onnx.data https://huggingface.co/josejuanmontiel/writer-models/resolve/main/models/gliner2_native/encoder.onnx.data
-          wget -q -O models/gliner2_native/gliner_classifiers.safetensors https://huggingface.co/josejuanmontiel/writer-models/resolve/main/models/gliner2_native/gliner_classifiers.safetensors
-          wget -q -O models/gliner2_native/prompt_ids.json https://huggingface.co/josejuanmontiel/writer-models/resolve/main/models/gliner2_native/prompt_ids.json
-          wget -q -O models/gliner2_native/tokenizer.json https://huggingface.co/josejuanmontiel/writer-models/resolve/main/models/gliner2_native/tokenizer.json
+          wget -q --tries=5 --waitretry=2 -O models/ggml-tiny.bin https://huggingface.co/josejuanmontiel/writer-models/resolve/main/models/ggml-tiny.bin
+          wget -q --tries=5 --waitretry=2 -O models/gliner2_native/count_embed.onnx https://huggingface.co/josejuanmontiel/writer-models/resolve/main/models/gliner2_native/count_embed.onnx
+          wget -q --tries=5 --waitretry=2 -O models/gliner2_native/count_embed.onnx.data https://huggingface.co/josejuanmontiel/writer-models/resolve/main/models/gliner2_native/count_embed.onnx.data
+          wget -q --tries=5 --waitretry=2 -O models/gliner2_native/encoder.onnx https://huggingface.co/josejuanmontiel/writer-models/resolve/main/models/gliner2_native/encoder.onnx
+          wget -q --tries=5 --waitretry=2 -O models/gliner2_native/encoder.onnx.data https://huggingface.co/josejuanmontiel/writer-models/resolve/main/models/gliner2_native/encoder.onnx.data
+          wget -q --tries=5 --waitretry=2 -O models/gliner2_native/gliner_classifiers.safetensors https://huggingface.co/josejuanmontiel/writer-models/resolve/main/models/gliner2_native/gliner_classifiers.safetensors
+          wget -q --tries=5 --waitretry=2 -O models/gliner2_native/prompt_ids.json https://huggingface.co/josejuanmontiel/writer-models/resolve/main/models/gliner2_native/prompt_ids.json
+          wget -q --tries=5 --waitretry=2 -O models/gliner2_native/tokenizer.json https://huggingface.co/josejuanmontiel/writer-models/resolve/main/models/gliner2_native/tokenizer.json
           
           # Bajamos las librerías necesarias para compilar/enlace
           mkdir -p lib/windows lib/onnxruntime/lib
-          wget -q -O lib/onnxruntime/lib/libonnxruntime.so.1.22.0 https://huggingface.co/josejuanmontiel/writer-models/resolve/main/lib/onnxruntime/lib/libonnxruntime.so.1.22.0
+          wget -q --tries=5 --waitretry=2 -O lib/onnxruntime/lib/libonnxruntime.so.1.22.0 https://huggingface.co/josejuanmontiel/writer-models/resolve/main/lib/onnxruntime/lib/libonnxruntime.so.1.22.0
           
           # Bajamos onnxruntime.dll (única DLL externa necesaria ahora)
-          wget -q -O lib/windows/onnxruntime.dll https://huggingface.co/josejuanmontiel/writer-models/resolve/main/lib/windows/onnxruntime.dll
+          wget -q --tries=5 --waitretry=2 -O lib/windows/onnxruntime.dll https://huggingface.co/josejuanmontiel/writer-models/resolve/main/lib/windows/onnxruntime.dll
           
           # Las DLLs de MSVC se descargarán después a través del artefacto de Github Actions
           
           # Descarga de libtokenizers para Linux (necesaria para el enlazado)
           if [ "${{ matrix.platform }}" == "linux" ]; then
             mkdir -p lib/tokenizers
-            wget -q -O libtokenizers.tar.gz https://github.com/daulet/tokenizers/releases/download/v1.26.0/libtokenizers.linux-amd64.tar.gz
+            wget -q --tries=5 --waitretry=2 -O libtokenizers.tar.gz https://github.com/daulet/tokenizers/releases/download/v1.26.0/libtokenizers.linux-amd64.tar.gz
             tar -xzf libtokenizers.tar.gz -C lib/tokenizers
             rm libtokenizers.tar.gz
           elif [ "${{ matrix.platform }}" == "macos" ]; then
             mkdir -p lib/tokenizers
-            wget -q -O libtokenizers.tar.gz https://github.com/daulet/tokenizers/releases/download/v1.26.0/libtokenizers.darwin-arm64.tar.gz
+            wget -q --tries=5 --waitretry=2 -O libtokenizers.tar.gz https://github.com/daulet/tokenizers/releases/download/v1.26.0/libtokenizers.darwin-arm64.tar.gz
             tar -xzf libtokenizers.tar.gz -C lib/tokenizers
             rm libtokenizers.tar.gz
           elif [ "${{ matrix.platform }}" == "windows" ]; then
             # Windows usa la librería estática que subimos a HF (compilada manualmente)
             mkdir -p lib/windows
-            wget -q -O lib/windows/libtokenizers.a https://huggingface.co/josejuanmontiel/writer-models/resolve/main/lib/windows/libtokenizers.a
+            wget -q --tries=5 --waitretry=2 -O lib/windows/libtokenizers.a https://huggingface.co/josejuanmontiel/writer-models/resolve/main/lib/windows/libtokenizers.a
           fi
 
       - name: Download MSVC DLLs
