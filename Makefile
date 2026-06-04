@@ -79,7 +79,7 @@ package-linux: build-linux
 	# Ejecutar linuxdeploy
 	@echo "Empaquetando con linuxdeploy..."
 	export OUTPUT=AntigravityWriter-x86_64.AppImage; \
-	linuxdeploy --appdir $(APPDIR) -d $(APPDIR)/usr/share/applications/antigravity-writer.desktop -i $(APPDIR)/usr/share/icons/hicolor/256x256/apps/antigravity-writer.png -e $(APPDIR)/usr/bin/writer --plugin gtk --output appimage
+	linuxdeploy --appdir $(APPDIR) -d $(APPDIR)/usr/share/applications/antigravity-writer.desktop -i $(APPDIR)/usr/share/icons/hicolor/256x256/apps/antigravity-writer.png -e $(APPDIR)/usr/bin/writer --output appimage
 	
 	@echo "✅ Paquete creado: ./AntigravityWriter-x86_64.AppImage"
 
@@ -108,6 +108,9 @@ package-windows:
 	cp config.json $(DIST_WIN_DIR)/
 	# Copiar DLLs necesarias (deben estar en lib/windows)
 	-cp lib/windows/*.dll $(DIST_WIN_DIR)/
+	-cp /usr/x86_64-w64-mingw32/lib/libwinpthread-1.dll $(DIST_WIN_DIR)/ || true
+	-cp /usr/lib/gcc/x86_64-w64-mingw32/14-posix/libstdc++-6.dll $(DIST_WIN_DIR)/ || true
+	-cp /usr/lib/gcc/x86_64-w64-mingw32/14-posix/libgcc_s_seh-1.dll $(DIST_WIN_DIR)/ || true
 	# Copiar modelos
 	cp models/ggml-tiny.bin $(DIST_WIN_DIR)/models/
 	cp -r models/gliner2_native $(DIST_WIN_DIR)/models/

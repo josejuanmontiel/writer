@@ -40,9 +40,25 @@ type Config struct {
 
 // Load lee el archivo config.json desde la raíz
 func Load() (*Config, error) {
-	file, err := os.ReadFile("config.json")
+	// Intentar cargar config.json desde el directorio del ejecutable o fallback local
+	exePath, err := os.Executable()
+	configPath := "config.json"
+	modelPath := "models/gliner2_native"
+
+	if err == nil {
+		exeDir := filepath.Dir(exePath)
+		exeConfig := filepath.Join(exeDir, "config.json")
+		if _, err := os.Stat(exeConfig); err == nil {
+			configPath = exeConfig
+		}
+		
+		// Set default model path relative to executable
+		modelPath = filepath.Join(exeDir, "models", "gliner2_native")
+	}
+
+	file, err := os.ReadFile(configPath)
 	if err != nil {
-		fmt.Printf("Aviso: No se pudo leer config.json, usando valores por defecto: %v\n", err)
+		fmt.Printf("Aviso: No se pudo leer %s, usando valores por defecto: %v\n", configPath, err)
 		c := &Config{
 			LLMURL:          "http://localhost:8000/v3/chat/completions",
 			KokoroURL:       "http://localhost:8880/v1/audio/speech",
@@ -57,7 +73,7 @@ func Load() (*Config, error) {
 		c.Whisper.Remote.Model = "tiny"
 		
 		c.GLiNER.UseLocal = true
-		c.GLiNER.ModelPath = "models/gliner2_native"
+		c.GLiNER.ModelPath = modelPath
 		c.GLiNER.Threshold = 0.3
 		
 		return c, nil
@@ -68,6 +84,16 @@ func Load() (*Config, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	// Si las rutas de modelo en la configuración son relativas, tratar de resolverlas respecto al ejecutable
+	if !filepath.IsAbs(c.GLiNER.ModelPath) && err == nil {
+		exeDir := filepath.Dir(exePath)
+		absModel := filepath.Join(exeDir, c.GLiNER.ModelPath)
+		if _, statErr := os.Stat(absModel); statErr == nil {
+			c.GLiNER.ModelPath = absModel
+		}
+	}
+
 	return &c, nil
 }
 
