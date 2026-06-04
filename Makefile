@@ -153,7 +153,7 @@ package-macos:
 	rm -rf $(DIST_MAC_DIR)
 	mkdir -p $(DIST_MAC_DIR)/models
 	# Intentar universal, si falla avisar
-	CGO_ENABLED=1 wails build -platform darwin/universal || (echo "❌ Falló build universal. Intenta compilar para tu arquitectura específica." && exit 1)
+	$(MAKE) build-mac-universal || (echo "❌ Falló build universal. Intenta compilar para tu arquitectura específica." && exit 1)
 	
 	cp -r build/bin/antigravity-writer.app $(DIST_MAC_DIR)/
 	cp config.json $(DIST_MAC_DIR)/
