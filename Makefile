@@ -152,8 +152,8 @@ package-macos:
 	@echo "Nota: Si falla darwin/universal, usa build-mac-arm64 o build-mac-amd64"
 	rm -rf $(DIST_MAC_DIR)
 	mkdir -p $(DIST_MAC_DIR)/models
-	# Intentar universal, si falla avisar
-	$(MAKE) build-mac-universal || (echo "❌ Falló build universal. Intenta compilar para tu arquitectura específica." && exit 1)
+	# Compilamos sólo para arm64 porque libtokenizers.a no es universal
+	$(MAKE) build-mac-arm64 || (echo "❌ Falló build arm64. Intenta compilar localmente." && exit 1)
 	
 	cp -r build/bin/antigravity-writer.app $(DIST_MAC_DIR)/
 	cp config.json $(DIST_MAC_DIR)/

@@ -68,7 +68,7 @@ jobs:
             lib/windows/
             lib/tokenizers/
             lib/onnxruntime/
-          key: ${{ runner.os }}-assets-v4-${{ hashFiles('.github/workflows/release.yml') }}
+          key: ${{ matrix.platform }}-assets-v5-${{ hashFiles('.github/workflows/release.yml') }}
 
       - name: Download Assets from Hugging Face
         if: steps.cache-assets.outputs.cache-hit != 'true'
