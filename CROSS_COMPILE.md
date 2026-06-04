@@ -108,11 +108,34 @@ Para lograr la verdadera portabilidad sin volver loco al usuario, usamos estrate
 **La Solución**:
 Incrustar todo lo posible estáticamente (`-static-libstdc++`) y distribuir el resto como librerías dinámicas locales (`.dll`) junto al `.exe` en un `.zip`. En Windows, si una DLL está en la misma carpeta que el `.exe`, el sistema la cargará automáticamente, aislando la aplicación del resto del sistema.
 
-### 🍏 macOS: El Laberinto de Arquitecturas (Universal Binaries)
-**El Problema**: macOS está en una transición. La mitad de los usuarios usa Intel (`x86_64`) y la otra mitad usa Apple Silicon (`arm64`).
+### 🍏 macOS: La Trampa de las Arquitecturas y el Formato Estático
+**El Problema**: macOS está en una transición. La mitad de los usuarios usa Intel (`x86_64`) y la otra mitad usa Apple Silicon (`arm64`). Al principio intentamos hacer **Universal Binaries** (`-DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"`).
+Sin embargo, nos topamos con dos grandes muros:
+1. **Falta de librerías universales:** La librería externa `tokenizers` solo distribuye su versión precompilada para `darwin-arm64`. Al intentar enlazar el binario universal, el *linker* explotaba con `Undefined symbols for architecture x86_64: _tokenizers_decode` porque le faltaba la mitad Intel de esa librería.
+2. **Dynamic vs Static:** CMake en macOS tiende a construir librerías compartidas (`.dylib`) por defecto, lo que hacía que nuestra consolidación de archivos estáticos (`*.a`) ignorara a `libggml`, provocando un error `ld: library 'ggml' not found`.
 
 **La Solución**:
-Usamos CMake con el flag `-DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"`. Esto crea **Universal Binaries** (Librerías Fat). Son archivos que contienen el código máquina para ambas arquitecturas simultáneamente. Al ejecutarlo, macOS decide mágicamente qué parte cargar. Además, enlazamos el framework de Apple `Metal` (`-DGGML_METAL=ON`) para que Whisper vuele utilizando la GPU de los procesadores M1/M2/M3.
+1. **Abrazar ARM64:** Abandonamos la utopía *Universal*. Los runners actuales de macOS en Github Actions son Apple Silicon (M1). Ahora construimos exclusivamente para `arm64`, lo que nos garantiza compatibilidad perfecta con nuestra librería `tokenizers` nativa.
+2. **Forzar Static Linking:** Inyectamos `-DBUILD_SHARED_LIBS=OFF` explícitamente en el comando `cmake` de macOS para obligarle a generar `libggml.a` y poder embeberla dentro de nuestra aplicación, igual que hacemos en Linux.
+
+---
+
+## 5. Lecciones Oscuras de GitHub Actions (CI/CD)
+
+Al automatizar este proceso en Github Actions usando una `strategy.matrix`, descubrimos una trampa mortal con las **cachés**.
+
+**El problema del "Envenenamiento de Caché" (Cache Poisoning)**:
+Nuestro pipeline lanza trabajos paralelos para Linux y Windows. Dado que ambos trabajos se ejecutan sobre máquinas host `ubuntu-latest` (Windows se construye mediante *cross-compilation* usando MinGW), la variable de entorno de GitHub `${{ runner.os }}` evaluaba como `Linux` en ambos casos.
+
+Nuestra clave original de caché era:
+`key: $${{ runner.os }}-assets-v4-...`
+
+1. El job de **Windows** terminaba rápido, guardando en caché su carpeta `lib/` (que solo contenía sus `.dll` locales y no necesitaba descargar `libtokenizers` para Linux). Lo guardaba bajo la clave `Linux-assets-v4-XYZ`.
+2. El job de **Linux**, o una ejecución posterior de Linux, encontraba esa caché, decía "¡Acierto!", la restauraba y se saltaba el paso de descarga.
+3. El compilador de Linux llegaba al final y moría con `/usr/bin/ld: cannot find -ltokenizers` porque el job de Windows le había sobrescrito la caché con carpetas vacías.
+
+**La Solución**:
+Aislar las cachés usando variables inmutables de nuestra matriz (`matrix.platform` en lugar de `runner.os`). De esta forma, el job de Windows guarda en `windows-assets-vX` y el de Linux en `linux-assets-vX`, evitando que se pisen la manguera.
 
 ---
 
@@ -123,7 +146,7 @@ graph LR
     A[GitHub Push] --> B{Sistema Operativo}
     B -->|Ubuntu 20.04| C[Docker Build]
     B -->|Windows MinGW| D[Cross Compile CGO]
-    B -->|macOS| E[Universal Build]
+    B -->|macOS arm64| E[ARM64 Build]
     
     C -->|linuxdeploy| F(AntigravityWriter.AppImage)
     D -->|DLLs Locales| G(writer-windows-offline.zip)
