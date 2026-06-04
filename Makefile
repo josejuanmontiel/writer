@@ -122,7 +122,7 @@ WHISPER_BUILD_DIR_MAC ?= $(WHISPER_DIR)/build-mac
 
 build-whisper-mac-universal:
 	@echo "🔨 Compilando whisper.cpp para macOS Universal..."
-	cmake -B $(WHISPER_BUILD_DIR_MAC) -S $(WHISPER_DIR) -DGGML_METAL=ON -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
+	cmake -B $(WHISPER_BUILD_DIR_MAC) -S $(WHISPER_DIR) -DGGML_METAL=ON -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -DBUILD_SHARED_LIBS=OFF -DWHISPER_BUILD_EXAMPLES=OFF -DWHISPER_BUILD_TESTS=OFF
 	cmake --build $(WHISPER_BUILD_DIR_MAC) --config Release
 	# Consolidar librerías
 	mkdir -p $(WHISPER_BUILD_DIR_MAC)/src
@@ -136,7 +136,7 @@ build-mac-universal: build-whisper-mac-universal
 
 build-whisper-mac-arm64:
 	@echo "🔨 Compilando whisper.cpp para macOS arm64..."
-	cmake -B $(WHISPER_BUILD_DIR_MAC) -S $(WHISPER_DIR) -DGGML_METAL=ON
+	cmake -B $(WHISPER_BUILD_DIR_MAC) -S $(WHISPER_DIR) -DGGML_METAL=ON -DBUILD_SHARED_LIBS=OFF -DWHISPER_BUILD_EXAMPLES=OFF -DWHISPER_BUILD_TESTS=OFF
 	cmake --build $(WHISPER_BUILD_DIR_MAC) --config Release
 	mkdir -p $(WHISPER_BUILD_DIR_MAC)/src
 	find $(WHISPER_BUILD_DIR_MAC) -name "lib*.a" -exec cp "{}" $(WHISPER_BUILD_DIR_MAC)/src/ \;
