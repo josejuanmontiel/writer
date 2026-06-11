@@ -86,12 +86,13 @@ func Load() (*Config, error) {
 		return nil, err
 	}
 
-	// Si las rutas de modelo en la configuración son relativas, tratar de resolverlas respecto al ejecutable
+	// Si las rutas de modelo en la configuración son relativas, resolverlas respecto al ejecutable
 	if !filepath.IsAbs(c.GLiNER.ModelPath) && err == nil {
 		exeDir := filepath.Dir(exePath)
 		absModel := filepath.Join(exeDir, c.GLiNER.ModelPath)
-		if _, statErr := os.Stat(absModel); statErr == nil {
-			c.GLiNER.ModelPath = absModel
+		c.GLiNER.ModelPath = absModel
+		if _, statErr := os.Stat(absModel); statErr != nil {
+			fmt.Printf("Aviso: El modelo GLiNER no se encuentra en la ruta resuelta: %s\n", absModel)
 		}
 	}
 

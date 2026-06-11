@@ -18,14 +18,20 @@ RUN apt-get update && apt-get install -y \
     && apt-get install -y nodejs \
     && rm -rf /var/lib/apt/lists/*
 
-# Descargamos linuxdeploy (lo extraemos porque Docker no tiene FUSE por defecto)
+# Descargamos appimagetool y linuxdeploy (lo extraemos porque Docker no tiene FUSE por defecto)
 RUN cd /opt && \
     curl -L https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage -o linuxdeploy && \
     chmod +x linuxdeploy && \
     ./linuxdeploy --appimage-extract && \
     mv squashfs-root linuxdeploy-extracted && \
     rm linuxdeploy && \
-    ln -s /opt/linuxdeploy-extracted/AppRun /usr/local/bin/linuxdeploy
+    ln -s /opt/linuxdeploy-extracted/AppRun /usr/local/bin/linuxdeploy && \
+    curl -L https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage -o appimagetool && \
+    chmod +x appimagetool && \
+    ./appimagetool --appimage-extract && \
+    mv squashfs-root appimagetool-extracted && \
+    rm appimagetool && \
+    ln -s /opt/appimagetool-extracted/AppRun /usr/local/bin/appimagetool
 
 # Descargamos el plugin de GTK para linuxdeploy
 RUN curl -L https://raw.githubusercontent.com/linuxdeploy/linuxdeploy-plugin-gtk/master/linuxdeploy-plugin-gtk.sh -o /usr/local/bin/linuxdeploy-plugin-gtk && \

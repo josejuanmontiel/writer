@@ -62,8 +62,8 @@ package-linux: build-linux
 	cp -r models/gliner2_native $(APPDIR)/usr/bin/models/
 	
 	# Copiar ONNX Runtime para que linuxdeploy lo intercepte (si no lo hace solo)
-	cp lib/onnxruntime/lib/libonnxruntime.so.1.20.1 $(APPDIR)/usr/lib/libonnxruntime.so.1.20.1
-	ln -s libonnxruntime.so.1.20.1 $(APPDIR)/usr/lib/libonnxruntime.so || true
+	cp lib/onnxruntime/lib/libonnxruntime.so.1.22.0 $(APPDIR)/usr/lib/libonnxruntime.so.1.22.0
+	ln -s libonnxruntime.so.1.22.0 $(APPDIR)/usr/lib/libonnxruntime.so || true
 	
 	# Crear archivo .desktop
 	echo "[Desktop Entry]" > $(APPDIR)/usr/share/applications/antigravity-writer.desktop
@@ -76,10 +76,19 @@ package-linux: build-linux
 	# Copiar icono redimensionado a 256x256
 	convert build/appicon.png -resize 256x256 $(APPDIR)/usr/share/icons/hicolor/256x256/apps/antigravity-writer.png
 	
-	# Ejecutar linuxdeploy
-	@echo "Empaquetando con linuxdeploy..."
-	export OUTPUT=AntigravityWriter-x86_64.AppImage; \
-	linuxdeploy --appdir $(APPDIR) -d $(APPDIR)/usr/share/applications/antigravity-writer.desktop -i $(APPDIR)/usr/share/icons/hicolor/256x256/apps/antigravity-writer.png -e $(APPDIR)/usr/bin/writer --output appimage
+	# Ejecutar linuxdeploy solo para estructurar el AppDir
+	@echo "Estructurando AppDir con linuxdeploy..."
+	linuxdeploy --appdir $(APPDIR) -d $(APPDIR)/usr/share/applications/antigravity-writer.desktop -i $(APPDIR)/usr/share/icons/hicolor/256x256/apps/antigravity-writer.png -e $(APPDIR)/usr/bin/writer
+	
+	# Eliminar las librerías del sistema (glib, gtk, etc.) empaquetadas por linuxdeploy
+	# Esto es crítico para aplicaciones Wails/WebKit2GTK, ya que empaquetar glib rompe WebKitNetworkProcess
+	@echo "Limpiando librerías conflictivas de GTK/Glib del AppDir..."
+	find $(APPDIR)/usr/lib -type f -not -name "libonnxruntime*" -delete || true
+	find $(APPDIR)/usr/lib -type l -not -name "libonnxruntime*" -delete || true
+	
+	# Generar el AppImage final
+	@echo "Generando AppImage con appimagetool..."
+	ARCH=x86_64 appimagetool $(APPDIR) AntigravityWriter-x86_64.AppImage
 	
 	@echo "✅ Paquete creado: ./AntigravityWriter-x86_64.AppImage"
 
