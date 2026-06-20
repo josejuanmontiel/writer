@@ -255,23 +255,24 @@ jobs:
         if: matrix.platform == 'linux' || matrix.platform == 'windows'
         run: |
           if [ "${{ matrix.platform }}" == "linux" ]; then
-            echo "🧪 Testing compiled Linux binary in MCP-only headless mode..."
-            export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${{ github.workspace }}/lib/onnxruntime/lib
-            ./build/bin/writer --mcp-only > linux_run.log 2>&1 &
-            PID=$!
+            echo "🧪 Testing compiled Linux binary in MCP-only headless mode inside Docker..."
+            docker run -d --name mcp-test-container -p 3000:3000 --entrypoint bash -v ${{ github.workspace }}:/app -e LD_LIBRARY_PATH=/app/lib/onnxruntime/lib antigravity-builder -c "./build/bin/writer --mcp-only"
             sleep 5
             if curl -s -I http://localhost:3000/mcp | grep -q "HTTP/1.1"; then
               echo "✅ Linux MCP integration test passed!"
-              kill $PID
+              docker kill mcp-test-container
+              docker rm mcp-test-container
             else
               echo "❌ Linux MCP integration test failed. Application output:"
-              cat linux_run.log
-              kill $PID
+              docker logs mcp-test-container
+              docker kill mcp-test-container
+              docker rm mcp-test-container
               exit 1
             fi
           elif [ "${{ matrix.platform }}" == "windows" ]; then
             echo "🧪 Testing compiled Windows binary under Wine..."
-            sudo apt-get update && sudo apt-get install -y wine wine64
+            sudo dpkg --add-architecture i386
+            sudo apt-get update && sudo apt-get install -y wine wine64 wine32
             cd dist-win
             export WINEARCH=win64
             xvfb-run wine ./writer.exe --mcp-only > wine_run.log 2>&1 &
