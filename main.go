@@ -5,6 +5,8 @@ import (
 	"embed"
 	"flag"
 	"fmt"
+	"io"
+	"log"
 	"os"
 
 	"github.com/wailsapp/wails/v2"
@@ -21,6 +23,16 @@ var assets embed.FS
 func main() {
 	mcpOnly := flag.Bool("mcp-only", false, "Start only the MCP server in headless mode")
 	flag.Parse()
+
+	// Redirigir logs a un archivo local en modo GUI
+	if !*mcpOnly {
+		logFile, err := os.OpenFile("writer.log", os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
+		if err == nil {
+			os.Stdout = logFile
+			os.Stderr = logFile
+			log.SetOutput(logFile)
+		}
+	}
 
 	// Create an instance of the app structure
 	app := NewApp()

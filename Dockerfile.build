@@ -1,5 +1,5 @@
-# Imagen base de Ubuntu 20.04 para asegurar compatibilidad con GLIBC antiguo (2.31)
-FROM ubuntu:20.04
+# Imagen base de Ubuntu 22.04 para asegurar compatibilidad con GLIBC estable y moderno
+FROM ubuntu:22.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV TZ=Etc/UTC
@@ -11,7 +11,7 @@ RUN apt-get update && apt-get install -y \
     git \
     pkg-config \
     libgtk-3-dev \
-    libwebkit2gtk-4.0-dev \
+    libwebkit2gtk-4.1-dev \
     cmake \
     imagemagick \
     && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
@@ -37,8 +37,8 @@ RUN cd /opt && \
 RUN curl -L https://raw.githubusercontent.com/linuxdeploy/linuxdeploy-plugin-gtk/master/linuxdeploy-plugin-gtk.sh -o /usr/local/bin/linuxdeploy-plugin-gtk && \
     chmod +x /usr/local/bin/linuxdeploy-plugin-gtk
 
-# Instalamos Go 1.22 (Ajusta si necesitas otra versión)
-RUN curl -L https://go.dev/dl/go1.22.4.linux-amd64.tar.gz -o go.tar.gz \
+# Instalamos Go 1.24 (Ajusta si necesitas otra versión)
+RUN curl -L https://go.dev/dl/go1.24.0.linux-amd64.tar.gz -o go.tar.gz \
     && tar -C /usr/local -xzf go.tar.gz \
     && rm go.tar.gz
 

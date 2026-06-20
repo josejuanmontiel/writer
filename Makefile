@@ -93,11 +93,11 @@ package-linux: build-linux
 	@echo "✅ Paquete creado: ./AntigravityWriter-x86_64.AppImage"
 
 package-linux-docker:
-	@echo "🐳 Construyendo contenedor de compilación (Ubuntu 20.04)..."
+	@echo "🐳 Construyendo contenedor de compilación (Ubuntu 22.04)..."
 	docker build -t antigravity-builder -f Dockerfile.build .
 	@echo "🐳 Compilando paquete de Linux dentro del contenedor..."
 	# Montamos el directorio actual y el caché de go para no descargar todo cada vez
-	docker run --entrypoint bash --rm -v $(CURDIR):/app -v go_mod_cache:/go/pkg/mod -e WHISPER_BUILD_DIR=/app/lib/whisper.cpp/build-docker -e WAILS_BUILD_TAGS="" antigravity-builder -c "make package-linux && chown -R $(shell id -u):$(shell id -g) /app/frontend /app/build /app/dist /app/lib/whisper.cpp/build-docker"
+	docker run --entrypoint bash --rm -v $(CURDIR):/app -v go_mod_cache:/go/pkg/mod -e WHISPER_BUILD_DIR=/app/lib/whisper.cpp/build-docker -e WAILS_BUILD_TAGS="-tags webkit2_41" antigravity-builder -c "make package-linux && chown -R $(shell id -u):$(shell id -g) /app/frontend /app/build /app/dist /app/lib/whisper.cpp/build-docker"
 	@echo "✅ Paquete compilado en Docker exportado con éxito."
 
 DIST_WIN_DIR=dist-win
