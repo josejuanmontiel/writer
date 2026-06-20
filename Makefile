@@ -28,19 +28,19 @@ WAILS_BUILD_TAGS ?= -tags webkit2_41
 build-linux: build-whisper
 	@echo "🚀 Construyendo para Linux..."
 	@echo "Nota: Si tienes errores de GLIBC, compila en una distro más antigua (ej. Ubuntu 20.04)"
-	CGO_ENABLED=1 CGO_CFLAGS="-I$(WHISPER_DIR)/include -I$(WHISPER_DIR)/ggml/include" \
+	REAL_CC=gcc CGO_ENABLED=1 CGO_CFLAGS="-I$(WHISPER_DIR)/include -I$(WHISPER_DIR)/ggml/include" \
 	CGO_LDFLAGS="-L$(WHISPER_BUILD_DIR)/src -L$(WHISPER_BUILD_DIR)/ggml/src" \
-	wails build $(WAILS_BUILD_TAGS)
+	wails build $(WAILS_BUILD_TAGS) -ldflags "-linkmode external -extld $(CURDIR)/scripts/linker_wrapper.sh -extldflags '-static-libstdc++ -static-libgcc'"
 
 build-windows:
 	@echo "🚀 Construyendo para Windows..."
 	@echo "Nota: Requiere tener instalado x86_64-w64-mingw32-gcc y whisper.cpp compilado para Windows"
-	GOOS=windows GOARCH=amd64 CGO_ENABLED=1 \
+	REAL_CC=x86_64-w64-mingw32-gcc GOOS=windows GOARCH=amd64 CGO_ENABLED=1 \
 	CGO_CFLAGS="-I$(WHISPER_DIR)/include -I$(WHISPER_DIR)/ggml/include" \
 	CGO_LDFLAGS="-static-libstdc++ -static-libgcc -fopenmp -Wl,-Bstatic -lgomp -Wl,-Bdynamic -lpthread" \
 	CC=x86_64-w64-mingw32-gcc \
 	CXX=x86_64-w64-mingw32-g++ \
-	wails build -platform windows/amd64 -skipbindings -ldflags "-linkmode external -extldflags '-lntdll -lbcrypt -luserenv -lws2_32'"
+	wails build -platform windows/amd64 -skipbindings -ldflags "-linkmode external -extld $(CURDIR)/scripts/linker_wrapper.sh -extldflags '-static-libstdc++ -static-libgcc -lntdll -lbcrypt -luserenv -lws2_32'"
 
 DIST_DIR=dist
 APPDIR=$(DIST_DIR)/AppDir
@@ -106,23 +106,21 @@ package-windows:
 	rm -rf $(DIST_WIN_DIR)
 	mkdir -p $(DIST_WIN_DIR)/models
 	# Pasamos CC y CXX para que CGO use los correctos de MinGW
-	GOOS=windows GOARCH=amd64 CGO_ENABLED=1 \
+	REAL_CC=x86_64-w64-mingw32-gcc GOOS=windows GOARCH=amd64 CGO_ENABLED=1 \
 	CGO_CFLAGS="-I$(WHISPER_DIR)/include -I$(WHISPER_DIR)/ggml/include" \
 	CGO_LDFLAGS="-L$(CURDIR)/lib/windows -static-libstdc++ -static-libgcc -fopenmp -Wl,-Bstatic -lgomp -Wl,-Bdynamic -lpthread -lntdll -lbcrypt" \
 	CC=x86_64-w64-mingw32-gcc \
 	CXX=x86_64-w64-mingw32-g++ \
-	wails build -platform windows/amd64 -skipbindings
+	wails build -platform windows/amd64 -skipbindings -ldflags "-linkmode external -extld $(CURDIR)/scripts/linker_wrapper.sh -extldflags '-static-libstdc++ -static-libgcc -lntdll -lbcrypt -luserenv -lws2_32'"
 	
 	cp build/bin/writer.exe $(DIST_WIN_DIR)/
 	cp config.json $(DIST_WIN_DIR)/
 	# Copiar DLLs necesarias (deben estar en lib/windows)
 	-cp lib/windows/*.dll $(DIST_WIN_DIR)/
 	-cp /usr/x86_64-w64-mingw32/lib/libwinpthread-1.dll $(DIST_WIN_DIR)/ || true
-	-cp /usr/lib/gcc/x86_64-w64-mingw32/14-posix/libstdc++-6.dll $(DIST_WIN_DIR)/ || true
-	-cp /usr/lib/gcc/x86_64-w64-mingw32/14-posix/libgcc_s_seh-1.dll $(DIST_WIN_DIR)/ || true
 	# Copiar modelos
-	cp models/ggml-tiny.bin $(DIST_WIN_DIR)/models/
-	cp -r models/gliner2_native $(DIST_WIN_DIR)/models/
+	-cp models/ggml-*.bin $(DIST_WIN_DIR)/models/ || true
+	-cp -r models/gliner2_native $(DIST_WIN_DIR)/models/ || true
 	zip -r antigravity-writer-windows-offline.zip $(DIST_WIN_DIR)
 	@echo "⚠️  Nota: Asegúrate de tener las DLLs (whisper, tokenizers, onnxruntime) en lib/windows"
 	@echo "✅ Paquete creado: antigravity-writer-windows-offline.zip"

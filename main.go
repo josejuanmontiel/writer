@@ -1,7 +1,10 @@
 package main
 
 import (
+	"context"
 	"embed"
+	"flag"
+	"fmt"
 
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/options"
@@ -15,8 +18,18 @@ import (
 var assets embed.FS
 
 func main() {
+	mcpOnly := flag.Bool("mcp-only", false, "Start only the MCP server in headless mode")
+	flag.Parse()
+
 	// Create an instance of the app structure
 	app := NewApp()
+
+	if *mcpOnly {
+		fmt.Println("Starting Antigravity Writer in MCP-only headless mode...")
+		app.headless = true
+		app.startup(context.Background())
+		select {}
+	}
 
 	// Create application with options
 	err := wails.Run(&options.App{

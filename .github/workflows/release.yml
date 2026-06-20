@@ -251,6 +251,43 @@ jobs:
             make package-macos
           fi
 
+      - name: Validate Build (MCP Integration Test)
+        if: matrix.platform == 'linux' || matrix.platform == 'windows'
+        run: |
+          if [ "${{ matrix.platform }}" == "linux" ]; then
+            echo "🧪 Testing compiled Linux binary in MCP-only headless mode..."
+            export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${{ github.workspace }}/lib/onnxruntime/lib
+            ./build/bin/writer --mcp-only > linux_run.log 2>&1 &
+            PID=$!
+            sleep 5
+            if curl -s -I http://localhost:3000/mcp | grep -q "HTTP/1.1"; then
+              echo "✅ Linux MCP integration test passed!"
+              kill $PID
+            else
+              echo "❌ Linux MCP integration test failed. Application output:"
+              cat linux_run.log
+              kill $PID
+              exit 1
+            fi
+          elif [ "${{ matrix.platform }}" == "windows" ]; then
+            echo "🧪 Testing compiled Windows binary under Wine..."
+            sudo apt-get update && sudo apt-get install -y wine64
+            cd dist-win
+            wine64 ./writer.exe --mcp-only > wine_run.log 2>&1 &
+            PID=$!
+            sleep 8
+            if curl -s -I http://localhost:3000/mcp | grep -q "HTTP/1.1"; then
+              echo "✅ Windows MCP integration test passed!"
+              kill $PID
+            else
+              echo "❌ Windows MCP integration test failed. Wine output:"
+              cat wine_run.log
+              kill $PID
+              exit 1
+            fi
+            cd ..
+          fi
+
       - name: Release
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')

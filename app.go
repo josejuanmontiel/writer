@@ -27,6 +27,7 @@ type App struct {
 	mcpServer    *mcp.MCPEditorServer
 	canvaClient  *canva.CanvaClient
 	diagram      *diagram.Manager
+	headless     bool
 }
 
 // NewApp creates a new App application struct
@@ -449,6 +450,10 @@ func (a *App) UpdateDiagramStep(index int, stepJSON string) error {
 
 // Implementación de AppInterface para MCP
 func (a *App) EmitEvent(name string, data interface{}) {
+	if a.headless {
+		fmt.Printf("[Headless Event] %s: %v\n", name, data)
+		return
+	}
 	if a.ctx != nil {
 		runtime.EventsEmit(a.ctx, name, data)
 	}
