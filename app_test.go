@@ -21,6 +21,7 @@ func TestProcessAudio(t *testing.T) {
     // However, I'll just check if the syntax and imports are correct for now.
     
     app := NewApp()
+    app.headless = true
     app.startup(context.Background())
     
     // This will actually try to hit localhost:10300

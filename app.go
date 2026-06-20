@@ -50,12 +50,16 @@ func (a *App) startup(ctx context.Context) {
 	}
 	a.config = cfg
 
-	// Inicializar Audio
-	rec, err := audio.NewRecorder()
-	if err != nil {
-		fmt.Printf("Error inicializando audio: %v\n", err)
+	// Inicializar Audio (solo si no es modo headless/mcp-only)
+	if !a.headless {
+		rec, err := audio.NewRecorder()
+		if err != nil {
+			fmt.Printf("Error inicializando audio: %v\n", err)
+		}
+		a.recorder = rec
+	} else {
+		fmt.Println("🔇 Modo headless/mcp-only: omitiendo inicialización del grabador de audio")
 	}
-	a.recorder = rec
 
 	// Actualizar IA con el path de la configuración si es necesario
 	if a.config != nil && a.config.GLiNER.ModelPath != "" {
@@ -104,15 +108,24 @@ func (a *App) UpdateConfig(newConfig config.Config) error {
 }
 
 func (a *App) StartRecording() error {
+	if a.recorder == nil {
+		return fmt.Errorf("grabador de audio no inicializado (modo headless)")
+	}
 	fmt.Printf("🎤 Iniciando grabación con dispositivo: %s\n", a.config.RecordingDevice)
 	return a.recorder.Start(a.config.RecordingDevice)
 }
 
 func (a *App) GetAudioDevices() ([]string, error) {
+	if a.recorder == nil {
+		return nil, fmt.Errorf("grabador de audio no inicializado (modo headless)")
+	}
 	return a.recorder.GetDevices()
 }
 
 func (a *App) StopRecording(mode string, isAiMode bool) (string, error) {
+	if a.recorder == nil {
+		return "", fmt.Errorf("grabador de audio no inicializado (modo headless)")
+	}
 	fmt.Println("⏹️ Deteniendo grabación...")
 	buffer, err := a.recorder.Stop()
 	if err != nil {

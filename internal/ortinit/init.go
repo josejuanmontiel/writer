@@ -20,11 +20,24 @@ func init() {
 		} else if runtime.GOOS == "darwin" {
 			libPath = filepath.Join(exeDir, "libonnxruntime.dylib")
 		} else {
-			// Intentar al lado del ejecutable (para offline simple)
-			libPath = filepath.Join(exeDir, "libonnxruntime.so")
-			if _, err := os.Stat(libPath); os.IsNotExist(err) {
-				// Intentar en ../lib (para AppImage usr/bin -> usr/lib)
-				libPath = filepath.Join(filepath.Dir(exeDir), "lib", "libonnxruntime.so")
+			// Intentar varias rutas posibles para Linux
+			paths := []string{
+				filepath.Join(exeDir, "libonnxruntime.so"),
+				filepath.Join(exeDir, "libonnxruntime.so.1.22.0"),
+				filepath.Join(filepath.Dir(exeDir), "lib", "libonnxruntime.so"),
+				filepath.Join(filepath.Dir(exeDir), "lib", "libonnxruntime.so.1.22.0"),
+				filepath.Join(filepath.Dir(filepath.Dir(exeDir)), "lib", "onnxruntime", "lib", "libonnxruntime.so"),
+				filepath.Join(filepath.Dir(filepath.Dir(exeDir)), "lib", "onnxruntime", "lib", "libonnxruntime.so.1.22.0"),
+			}
+			for _, p := range paths {
+				if _, err := os.Stat(p); err == nil {
+					libPath = p
+					break
+				}
+			}
+			if libPath == "" {
+				// Si no se encuentra ninguno, dejamos que el default apunte al primero esperado
+				libPath = filepath.Join(exeDir, "libonnxruntime.so")
 			}
 		}
 
