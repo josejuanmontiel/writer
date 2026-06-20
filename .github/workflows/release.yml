@@ -273,6 +273,7 @@ jobs:
             echo "🧪 Testing compiled Windows binary under Wine..."
             sudo apt-get update && sudo apt-get install -y wine wine64
             cd dist-win
+            export WINEARCH=win64
             xvfb-run wine ./writer.exe --mcp-only > wine_run.log 2>&1 &
             PID=$!
             sleep 8
