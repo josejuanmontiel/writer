@@ -275,9 +275,17 @@ jobs:
             sudo apt-get update && sudo apt-get install -y wine wine64 wine32
             cd dist-win
             export WINEARCH=win64
+            export WINEDLLOVERRIDES="mscoree,mshtml="
+            echo "Initializing Wine prefix..."
+            xvfb-run wineboot --init
+            echo "Waiting for wineserver to settle..."
+            wineserver -w
+            echo "Starting Windows binary under Wine..."
             xvfb-run wine ./writer.exe --mcp-only > wine_run.log 2>&1 &
             PID=$!
-            sleep 8
+            echo "Waiting 15 seconds for server to start..."
+            sleep 15
+            echo "Checking MCP server response..."
             if curl -s -I http://localhost:3000/mcp | grep -q "HTTP/1.1"; then
               echo "✅ Windows MCP integration test passed!"
               kill $PID

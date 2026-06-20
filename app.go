@@ -41,17 +41,25 @@ func NewApp() *App {
 
 // startup is called when the app starts. The context is saved
 func (a *App) startup(ctx context.Context) {
+	fmt.Println("🚀 [STARTUP] entering...")
+	os.Stdout.Sync()
 	a.ctx = ctx
 	
 	// Cargar Configuración
+	fmt.Println("🚀 [STARTUP] loading config...")
+	os.Stdout.Sync()
 	cfg, err := config.Load()
 	if err != nil {
 		fmt.Printf("Error cargando configuración: %v\n", err)
 	}
 	a.config = cfg
+	fmt.Println("🚀 [STARTUP] config loaded.")
+	os.Stdout.Sync()
 
 	// Inicializar Audio (solo si no es modo headless/mcp-only)
 	if !a.headless {
+		fmt.Println("🚀 [STARTUP] initializing audio recorder...")
+		os.Stdout.Sync()
 		rec, err := audio.NewRecorder()
 		if err != nil {
 			fmt.Printf("Error inicializando audio: %v\n", err)
@@ -59,14 +67,19 @@ func (a *App) startup(ctx context.Context) {
 		a.recorder = rec
 	} else {
 		fmt.Println("🔇 Modo headless/mcp-only: omitiendo inicialización del grabador de audio")
+		os.Stdout.Sync()
 	}
 
 	// Actualizar IA con el path de la configuración si es necesario
 	if a.config != nil && a.config.GLiNER.ModelPath != "" {
+		fmt.Printf("🚀 [STARTUP] initializing AI Processor with path: %s...\n", a.config.GLiNER.ModelPath)
+		os.Stdout.Sync()
 		a.aiProcessor = ai.NewAIProcessor("models", a.config.GLiNER.ModelPath)
 	}
 
 	// Inicializar Canva
+	fmt.Println("🚀 [STARTUP] initializing Canva client...")
+	os.Stdout.Sync()
 	a.canvaClient = canva.NewCanvaClient(
 		a.config.Canva.ClientID, 
 		a.config.Canva.ClientSecret, 
@@ -82,12 +95,19 @@ func (a *App) startup(ctx context.Context) {
 	// El diagrama ya ha sido inicializado en NewApp
 
 	// Inicializar MCP
+	fmt.Println("🚀 [STARTUP] initializing MCP server...")
+	os.Stdout.Sync()
 	a.mcpServer = mcp.NewMCPEditorServer(a)
 	go func() {
+		fmt.Println("🚀 [STARTUP] starting MCP SSE server on port 3000...")
+		os.Stdout.Sync()
 		if err := a.mcpServer.StartSSE(3000); err != nil {
 			fmt.Printf("Error en servidor MCP: %v\n", err)
+			os.Stdout.Sync()
 		}
 	}()
+	fmt.Println("🚀 [STARTUP] startup completed successfully.")
+	os.Stdout.Sync()
 }
 
 func (a *App) shutdown(ctx context.Context) {

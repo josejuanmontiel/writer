@@ -5,6 +5,7 @@ import (
 	"embed"
 	"flag"
 	"fmt"
+	"os"
 
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/options"
@@ -26,8 +27,11 @@ func main() {
 
 	if *mcpOnly {
 		fmt.Println("Starting Antigravity Writer in MCP-only headless mode...")
+		os.Stdout.Sync()
 		app.headless = true
 		app.startup(context.Background())
+		fmt.Println("Server startup call finished. Entering select{} blocking...")
+		os.Stdout.Sync()
 		select {}
 	}
 
