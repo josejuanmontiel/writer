@@ -7,7 +7,7 @@ import threading
 import urllib.request
 
 def main():
-    audio_path = sys.argv[1] if len(sys.argv) > 1 else "antigravity_dictation.wav"
+    audio_path = os.path.abspath(sys.argv[1]) if len(sys.argv) > 1 else os.path.abspath("antigravity_dictation.wav")
     base_url = sys.argv[2] if len(sys.argv) > 2 else "http://localhost:3000"
     
     print(f"Connecting to MCP SSE endpoint at {base_url}/mcp...")

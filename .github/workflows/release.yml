@@ -311,17 +311,6 @@ jobs:
             exit 1
           }
           
-          Write-Host "🌐 Checking MCP server HTTP response..."
-          try {
-            $response = Invoke-WebRequest -Uri "http://localhost:3000/mcp" -Method Head -UseBasicParsing -TimeoutSec 10
-            Write-Host "✅ Real Windows MCP endpoint reachable! Status: $($response.StatusCode)"
-          } catch {
-            Write-Error "❌ Failed to connect to MCP server on Windows: $_"
-            if (Test-Path "writer.log") {
-              Get-Content "writer.log"
-            }
-            exit 1
-          }
 
           Write-Host "🎙️ Running End-to-End Whisper Speech Transcription Test on Windows..."
           try {
