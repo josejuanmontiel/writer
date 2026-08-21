@@ -5,7 +5,6 @@ import (
 	"embed"
 	"flag"
 	"fmt"
-	"io"
 	"log"
 	"os"
 
@@ -13,6 +12,7 @@ import (
 	"github.com/wailsapp/wails/v2/pkg/options"
 	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
 	"github.com/wailsapp/wails/v2/pkg/options/linux"
+	"github.com/wailsapp/wails/v2/pkg/options/windows"
 	
 	_ "antigravity-writer/internal/ortinit"
 )
@@ -64,6 +64,12 @@ func main() {
 		// Opciones específicas para Linux
 		Linux: &linux.Options{
 			WindowIsTranslucent: false,
+		},
+		// Opciones específicas para Windows
+		Windows: &windows.Options{
+			WebviewUserDataPath:                 os.Getenv("LOCALAPPDATA") + `\antigravity-writer`,
+			WebviewGpuIsDisabled:                true,
+			WebviewDisableRendererCodeIntegrity: true,
 		},
 		// Esta opción es clave para que no se bloqueen funcionalidades por seguridad estricta en local
 		CSSDragProperty: "widows",

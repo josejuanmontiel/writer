@@ -103,7 +103,8 @@ package-linux-docker:
 DIST_WIN_DIR=dist-win
 package-windows:
 	@echo "📦 Empaquetando para Windows (Offline)..."
-	rm -rf $(DIST_WIN_DIR)
+	mkdir -p $(DIST_WIN_DIR)/models
+	rm -rf $(DIST_WIN_DIR)/*
 	mkdir -p $(DIST_WIN_DIR)/models
 	# Pasamos CC y CXX para que CGO use los correctos de MinGW
 	REAL_CC=x86_64-w64-mingw32-gcc GOOS=windows GOARCH=amd64 CGO_ENABLED=1 \
@@ -111,7 +112,7 @@ package-windows:
 	CGO_LDFLAGS="-L$(CURDIR)/lib/windows -static-libstdc++ -static-libgcc -fopenmp -Wl,-Bstatic -lgomp -Wl,-Bdynamic -lpthread -lntdll -lbcrypt" \
 	CC=x86_64-w64-mingw32-gcc \
 	CXX=x86_64-w64-mingw32-g++ \
-	wails build -platform windows/amd64 -skipbindings -ldflags "-linkmode external -extld $(CURDIR)/scripts/linker_wrapper.sh -extldflags '-static-libstdc++ -static-libgcc -lntdll -lbcrypt -luserenv -lws2_32'"
+	wails build -platform windows/amd64 -devtools -skipbindings -ldflags "-linkmode external -extld $(CURDIR)/scripts/linker_wrapper.sh -extldflags '-static-libstdc++ -static-libgcc -lntdll -lbcrypt -luserenv -lws2_32'"
 	
 	cp build/bin/writer.exe $(DIST_WIN_DIR)/
 	cp config.json $(DIST_WIN_DIR)/

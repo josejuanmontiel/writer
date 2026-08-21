@@ -50,23 +50,27 @@ function App() {
   };
 
   React.useEffect(() => {
-    GetConfig().then(setConfig);
+    GetConfig().then(cfg => setConfig(cfg || {}));
 
     // Cargar modelos de Whisper
-    GetAvailableWhisperModels().then(setAvailableModels);
-    GetDownloadedWhisperModels().then(setDownloadedModels);
+    GetAvailableWhisperModels().then(m => setAvailableModels(m || [])).catch(() => setAvailableModels([]));
+    GetDownloadedWhisperModels().then(m => setDownloadedModels(m || [])).catch(() => setDownloadedModels([]));
     
     // Cargar pasos del diagrama
     GetDiagramSteps().then(json => {
       if (json) {
-        const steps = JSON.parse(json);
-        setDiagramSteps(steps);
-        setProcessedCount(steps.length); // Sincronizamos el contador
+        try {
+          const steps = JSON.parse(json);
+          setDiagramSteps(steps || []);
+          setProcessedCount((steps || []).length);
+        } catch (e) {
+          console.error(e);
+        }
       }
     });
 
     // Cargar dispositivos al inicio
-    GetAudioDevices().then(setDevices).catch(console.error);
+    GetAudioDevices().then(d => setDevices(d || [])).catch(() => setDevices([]));
 
     console.log("Suscribiendo a eventos...");
     const unsubscribeMcp = EventsOn('mcp:insert_text', (text) => {
@@ -92,10 +96,27 @@ function App() {
       if (json) setDiagramSteps(JSON.parse(json));
     });
 
+    const handleTestDictation = async (e) => {
+      if (e.ctrlKey && e.altKey && (e.key === 'd' || e.key === 'D')) {
+        console.log("🧪 Test dictation triggered via shortcut!");
+        try {
+          const text = await StopRecording('dictar', false);
+          console.log("🧪 Dictation result:", text);
+          if (editorRef.current && text) {
+            editorRef.current.insertText(text);
+          }
+        } catch (err) {
+          console.error("🧪 Dictation error:", err);
+        }
+      }
+    };
+    window.addEventListener('keydown', handleTestDictation);
+
     return () => {
       unsubscribeMcp();
       unsubscribeDownload();
       unsubscribeDiagram();
+      window.removeEventListener('keydown', handleTestDictation);
     };
   }, []);
 
@@ -573,10 +594,10 @@ function App() {
                 }}
                 className="w-full bg-black/20 border border-white/5 rounded-xl px-4 py-2 text-sm outline-none focus:border-brand-accent transition-colors appearance-none cursor-pointer"
               >
-                {devices.length === 0 ? (
+                {(devices || []).length === 0 ? (
                   <option value="">Detectando dispositivos...</option>
                 ) : (
-                  devices.map((d, i) => (
+                  (devices || []).map((d, i) => (
                     <option key={i} value={d} className="bg-brand-bg text-white">{d}</option>
                   ))
                 )}

@@ -251,51 +251,22 @@ jobs:
             make package-macos
           fi
 
-      - name: Validate Build (MCP Integration Test)
-        if: matrix.platform == 'linux' || matrix.platform == 'windows'
+      - name: Validate Linux Build (MCP Integration Test)
+        if: matrix.platform == 'linux'
         run: |
-          if [ "${{ matrix.platform }}" == "linux" ]; then
-            echo "🧪 Testing compiled Linux binary in MCP-only headless mode inside Docker..."
-            docker run -d --name mcp-test-container -p 3000:3000 --entrypoint bash -v ${{ github.workspace }}:/app -e LD_LIBRARY_PATH=/app/lib/onnxruntime/lib antigravity-builder -c "./build/bin/writer --mcp-only"
-            sleep 5
-            if curl -s -I http://localhost:3000/mcp | grep -q "HTTP/1.1"; then
-              echo "✅ Linux MCP integration test passed!"
-              docker kill mcp-test-container
-              docker rm mcp-test-container
-            else
-              echo "❌ Linux MCP integration test failed. Application output:"
-              docker logs mcp-test-container
-              docker kill mcp-test-container
-              docker rm mcp-test-container
-              exit 1
-            fi
-          elif [ "${{ matrix.platform }}" == "windows" ]; then
-            echo "🧪 Testing compiled Windows binary under Wine..."
-            sudo dpkg --add-architecture i386
-            sudo apt-get update && sudo apt-get install -y wine wine64 wine32
-            cd dist-win
-            export WINEARCH=win64
-            export WINEDLLOVERRIDES="mscoree,mshtml="
-            echo "Initializing Wine prefix..."
-            xvfb-run wineboot --init
-            echo "Waiting for wineserver to settle..."
-            wineserver -w
-            echo "Starting Windows binary under Wine..."
-            xvfb-run wine ./writer.exe --mcp-only > wine_run.log 2>&1 &
-            PID=$!
-            echo "Waiting 15 seconds for server to start..."
-            sleep 15
-            echo "Checking MCP server response..."
-            if curl -s -I http://localhost:3000/mcp | grep -q "HTTP/1.1"; then
-              echo "✅ Windows MCP integration test passed!"
-              kill $PID
-            else
-              echo "❌ Windows MCP integration test failed. Wine output:"
-              cat wine_run.log
-              kill $PID
-              exit 1
-            fi
-            cd ..
+          echo "🧪 Testing compiled Linux binary in MCP-only headless mode inside Docker..."
+          docker run -d --name mcp-test-container -p 3000:3000 --entrypoint bash -v ${{ github.workspace }}:/app -e LD_LIBRARY_PATH=/app/lib/onnxruntime/lib antigravity-builder -c "./build/bin/writer --mcp-only"
+          sleep 5
+          if curl -s -I http://localhost:3000/mcp | grep -q "HTTP/1.1"; then
+            echo "✅ Linux MCP integration test passed!"
+            docker kill mcp-test-container
+            docker rm mcp-test-container
+          else
+            echo "❌ Linux MCP integration test failed. Application output:"
+            docker logs mcp-test-container
+            docker kill mcp-test-container
+            docker rm mcp-test-container
+            exit 1
           fi
 
       - name: Upload Build Artifact
@@ -304,9 +275,56 @@ jobs:
           name: ${{ matrix.platform }}-artifact
           path: ${{ matrix.artifact }}
 
+  test-windows-real:
+    name: Validate Windows Build (Real Windows Runner)
+    needs: build
+    runs-on: windows-latest
+    steps:
+      - name: Download Windows Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-artifact
+          path: .
+
+      - name: Extract and Smoke Test on Real Windows
+        shell: pwsh
+        run: |
+          Write-Host "📦 Extracting Windows offline package..."
+          Expand-Archive -Path "antigravity-writer-windows-offline.zip" -DestinationPath "test-win"
+          cd test-win/dist-win
+          
+          Write-Host "🔍 Verifying required DLLs..."
+          Get-ChildItem -Filter *.dll | Select-Object Name, Length
+          
+          Write-Host "🚀 Starting writer.exe in background..."
+          $proc = Start-Process -FilePath ".\writer.exe" -ArgumentList "--mcp-only" -PassThru -NoNewWindow
+          Start-Sleep -Seconds 8
+          
+          if ($proc.HasExited) {
+            Write-Error "❌ Windows binary crashed on startup! Exit code: $($proc.ExitCode)"
+            if (Test-Path "writer.log") {
+              Get-Content "writer.log"
+            }
+            exit 1
+          }
+          
+          Write-Host "🌐 Checking MCP server HTTP response..."
+          try {
+            $response = Invoke-WebRequest -Uri "http://localhost:3000/mcp" -UseBasicParsing -TimeoutSec 10
+            Write-Host "✅ Real Windows MCP integration test passed! Status: $($response.StatusCode)"
+          } catch {
+            Write-Error "❌ Failed to connect to MCP server on Windows: $_"
+            if (Test-Path "writer.log") {
+              Get-Content "writer.log"
+            }
+            exit 1
+          } finally {
+            Stop-Process -Id $proc.Id -Force
+          }
+
   release:
     name: Create GitHub Release
-    needs: build
+    needs: [build, test-windows-real]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
     permissions:
