@@ -310,10 +310,94 @@ jobs:
           
           Write-Host "🌐 Checking MCP server HTTP response..."
           try {
-            $response = Invoke-WebRequest -Uri "http://localhost:3000/mcp" -UseBasicParsing -TimeoutSec 10
-            Write-Host "✅ Real Windows MCP integration test passed! Status: $($response.StatusCode)"
+            $response = Invoke-WebRequest -Uri "http://localhost:3000/mcp" -Method Head -UseBasicParsing -TimeoutSec 10
+            Write-Host "✅ Real Windows MCP endpoint reachable! Status: $($response.StatusCode)"
           } catch {
             Write-Error "❌ Failed to connect to MCP server on Windows: $_"
+            if (Test-Path "writer.log") {
+              Get-Content "writer.log"
+            }
+            exit 1
+          }
+
+          Write-Host "🎙️ Running End-to-End Whisper Speech Transcription Test on Windows..."
+          try {
+            # Download audio sample if not present
+            if (-not (Test-Path "antigravity_dictation.wav")) {
+              Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ggerganov/whisper.cpp/master/samples/jfk.wav" -OutFile "antigravity_dictation.wav"
+            }
+
+            python -c @"
+import urllib.request, json, threading, time
+
+session_id = None
+events = []
+
+def listen():
+    global session_id
+    req = urllib.request.Request('http://localhost:3000/mcp')
+    with urllib.request.urlopen(req) as resp:
+        for line in resp:
+            line_str = line.decode().strip()
+            if line_str.startswith('data: '):
+                raw = line_str[6:].strip()
+                if 'sessionid=' in raw.lower():
+                    session_id = raw.split('sessionid=')[-1]
+            if line_str.startswith('data: {'):
+                events.append(json.loads(line_str[6:].strip()))
+
+t = threading.Thread(target=listen, daemon=True)
+t.start()
+time.sleep(2.0)
+
+if not session_id:
+    print('ERROR: No sessionid found')
+    exit(1)
+
+url = f'http://localhost:3000/mcp?sessionid={session_id}'
+
+# Initialize
+init_payload = {
+    'jsonrpc': '2.0',
+    'id': 1,
+    'method': 'initialize',
+    'params': {
+        'protocolVersion': '2024-11-05',
+        'capabilities': {},
+        'clientInfo': {'name': 'ci-test', 'version': '1.0.0'}
+    }
+}
+req = urllib.request.Request(url, data=json.dumps(init_payload).encode(), headers={'Content-Type': 'application/json'})
+with urllib.request.urlopen(req) as resp:
+    assert resp.status in (200, 202)
+
+time.sleep(1.0)
+# Call transcribe_audio_file
+tool_payload = {
+    'jsonrpc': '2.0',
+    'id': 2,
+    'method': 'tools/call',
+    'params': {
+        'name': 'transcribe_audio_file',
+        'arguments': {'path': 'antigravity_dictation.wav'}
+    }
+}
+req = urllib.request.Request(url, data=json.dumps(tool_payload).encode(), headers={'Content-Type': 'application/json'})
+with urllib.request.urlopen(req) as resp:
+    assert resp.status in (200, 202)
+
+time.sleep(8.0)
+for ev in events:
+    if ev.get('id') == 2 and 'result' in ev:
+        print('Transcription Result:', json.dumps(ev['result']))
+        exit(0)
+
+print('ERROR: Transcription event not received')
+exit(1)
+"@
+            Write-Host "✅ Real Windows Whisper transcription test passed with flying colors!"
+          } catch {
+            Write-Error "❌ Whisper transcription test failed: $_"
             if (Test-Path "writer.log") {
               Get-Content "writer.log"
             }

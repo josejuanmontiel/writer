@@ -96,27 +96,10 @@ function App() {
       if (json) setDiagramSteps(JSON.parse(json));
     });
 
-    const handleTestDictation = async (e) => {
-      if (e.ctrlKey && e.altKey && (e.key === 'd' || e.key === 'D')) {
-        console.log("🧪 Test dictation triggered via shortcut!");
-        try {
-          const text = await StopRecording('dictar', false);
-          console.log("🧪 Dictation result:", text);
-          if (editorRef.current && text) {
-            editorRef.current.insertText(text);
-          }
-        } catch (err) {
-          console.error("🧪 Dictation error:", err);
-        }
-      }
-    };
-    window.addEventListener('keydown', handleTestDictation);
-
     return () => {
       unsubscribeMcp();
       unsubscribeDownload();
       unsubscribeDiagram();
-      window.removeEventListener('keydown', handleTestDictation);
     };
   }, []);
 

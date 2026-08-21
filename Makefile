@@ -126,6 +126,10 @@ package-windows:
 	@echo "⚠️  Nota: Asegúrate de tener las DLLs (whisper, tokenizers, onnxruntime) en lib/windows"
 	@echo "✅ Paquete creado: antigravity-writer-windows-offline.zip"
 
+test-windows-vm:
+	@echo "🧪 Ejecutando suite de pruebas e2e en la VM de Windows 11..."
+	python3 windows-vm/test_vm.py test-e2e
+
 DIST_MAC_DIR=dist-mac
 
 # Compilar para macOS (Arquitecturas específicas si falla universal)

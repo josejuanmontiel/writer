@@ -1,7 +1,7 @@
 {
   "whisper": {
     "use_local": true,
-    "language": "es",
+    "language": "auto",
     "local": {
       "model": "base",
       "threads": 4

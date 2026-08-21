@@ -17,6 +17,7 @@ type AppInterface interface {
 	ExtractFromText(text string) ([]ai.Entity, []ai.Relation, error)
 	ProcessDiagramStep(text string) (string, error)
 	ProcessDiagramStepFromMCP(text string) (string, error)
+	TranscribeAudioFile(path string) (string, error)
 }
 
 type MCPEditorServer struct {
@@ -91,6 +92,21 @@ func NewMCPEditorServer(app AppInterface) *MCPEditorServer {
 		return nil, jsonResult, nil
 	})
 
+	mcp.AddTool(s, &mcp.Tool{
+		Name:        "transcribe_audio_file",
+		Description: "Transcribe un archivo de audio WAV usando Whisper e inserta el texto transcrito en el editor.",
+	}, func(ctx context.Context, req *mcp.CallToolRequest, args struct {
+		Path string `json:"path" jsonschema:"Ruta del archivo de audio WAV a transcribir"`
+	}) (*mcp.CallToolResult, any, error) {
+		text, err := app.TranscribeAudioFile(args.Path)
+		if err != nil {
+			return nil, fmt.Errorf("error transcribiendo audio: %v", err), nil
+		}
+		return nil, map[string]string{
+			"transcription": text,
+		}, nil
+	})
+
 	return &MCPEditorServer{app: app, Server: s}
 }
 
@@ -100,6 +116,7 @@ func (m *MCPEditorServer) StartSSE(port int) error {
 	}, nil)
 	
 	mux := http.NewServeMux()
+	mux.Handle("/mcp/", handler)
 	mux.Handle("/mcp", handler)
 
 	fmt.Printf("Servidor MCP (SSE) iniciado en http://localhost:%d/mcp\n", port)

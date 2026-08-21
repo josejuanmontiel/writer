@@ -197,6 +197,29 @@ func (a *App) StopRecording(mode string, isAiMode bool) (string, error) {
 	return text, nil
 }
 
+func (a *App) TranscribeAudioFile(path string) (string, error) {
+	if path == "" {
+		path = a.config.AudioTempPath
+	}
+	if a.aiProcessor == nil || a.aiProcessor.ModelManager == nil {
+		return "", fmt.Errorf("AI Processor no inicializado")
+	}
+	fmt.Printf("🤖 Transcribiendo archivo de audio: %s (modelo: %s, idioma: %s)...\n", path, a.config.Whisper.Local.Model, a.config.Whisper.Language)
+	text, err := a.aiProcessor.ModelManager.TranscribeLocal(
+		path,
+		a.config.Whisper.Local.Model,
+		a.config.Whisper.Language,
+		a.config.Whisper.Local.Threads,
+	)
+	if err != nil {
+		fmt.Printf("❌ Error transcribiendo archivo: %v\n", err)
+		return "", err
+	}
+	fmt.Printf("📝 Transcripción completada: %s\n", text)
+	a.EmitEvent("mcp:insert_text", text)
+	return text, nil
+}
+
 func (a *App) ProcessText(text string, isAi bool) {
 	if isAi {
 		go ai.ProcessWithLLM(a.config.LLMURL, text, func(newText string) {
