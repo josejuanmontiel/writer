@@ -1,28 +1,7 @@
 {
-  "last_compendium_path": "/home/jose/Documentos/plantilla2",
-  "last_opened_file": "content/módulo-1/sesion-08.adoc",
-  "recent_compendiums": [
-    {
-      "path": "/home/jose/Documentos/plantilla2",
-      "name": "Nuevo Compendio Formativo",
-      "last_opened_at": "2026-08-22T12:01:17.873668703+02:00"
-    },
-    {
-      "path": "/home/jose/Documentos/plantilla",
-      "name": "Catequesis",
-      "last_opened_at": "2026-08-22T11:45:42.921314522+02:00"
-    },
-    {
-      "path": "/tmp/app-draft-convert-1894450546",
-      "name": "Compendio Desde Borrador",
-      "last_opened_at": "2026-08-22T11:39:32.871409604+02:00"
-    },
-    {
-      "path": "/tmp/app-compendium-test-2370805132",
-      "name": "Curso de Go",
-      "last_opened_at": "2026-08-22T11:39:32.859808501+02:00"
-    }
-  ],
+  "last_compendium_path": "",
+  "last_opened_file": "",
+  "recent_compendiums": [],
   "whisper": {
     "use_local": false,
     "language": "",
@@ -48,7 +27,7 @@
   },
   "gliner": {
     "use_local": false,
-    "model_path": "/home/jose/workspace/sandbox/gemini/writer/build/bin",
+    "model_path": "",
     "threshold": 0
   }
 }

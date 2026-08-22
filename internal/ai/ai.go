@@ -58,6 +58,16 @@ func NewModelManager(path string) *ModelManager {
 	if path == "" {
 		path = "models"
 	}
+	// Si path no existe en el directorio de trabajo actual, intentar relativo al ejecutable
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		if exePath, err := os.Executable(); err == nil {
+			exeDir := filepath.Dir(exePath)
+			cand := filepath.Join(exeDir, path)
+			if _, err := os.Stat(cand); err == nil {
+				path = cand
+			}
+		}
+	}
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		os.MkdirAll(path, 0755)
 	}
@@ -86,15 +96,39 @@ func (m *ModelManager) EnsureModel(modelName string, onProgress func(percent int
 		return modelPath, nil
 	}
 
+	// Comprobar también en exeDir/models por si ModelsPath es relativo
+	if exePath, err := os.Executable(); err == nil {
+		altPath := filepath.Join(filepath.Dir(exePath), "models", fullName)
+		if _, err := os.Stat(altPath); err == nil {
+			return altPath, nil
+		}
+	}
+
 	// No existe, descargar
-	fmt.Printf("Modelo %s no encontrado localmente. Iniciando descarga desde %s...\n", cleanName, url)
+	fmt.Printf("📥 Modelo Whisper '%s' no encontrado localmente en %s. Iniciando descarga desde %s...\n", cleanName, modelPath, url)
 
 	err := m.downloadFile(modelPath, url, onProgress)
 	if err != nil {
-		return "", fmt.Errorf("error al descargar modelo %s: %w", cleanName, err)
+		// Buscar qué modelos sí existen localmente para orientar al usuario
+		existing := []string{}
+		if entries, readErr := os.ReadDir(m.ModelsPath); readErr == nil {
+			for _, e := range entries {
+				if !e.IsDir() && strings.HasPrefix(e.Name(), "ggml-") && strings.HasSuffix(e.Name(), ".bin") {
+					name := strings.TrimSuffix(strings.TrimPrefix(e.Name(), "ggml-"), ".bin")
+					existing = append(existing, name)
+				}
+			}
+		}
+		var hint string
+		if len(existing) > 0 {
+			hint = fmt.Sprintf(". Modelos disponibles en disco: [%s]. Puedes cambiarlo en Ajustes.", strings.Join(existing, ", "))
+		} else {
+			hint = ". Comprueba tu conexión a Internet o coloca manualmente el archivo 'ggml-*.bin' en la carpeta 'models/'."
+		}
+		return "", fmt.Errorf("error al descargar modelo '%s' (%v)%s", cleanName, err, hint)
 	}
 
-	fmt.Printf("Descarga de %s completada con éxito.\n", cleanName)
+	fmt.Printf("✅ Descarga de %s completada con éxito.\n", cleanName)
 	return modelPath, nil
 }
 
@@ -221,6 +255,10 @@ func (m *ModelManager) readWavToFloat32(path string) ([]float32, error) {
 	buf, err := d.FullPCMBuffer()
 	if err != nil {
 		return nil, fmt.Errorf("error al leer buffer WAV: %w", err)
+	}
+
+	if buf == nil || len(buf.Data) == 0 {
+		return nil, fmt.Errorf("el audio grabado está vacío (0 bytes/muestras). Comprueba que el micrófono esté bien conectado y funcionando en Ajustes")
 	}
 
 	floatSamples := make([]float32, len(buf.Data))

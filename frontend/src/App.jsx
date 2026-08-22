@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Mic, MicOff, BookOpen, Cpu, Settings, Play, Info, Brain, X, RefreshCw, Save, GitBranch, History, FolderPlus, FolderOpen, FilePlus, Layers, Volume2, Sparkles, Globe } from 'lucide-react';
+import { Mic, MicOff, BookOpen, Cpu, Settings, Play, Info, Brain, X, RefreshCw, Save, GitBranch, History, FolderPlus, FolderOpen, FilePlus, Layers, Volume2, Sparkles, Globe, Terminal, Activity } from 'lucide-react';
 import Editor from './components/Editor';
 import ProjectSidebar from './components/ProjectSidebar';
 import TimelineModal from './components/TimelineModal';
@@ -13,6 +13,7 @@ import SitePreviewModal from './components/SitePreviewModal';
 import CompendiumWizardModal from './components/CompendiumWizardModal';
 import WorkspaceSelector from './components/WorkspaceSelector';
 import ModelManagerModal from './components/ModelManagerModal';
+import LogsModal from './components/LogsModal';
 import { asciidocToHtml, htmlToAsciidoc } from './utils/asciidoc';
 import { useAudioRecorder } from './hooks/useAudioRecorder';
 import { EventsOn } from '../wailsjs/runtime/runtime';
@@ -30,6 +31,11 @@ import {
   GetDownloadedWhisperModels,
   ChangeWhisperModel,
   GetAudioDevices,
+  StartMicTest,
+  StopMicTest,
+  GetAppLogs,
+  ClearAppLogs,
+  CheckAppUpdate,
   SaveDiagramStep,
   SelectFolderDialog,
   CreateCompendium,
@@ -85,6 +91,10 @@ function App() {
   const [showSitePreviewModal, setShowSitePreviewModal] = useState(false);
   const [showTimelineModal, setShowTimelineModal] = useState(false);
   const [showModelManagerModal, setShowModelManagerModal] = useState(false);
+  const [showLogsModal, setShowLogsModal] = useState(false);
+  const [isTestingMic, setIsTestingMic] = useState(false);
+  const [audioLevel, setAudioLevel] = useState(0);
+  const [availableUpdate, setAvailableUpdate] = useState(null);
   const [initialDraftToConvert, setInitialDraftToConvert] = useState('');
   const [lastSavedTime, setLastSavedTime] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -335,12 +345,61 @@ function App() {
       if (json) setDiagramSteps(JSON.parse(json));
     });
 
+    const unsubscribeAudioLevel = EventsOn('audio:level', (data) => {
+      if (data && typeof data.level === 'number') {
+        setAudioLevel(data.level);
+      }
+    });
+
+    // Comprobación automática y no intrusiva de actualizaciones al iniciar
+    const updateCheckTimer = setTimeout(() => {
+      CheckAppUpdate()
+        .then((info) => {
+          if (info && info.available) {
+            console.log("Nueva versión disponible:", info.latestVersion);
+            setAvailableUpdate(info);
+          }
+        })
+        .catch((err) => {
+          // Ignorar silenciosamente si no hay conexión
+          console.debug("Aviso updater:", err);
+        });
+    }, 3000);
+
     return () => {
+      clearTimeout(updateCheckTimer);
       unsubscribeMcp();
       unsubscribeDownload();
       unsubscribeDiagram();
+      unsubscribeAudioLevel();
     };
   }, []);
+
+  const handleToggleMicTest = async () => {
+    try {
+      if (isTestingMic) {
+        await StopMicTest();
+        setIsTestingMic(false);
+        setAudioLevel(0);
+      } else {
+        const dev = config?.recording_device || '';
+        await StartMicTest(dev);
+        setIsTestingMic(true);
+      }
+    } catch (err) {
+      alert("Error al probar micrófono: " + err);
+      setIsTestingMic(false);
+    }
+  };
+
+  const handleRefreshDevices = async () => {
+    try {
+      const d = await GetAudioDevices();
+      setDevices(d || []);
+    } catch (e) {
+      console.error("Error al refrescar dispositivos:", e);
+    }
+  };
 
   const handleModelChange = async (modelName) => {
     try {
@@ -486,6 +545,22 @@ function App() {
           >
             {(isRecording && !isAiMode) || (showTttInput && !isAiMode) ? <MicOff size={14} /> : <Mic size={14} />}
             <span>{config?.only_ttt ? 'Escribir' : (isRecording && !isAiMode ? 'Detener' : 'Dictar')}</span>
+            {isRecording && !isAiMode && (
+              <div className="flex items-center gap-0.5 ml-1 h-3.5">
+                <span
+                  className="w-1 bg-white rounded-full transition-all duration-75"
+                  style={{ height: `${Math.max(4, Math.min(14, audioLevel * 0.16))}px` }}
+                />
+                <span
+                  className="w-1 bg-white rounded-full transition-all duration-75"
+                  style={{ height: `${Math.max(4, Math.min(14, audioLevel * 0.22))}px` }}
+                />
+                <span
+                  className="w-1 bg-white rounded-full transition-all duration-75"
+                  style={{ height: `${Math.max(4, Math.min(14, audioLevel * 0.14))}px` }}
+                />
+              </div>
+            )}
           </button>
 
           {/* Cerebro / IA */}
@@ -508,6 +583,22 @@ function App() {
           >
             <Brain size={14} />
             <span>{isAiMode && showTttInput ? 'Enviar' : 'Cerebro'}</span>
+            {isRecording && isAiMode && (
+              <div className="flex items-center gap-0.5 ml-1 h-3.5">
+                <span
+                  className="w-1 bg-white rounded-full transition-all duration-75"
+                  style={{ height: `${Math.max(4, Math.min(14, audioLevel * 0.18))}px` }}
+                />
+                <span
+                  className="w-1 bg-white rounded-full transition-all duration-75"
+                  style={{ height: `${Math.max(4, Math.min(14, audioLevel * 0.24))}px` }}
+                />
+                <span
+                  className="w-1 bg-white rounded-full transition-all duration-75"
+                  style={{ height: `${Math.max(4, Math.min(14, audioLevel * 0.16))}px` }}
+                />
+              </div>
+            )}
           </button>
 
           {/* Escuchar / TTS */}
@@ -562,6 +653,27 @@ function App() {
               </span>
             </button>
           )}
+
+          {/* Badge de Actualización Disponible */}
+          {availableUpdate && (
+            <button
+              onClick={() => setShowModelManagerModal(true)}
+              title={`Actualización ${availableUpdate.latestVersion} disponible. Haz clic para instalar.`}
+              className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-950/80 hover:bg-emerald-900/90 border border-emerald-500/50 text-emerald-300 text-xs font-semibold shadow-md transition-all animate-pulse"
+            >
+              <Sparkles size={12} className="text-emerald-400" />
+              <span>Update {availableUpdate.latestVersion}</span>
+            </button>
+          )}
+
+          {/* Botón Ver Logs del Sistema */}
+          <button 
+            className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors" 
+            onClick={() => setShowLogsModal(true)}
+            title="Registros del Sistema (Logs)"
+          >
+            <Terminal size={17} />
+          </button>
 
           {/* Settings */}
           <button 
@@ -1043,29 +1155,97 @@ function App() {
           </section>
 
           <section className="space-y-4">
-            <h3 className="text-xs font-bold uppercase tracking-widest text-brand-accent">Hardware</h3>
-            <div className="space-y-2">
-              <label className="text-xs font-medium text-gray-500 px-1">Dispositivo de Grabación</label>
-              <select 
-                value={config?.recording_device || ''} 
-                onChange={(e) => {
-                  const nc = { ...config, recording_device: e.target.value };
-                  setConfig(nc);
-                  UpdateConfig(nc);
-                }}
-                className="w-full bg-black/20 border border-white/5 rounded-xl px-4 py-2 text-sm outline-none focus:border-brand-accent transition-colors appearance-none cursor-pointer"
+            <div className="flex items-center justify-between">
+              <h3 className="text-xs font-bold uppercase tracking-widest text-brand-accent">Hardware & Audio</h3>
+              <button
+                onClick={() => setShowLogsModal(true)}
+                className="flex items-center gap-1 text-[11px] text-slate-400 hover:text-indigo-300 transition-colors"
+                title="Ver logs detallados del sistema"
               >
-                {(devices || []).length === 0 ? (
-                  <option value="">Detectando dispositivos...</option>
-                ) : (
-                  (devices || []).map((d, i) => (
-                    <option key={i} value={d} className="bg-brand-bg text-white">{d}</option>
-                  ))
-                )}
-              </select>
-              <p className="text-[10px] text-gray-500 px-1 italic">
-                Selecciona el micrófono que quieres usar para el dictado.
-              </p>
+                <Terminal size={12} />
+                <span>Ver Logs</span>
+              </button>
+            </div>
+
+            <div className="space-y-3 bg-black/20 p-3.5 rounded-xl border border-white/5">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-medium text-gray-300">Dispositivo de Grabación</label>
+                <button
+                  onClick={handleRefreshDevices}
+                  className="text-[11px] text-slate-400 hover:text-white flex items-center gap-1 transition-colors"
+                  title="Detectar nuevos micrófonos"
+                >
+                  <RefreshCw size={11} />
+                  <span>Refrescar</span>
+                </button>
+              </div>
+
+              <div className="relative group">
+                <select 
+                  value={config?.recording_device || ''} 
+                  onChange={async (e) => {
+                    const nc = { ...config, recording_device: e.target.value };
+                    setConfig(nc);
+                    await UpdateConfig(nc);
+                    if (isTestingMic) {
+                      await StopMicTest();
+                      await StartMicTest(e.target.value);
+                    }
+                  }}
+                  className="w-full bg-black/40 border border-white/10 rounded-xl px-3.5 py-2 text-xs outline-none focus:border-brand-accent transition-colors appearance-none cursor-pointer"
+                >
+                  <option value="">-- Dispositivo por defecto del sistema --</option>
+                  {(devices || []).map((d, i) => (
+                    <option key={i} value={d} className="bg-slate-900 text-white">{d}</option>
+                  ))}
+                </select>
+                <ChevronRight size={14} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none group-hover:text-white transition-colors rotate-90" />
+              </div>
+
+              {/* Indicador de Nivel de Audio (VU Meter) y Prueba */}
+              <div className="pt-2 border-t border-white/5 space-y-2">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-[11px] text-slate-400 flex items-center gap-1.5">
+                    <Activity size={12} className={audioLevel > 5 ? "text-emerald-400 animate-pulse" : "text-slate-500"} />
+                    <span>Nivel de audio:</span>
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded font-mono font-semibold ${
+                      audioLevel > 50 ? 'bg-amber-950/80 text-amber-300' : audioLevel > 5 ? 'bg-emerald-950/80 text-emerald-300' : 'bg-slate-800 text-slate-400'
+                    }`}>
+                      {audioLevel > 5 ? '🎤 Detectando audio' : 'Silencio'} ({audioLevel}%)
+                    </span>
+                    <button
+                      onClick={handleToggleMicTest}
+                      className={`px-2.5 py-1 rounded-lg text-[11px] font-medium border transition-all ${
+                        isTestingMic
+                          ? 'bg-rose-950/70 border-rose-500/50 text-rose-300 animate-pulse'
+                          : 'bg-indigo-950/60 border-indigo-500/40 text-indigo-300 hover:bg-indigo-900/80 hover:text-white'
+                      }`}
+                    >
+                      {isTestingMic ? 'Detener Prueba' : 'Probar Micrófono'}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Barra Visualizadora VU */}
+                <div className="w-full h-3 bg-slate-900/90 rounded-full overflow-hidden p-0.5 border border-slate-800 flex items-center shadow-inner">
+                  <div 
+                    className={`h-full rounded-full transition-all duration-75 ease-out ${
+                      audioLevel > 80 
+                        ? 'bg-gradient-to-r from-emerald-500 via-amber-400 to-rose-500'
+                        : audioLevel > 40
+                        ? 'bg-gradient-to-r from-emerald-500 to-amber-400'
+                        : 'bg-emerald-500'
+                    }`}
+                    style={{ width: `${Math.max(0, Math.min(100, audioLevel))}%` }}
+                  />
+                </div>
+
+                <p className="text-[10.5px] text-slate-400 leading-tight">
+                  Habla por el micrófono. Si la barra reacciona, el micrófono está capturando audio correctamente.
+                </p>
+              </div>
             </div>
           </section>
         </div>
@@ -1075,9 +1255,22 @@ function App() {
       {showSettings && (
         <div 
           className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 transition-opacity" 
-          onClick={() => setShowSettings(false)} 
+          onClick={() => {
+            if (isTestingMic) {
+              StopMicTest();
+              setIsTestingMic(false);
+              setAudioLevel(0);
+            }
+            setShowSettings(false);
+          }} 
         />
       )}
+
+      {/* Visor de Logs */}
+      <LogsModal
+        isOpen={showLogsModal}
+        onClose={() => setShowLogsModal(false)}
+      />
     </div>
   );
 }

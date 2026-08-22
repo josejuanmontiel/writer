@@ -202,6 +202,22 @@ export function TranscribeAudioFile(arg1) {
   return window['go']['main']['App']['TranscribeAudioFile'](arg1);
 }
 
+export function StartMicTest(arg1) {
+  return window['go']['main']['App']['StartMicTest'](arg1);
+}
+
+export function StopMicTest() {
+  return window['go']['main']['App']['StopMicTest']();
+}
+
+export function GetAppLogs() {
+  return window['go']['main']['App']['GetAppLogs']();
+}
+
+export function ClearAppLogs() {
+  return window['go']['main']['App']['ClearAppLogs']();
+}
+
 export function UpdateCompendiumModule(arg1, arg2, arg3) {
   return window['go']['main']['App']['UpdateCompendiumModule'](arg1, arg2, arg3);
 }
@@ -213,3 +229,4 @@ export function UpdateConfig(arg1) {
 export function UpdateDiagramStep(arg1, arg2) {
   return window['go']['main']['App']['UpdateDiagramStep'](arg1, arg2);
 }
+

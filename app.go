@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -22,7 +23,7 @@ import (
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
-const AppVersion = "v1.1.18"
+const AppVersion = "v1.2.1"
 
 // App struct
 type App struct {
@@ -172,7 +173,41 @@ func (a *App) StartRecording() error {
 		return fmt.Errorf("grabador de audio no inicializado (modo headless)")
 	}
 	fmt.Printf("🎤 Iniciando grabación con dispositivo: %s\n", a.config.RecordingDevice)
+	a.recorder.SetLevelCallback(func(level, peak int) {
+		a.EmitEvent("audio:level", map[string]interface{}{
+			"level":     level,
+			"peak":      peak,
+			"recording": true,
+			"device":    a.config.RecordingDevice,
+		})
+	})
 	return a.recorder.Start(a.config.RecordingDevice)
+}
+
+func (a *App) StartMicTest(deviceName string) error {
+	if a.recorder == nil {
+		return fmt.Errorf("grabador de audio no inicializado")
+	}
+	if deviceName == "" && a.config != nil {
+		deviceName = a.config.RecordingDevice
+	}
+	fmt.Printf("🎤 Iniciando prueba de nivel de audio para: %s\n", deviceName)
+	return a.recorder.StartMonitor(deviceName, func(level, peak int) {
+		a.EmitEvent("audio:level", map[string]interface{}{
+			"level":   level,
+			"peak":    peak,
+			"testing": true,
+			"device":  deviceName,
+		})
+	})
+}
+
+func (a *App) StopMicTest() error {
+	if a.recorder == nil {
+		return nil
+	}
+	fmt.Println("⏹️ Deteniendo prueba de micrófono")
+	return a.recorder.StopMonitor()
 }
 
 func (a *App) GetAudioDevices() ([]string, error) {
@@ -180,6 +215,34 @@ func (a *App) GetAudioDevices() ([]string, error) {
 		return nil, fmt.Errorf("grabador de audio no inicializado (modo headless)")
 	}
 	return a.recorder.GetDevices()
+}
+
+func (a *App) GetAppLogs() (string, error) {
+	logPaths := []string{"writer.log"}
+	if exePath, err := os.Executable(); err == nil {
+		logPaths = append(logPaths, filepath.Join(filepath.Dir(exePath), "writer.log"))
+	}
+
+	for _, p := range logPaths {
+		if data, err := os.ReadFile(p); err == nil {
+			if len(data) > 300*1024 {
+				data = data[len(data)-300*1024:]
+			}
+			return string(data), nil
+		}
+	}
+	return "No se ha encontrado el archivo writer.log o aún no hay registros.", nil
+}
+
+func (a *App) ClearAppLogs() error {
+	logPaths := []string{"writer.log"}
+	if exePath, err := os.Executable(); err == nil {
+		logPaths = append(logPaths, filepath.Join(filepath.Dir(exePath), "writer.log"))
+	}
+	for _, p := range logPaths {
+		_ = os.WriteFile(p, []byte(""), 0644)
+	}
+	return nil
 }
 
 func (a *App) StopRecording(mode string, isAiMode bool) (string, error) {
@@ -620,7 +683,16 @@ func (a *App) GetAvailableWhisperModels() []string {
 func (a *App) GetDownloadedWhisperModels() []string {
 	downloaded := []string{}
 	modelsDir := "models"
+	if a.aiProcessor != nil && a.aiProcessor.ModelManager != nil && a.aiProcessor.ModelManager.ModelsPath != "" {
+		modelsDir = a.aiProcessor.ModelManager.ModelsPath
+	}
 	files, err := os.ReadDir(modelsDir)
+	if err != nil {
+		if exePath, err := os.Executable(); err == nil {
+			modelsDir = filepath.Join(filepath.Dir(exePath), "models")
+			files, err = os.ReadDir(modelsDir)
+		}
+	}
 	if err != nil {
 		return downloaded
 	}

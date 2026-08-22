@@ -109,6 +109,14 @@ export function StopRecording(arg1:string,arg2:boolean):Promise<string>;
 
 export function TranscribeAudioFile(arg1:string):Promise<string>;
 
+export function StartMicTest(arg1:string):Promise<void>;
+
+export function StopMicTest():Promise<void>;
+
+export function GetAppLogs():Promise<string>;
+
+export function ClearAppLogs():Promise<void>;
+
 export function UpdateCompendiumModule(arg1:string,arg2:string,arg3:string):Promise<void>;
 
 export function UpdateConfig(arg1:config.Config):Promise<void>;

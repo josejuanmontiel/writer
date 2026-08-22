@@ -116,6 +116,11 @@ package-windows:
 	
 	cp build/bin/writer.exe $(DIST_WIN_DIR)/
 	cp config.json $(DIST_WIN_DIR)/
+	# Copiar scripts de prueba STT
+	-cp scripts/test_stt_mcp.bat $(DIST_WIN_DIR)/ || true
+	-cp scripts/test_mcp_transcribe.ps1 $(DIST_WIN_DIR)/ || true
+	-cp scripts/test_mcp_whisper.py $(DIST_WIN_DIR)/ || true
+	-cp lib/whisper.cpp/bindings/go/samples/jfk.wav $(DIST_WIN_DIR)/antigravity_dictation.wav || true
 	# Copiar DLLs necesarias (deben estar en lib/windows)
 	-cp lib/windows/*.dll $(DIST_WIN_DIR)/
 	-cp /usr/x86_64-w64-mingw32/lib/libwinpthread-1.dll $(DIST_WIN_DIR)/ || true
