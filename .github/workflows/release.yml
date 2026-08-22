@@ -36,13 +36,19 @@ jobs:
         include:
           - os: ubuntu-latest
             platform: linux
-            artifact: AntigravityWriter-x86_64.AppImage
+            artifacts: |
+              AntigravityWriter-x86_64.AppImage
+              antigravity-writer-linux-slim.tar.gz
           - os: ubuntu-latest
             platform: windows
-            artifact: antigravity-writer-windows-offline.zip
+            artifacts: |
+              antigravity-writer-windows-offline.zip
+              antigravity-writer-windows-slim.zip
           - os: macos-latest
             platform: macos
-            artifact: antigravity-writer-macos-offline.zip
+            artifacts: |
+              antigravity-writer-macos-offline.zip
+              antigravity-writer-macos-slim.zip
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout code
@@ -245,10 +251,13 @@ jobs:
           
           if [ "${{ matrix.platform }}" == "linux" ]; then
             make package-linux-docker
+            make package-linux-slim
           elif [ "${{ matrix.platform }}" == "windows" ]; then
             make package-windows
+            make package-windows-slim
           elif [ "${{ matrix.platform }}" == "macos" ]; then
             make package-macos
+            make package-macos-slim
           fi
 
       - name: Validate Linux Build (MCP Integration Test)
@@ -269,11 +278,11 @@ jobs:
             exit 1
           fi
 
-      - name: Upload Build Artifact
+      - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.platform }}-artifact
-          path: ${{ matrix.artifact }}
+          name: ${{ matrix.platform }}-artifacts
+          path: ${{ matrix.artifacts }}
 
 #  test-windows-real:
 #    name: Validate Windows Build (Real Windows Runner)
@@ -349,8 +358,11 @@ jobs:
         with:
           files: |
             artifacts/AntigravityWriter-x86_64.AppImage
+            artifacts/antigravity-writer-linux-slim.tar.gz
             artifacts/antigravity-writer-windows-offline.zip
+            artifacts/antigravity-writer-windows-slim.zip
             artifacts/antigravity-writer-macos-offline.zip
+            artifacts/antigravity-writer-macos-slim.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

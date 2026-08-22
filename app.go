@@ -13,29 +13,42 @@ import (
 	"antigravity-writer/internal/canva"
 	"antigravity-writer/internal/config"
 	"antigravity-writer/internal/diagram"
+	"antigravity-writer/internal/git"
 	"antigravity-writer/internal/mcp"
+	"antigravity-writer/internal/models"
+	"antigravity-writer/internal/storage"
+	"antigravity-writer/internal/updater"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
+const AppVersion = "v1.1.18"
+
 // App struct
 type App struct {
-	ctx          context.Context
-	config       *config.Config
-	recorder     *audio.Recorder
-	aiProcessor  *ai.AIProcessor
-	mcpServer    *mcp.MCPEditorServer
-	canvaClient  *canva.CanvaClient
-	diagram      *diagram.Manager
-	headless     bool
+	ctx              context.Context
+	config           *config.Config
+	recorder         *audio.Recorder
+	aiProcessor      *ai.AIProcessor
+	mcpServer        *mcp.MCPEditorServer
+	canvaClient      *canva.CanvaClient
+	diagram          *diagram.Manager
+	updater          *updater.Updater
+	modelManager     *models.Manager
+	headless         bool
+	activeCompendium *storage.CompendiumInfo
+	activeFilePath   string
 }
 
 // NewApp creates a new App application struct
 func NewApp() *App {
 	// Inicializar managers básicos de inmediato para evitar race conditions
 	return &App{
-		diagram:     diagram.NewManager(),
-		aiProcessor: ai.NewAIProcessor("models", "models/gliner2_native"), // Valores por defecto, se pueden ajustar luego
+		config:       &config.Config{},
+		diagram:      diagram.NewManager(),
+		aiProcessor:  ai.NewAIProcessor("models", "models/gliner2_native"), // Valores por defecto, se pueden ajustar luego
+		updater:      updater.NewUpdater(AppVersion),
+		modelManager: models.NewManager("models"),
 	}
 }
 
@@ -44,6 +57,9 @@ func (a *App) startup(ctx context.Context) {
 	fmt.Println("🚀 [STARTUP] entering...")
 	os.Stdout.Sync()
 	a.ctx = ctx
+	
+	// Limpieza de ejecutables temporales de updates anteriores (.old)
+	updater.CleanupOldExecutables()
 	
 	// Cargar Configuración
 	fmt.Println("🚀 [STARTUP] loading config...")
@@ -55,6 +71,30 @@ func (a *App) startup(ctx context.Context) {
 	a.config = cfg
 	fmt.Println("🚀 [STARTUP] config loaded.")
 	os.Stdout.Sync()
+
+	// Auto-recuperar último compendio si está configurado y el directorio existe
+	if a.config != nil && a.config.LastCompendiumPath != "" {
+		if _, err := os.Stat(a.config.LastCompendiumPath); err == nil {
+			fmt.Printf("🚀 [STARTUP] auto-reopening compendium: %s\n", a.config.LastCompendiumPath)
+			os.Stdout.Sync()
+			info, openErr := storage.OpenCompendium(a.config.LastCompendiumPath)
+			if openErr == nil {
+				a.activeCompendium = info
+				if a.config.LastOpenedFile != "" {
+					a.activeFilePath = a.config.LastOpenedFile
+				} else {
+					a.activeFilePath = "content/modulo-1/sesion-01.md"
+				}
+			} else {
+				fmt.Printf("Aviso: No se pudo auto-abrir compendio anterior: %v\n", openErr)
+				a.config.LastCompendiumPath = ""
+				config.Save(a.config)
+			}
+		} else {
+			a.config.LastCompendiumPath = ""
+			config.Save(a.config)
+		}
+	}
 
 	// Inicializar Audio (solo si no es modo headless/mcp-only)
 	if !a.headless {
@@ -614,3 +654,427 @@ func (a *App) ChangeWhisperModel(modelName string) error {
 	a.config.Whisper.Local.Model = modelName
 	return config.Save(a.config)
 }
+
+// -------------------------------------------------------------
+// Métodos de Gestión de Compendios y Persistencia Git (1.1)
+// -------------------------------------------------------------
+
+// SelectFolderDialog opens a native OS dialog to select a directory
+func (a *App) SelectFolderDialog(title string) (string, error) {
+	if title == "" {
+		title = "Seleccionar Carpeta del Compendio"
+	}
+	dir, err := runtime.OpenDirectoryDialog(a.ctx, runtime.OpenDialogOptions{
+		Title: title,
+	})
+	if err != nil {
+		return "", err
+	}
+	return dir, nil
+}
+
+// CreateCompendium initializes a new compendium project with git
+func (a *App) CreateCompendium(dirPath string, name string, description string, author string, email string) (*storage.CompendiumInfo, error) {
+	if dirPath == "" {
+		return nil, fmt.Errorf("debe seleccionar un directorio válido")
+	}
+
+	meta := storage.ProjectMeta{
+		ID:          fmt.Sprintf("comp-%d", time.Now().Unix()),
+		Name:        name,
+		Description: description,
+		Author:      author,
+		Email:       email,
+	}
+
+	info, err := storage.CreateCompendium(dirPath, meta)
+	if err != nil {
+		return nil, err
+	}
+
+	a.activeCompendium = info
+	a.activeFilePath = "content/modulo-1/sesion-01.md"
+
+	if a.config != nil {
+		a.config.AddRecentCompendium(dirPath, name)
+		a.config.LastOpenedFile = a.activeFilePath
+		config.Save(a.config)
+	}
+
+	return info, nil
+}
+
+// OpenCompendium opens an existing compendium project
+func (a *App) OpenCompendium(dirPath string) (*storage.CompendiumInfo, error) {
+	if dirPath == "" {
+		return nil, fmt.Errorf("debe seleccionar un directorio válido")
+	}
+
+	info, err := storage.OpenCompendium(dirPath)
+	if err != nil {
+		return nil, err
+	}
+
+	a.activeCompendium = info
+	if a.config != nil && a.config.LastOpenedFile != "" && a.config.LastCompendiumPath == dirPath {
+		a.activeFilePath = a.config.LastOpenedFile
+	} else {
+		a.activeFilePath = "content/modulo-1/sesion-01.md"
+	}
+
+	if a.config != nil {
+		a.config.AddRecentCompendium(dirPath, info.Meta.Name)
+		a.config.LastOpenedFile = a.activeFilePath
+		config.Save(a.config)
+	}
+
+	return info, nil
+}
+
+// CloseCompendium closes active compendium and reverts to free draft mode
+func (a *App) CloseCompendium() error {
+	a.activeCompendium = nil
+	a.activeFilePath = ""
+	if a.config != nil {
+		a.config.LastCompendiumPath = ""
+		a.config.LastOpenedFile = ""
+		return config.Save(a.config)
+	}
+	return nil
+}
+
+// ConvertDraftToCompendium creates a new compendium and saves the current draft text as first lesson
+func (a *App) ConvertDraftToCompendium(dirPath string, name string, description string, author string, email string, draftText string) (*storage.CompendiumInfo, error) {
+	info, err := a.CreateCompendium(dirPath, name, description, author, email)
+	if err != nil {
+		return nil, err
+	}
+
+	if strings.TrimSpace(draftText) != "" {
+		// Guardar el borrador en la primera sesión
+		lessonRel := "content/modulo-1/sesion-01.adoc"
+		saveErr := a.SaveCompendiumFile(lessonRel, draftText, "Inicializar lección con borrador redactado")
+		if saveErr != nil {
+			fmt.Printf("Aviso: no se pudo volcar borrador completo: %v\n", saveErr)
+		}
+	}
+
+	return info, nil
+}
+
+// GenerateCompendiumFromWizard generates a structured compendium with modules, sessions and calendar
+func (a *App) GenerateCompendiumFromWizard(cfg storage.WizardConfig) (*storage.CompendiumInfo, error) {
+	info, err := storage.GenerateCompendiumFromWizard(cfg)
+	if err != nil {
+		return nil, err
+	}
+
+	a.activeCompendium = info
+	a.activeFilePath = "content/modulo-1/sesion-01.adoc"
+	if len(cfg.Modules) > 0 && cfg.Modules[0].Slug != "" {
+		a.activeFilePath = fmt.Sprintf("content/%s/sesion-01.adoc", cfg.Modules[0].Slug)
+	}
+
+	if a.config != nil {
+		a.config.LastCompendiumPath = cfg.TargetDir
+		a.config.LastOpenedFile = a.activeFilePath
+		a.config.AddRecentCompendium(cfg.TargetDir, info.Meta.Name)
+		config.Save(a.config)
+	}
+
+	return info, nil
+}
+
+
+// GetRecentCompendiums returns the list of recently opened compendiums
+func (a *App) GetRecentCompendiums() []config.RecentCompendium {
+	if a.config == nil {
+		return []config.RecentCompendium{}
+	}
+	return a.config.RecentCompendiums
+}
+
+// GetInitialSessionState returns active compendium, file, initial content and recent workspaces
+func (a *App) GetInitialSessionState() map[string]interface{} {
+	result := map[string]interface{}{
+		"active_compendium": a.activeCompendium,
+		"active_file":       a.activeFilePath,
+		"initial_content":   "",
+		"recent_compendiums": []config.RecentCompendium{},
+	}
+
+	if a.config != nil {
+		result["recent_compendiums"] = a.config.RecentCompendiums
+	}
+
+	if a.activeCompendium != nil && a.activeFilePath != "" {
+		content, err := storage.ReadFile(a.activeCompendium.Path, a.activeFilePath)
+		if err == nil {
+			result["initial_content"] = content
+		}
+	}
+
+	return result
+}
+
+// GetActiveCompendium returns the current active compendium metadata
+func (a *App) GetActiveCompendium() *storage.CompendiumInfo {
+	return a.activeCompendium
+}
+
+// GetCompendiumTree returns the file tree hierarchy for the UI
+func (a *App) GetCompendiumTree() ([]storage.FileNode, error) {
+	if a.activeCompendium == nil {
+		return []storage.FileNode{}, nil
+	}
+	return storage.GetFileTree(a.activeCompendium.Path)
+}
+
+// ReadCompendiumFile reads a file from the active compendium
+func (a *App) ReadCompendiumFile(relativePath string) (string, error) {
+	if a.activeCompendium == nil {
+		return "", fmt.Errorf("no hay ningún compendio abierto")
+	}
+	content, err := storage.ReadFile(a.activeCompendium.Path, relativePath)
+	if err != nil {
+		return "", err
+	}
+	a.activeFilePath = relativePath
+	if a.config != nil {
+		a.config.LastOpenedFile = relativePath
+		config.Save(a.config)
+	}
+	return content, nil
+}
+
+// SaveCompendiumFile saves a file to the active compendium and creates an automatic commit
+func (a *App) SaveCompendiumFile(relativePath string, content string, commitMsg string) error {
+	if a.activeCompendium == nil {
+		return fmt.Errorf("no hay ningún compendio abierto")
+	}
+
+	authorName := a.activeCompendium.Meta.Author
+	authorEmail := a.activeCompendium.Meta.Email
+
+	err := storage.SaveLessonFile(a.activeCompendium.Path, relativePath, content, commitMsg, authorName, authorEmail)
+	if err != nil {
+		return err
+	}
+
+	a.activeFilePath = relativePath
+	return nil
+}
+
+// CreateCompendiumFile creates a new lesson or note in the compendium
+func (a *App) CreateCompendiumFile(relativePath string, templateName string) error {
+	if a.activeCompendium == nil {
+		return fmt.Errorf("no hay ningún compendio abierto")
+	}
+
+	authorName := a.activeCompendium.Meta.Author
+	authorEmail := a.activeCompendium.Meta.Email
+
+	return storage.CreateFile(a.activeCompendium.Path, relativePath, "", "", authorName, authorEmail)
+}
+
+// RenameCompendiumFile updates the main title and/or path of a file in the compendium
+func (a *App) RenameCompendiumFile(oldRelPath string, newRelPath string, newTitle string) (string, error) {
+	if a.activeCompendium == nil {
+		return "", fmt.Errorf("no hay ningún compendio abierto")
+	}
+
+	authorName := a.activeCompendium.Meta.Author
+	authorEmail := a.activeCompendium.Meta.Email
+
+	finalPath, err := storage.UpdateFileTitleAndRename(a.activeCompendium.Path, oldRelPath, newRelPath, newTitle, authorName, authorEmail)
+	if err != nil {
+		return "", err
+	}
+
+	if a.activeFilePath == oldRelPath {
+		a.activeFilePath = finalPath
+	}
+
+	return finalPath, nil
+}
+
+// DeleteCompendiumFile deletes a single file from the active compendium
+func (a *App) DeleteCompendiumFile(relativePath string) error {
+	if a.activeCompendium == nil {
+		return fmt.Errorf("no hay ningún compendio abierto")
+	}
+
+	authorName := a.activeCompendium.Meta.Author
+	authorEmail := a.activeCompendium.Meta.Email
+
+	err := storage.DeleteCompendiumFile(a.activeCompendium.Path, relativePath, authorName, authorEmail)
+	if err != nil {
+		return err
+	}
+
+	if a.activeFilePath == relativePath {
+		a.activeFilePath = ""
+	}
+
+	return nil
+}
+
+
+// GetFileTimeline returns the git commit history for the specified file (or whole project if empty)
+func (a *App) GetFileTimeline(relativePath string) ([]git.CommitInfo, error) {
+	if a.activeCompendium == nil {
+		return []git.CommitInfo{}, nil
+	}
+	return git.GetFileHistory(a.activeCompendium.Path, relativePath, 50)
+}
+
+// GetFileHistoricalContent retrieves the file content at a specific git commit
+func (a *App) GetFileHistoricalContent(relativePath string, commitHash string) (string, error) {
+	if a.activeCompendium == nil {
+		return "", fmt.Errorf("no hay ningún compendio abierto")
+	}
+	return git.GetFileContentAtCommit(a.activeCompendium.Path, commitHash, relativePath)
+}
+
+// GetCompendiumStatus returns the git status of files in the active compendium
+func (a *App) GetCompendiumStatus() ([]git.FileStatus, error) {
+	if a.activeCompendium == nil {
+		return []git.FileStatus{}, nil
+	}
+	return git.GetStatus(a.activeCompendium.Path)
+}
+
+// CreateCompendiumModule creates a new module directory in content/
+func (a *App) CreateCompendiumModule(moduleSlug string, title string, description string) error {
+	if a.activeCompendium == nil {
+		return fmt.Errorf("no hay ningún compendio abierto")
+	}
+
+	authorName := a.activeCompendium.Meta.Author
+	authorEmail := a.activeCompendium.Meta.Email
+
+	return storage.CreateModule(a.activeCompendium.Path, moduleSlug, title, description, authorName, authorEmail)
+}
+
+// GetCompendiumModules returns all available modules in the active compendium
+func (a *App) GetCompendiumModules() ([]storage.ModuleInfo, error) {
+	if a.activeCompendium == nil {
+		return []storage.ModuleInfo{}, nil
+	}
+	return storage.GetModules(a.activeCompendium.Path)
+}
+
+// UpdateCompendiumModule updates module metadata in _index.adoc
+func (a *App) UpdateCompendiumModule(moduleSlug string, newTitle string, newDescription string) error {
+	if a.activeCompendium == nil {
+		return fmt.Errorf("no hay ningún compendio abierto")
+	}
+
+	authorName := a.activeCompendium.Meta.Author
+	authorEmail := a.activeCompendium.Meta.Email
+
+	return storage.UpdateModule(a.activeCompendium.Path, moduleSlug, newTitle, newDescription, authorName, authorEmail)
+}
+
+// DeleteCompendiumModule deletes a module directory and its files from the compendium
+func (a *App) DeleteCompendiumModule(moduleSlug string) error {
+	if a.activeCompendium == nil {
+		return fmt.Errorf("no hay ningún compendio abierto")
+	}
+
+	authorName := a.activeCompendium.Meta.Author
+	authorEmail := a.activeCompendium.Meta.Email
+
+	return storage.DeleteModule(a.activeCompendium.Path, moduleSlug, authorName, authorEmail)
+}
+
+// CreateJournalEntry creates a new DevLog entry in content/journal/
+func (a *App) CreateJournalEntry(title string, relatedSession string) (string, error) {
+	if a.activeCompendium == nil {
+		return "", fmt.Errorf("no hay ningún compendio abierto")
+	}
+
+	authorName := a.activeCompendium.Meta.Author
+	authorEmail := a.activeCompendium.Meta.Email
+
+	return storage.CreateJournalEntry(a.activeCompendium.Path, title, "", relatedSession, authorName, authorEmail)
+}
+
+// GetJournalEntries returns all DevLog entries in the active compendium
+func (a *App) GetJournalEntries() ([]storage.JournalEntryInfo, error) {
+	if a.activeCompendium == nil {
+		return []storage.JournalEntryInfo{}, nil
+	}
+	return storage.GetJournalEntries(a.activeCompendium.Path)
+}
+
+
+
+// -------------------------------------------------------------
+// Métodos de Auto-Updater (GitHub Releases)
+// -------------------------------------------------------------
+
+// GetAppVersion devuelve la versión actual de la aplicación
+func (a *App) GetAppVersion() string {
+	return AppVersion
+}
+
+// CheckAppUpdate consulta si existe una versión más reciente en GitHub
+func (a *App) CheckAppUpdate() (*updater.UpdateInfo, error) {
+	if a.updater == nil {
+		return nil, fmt.Errorf("updater no inicializado")
+	}
+	return a.updater.CheckForUpdates()
+}
+
+// ApplyAppUpdate descarga y aplica la actualización con emisión de progreso
+func (a *App) ApplyAppUpdate(downloadURL string) error {
+	if a.updater == nil {
+		return fmt.Errorf("updater no inicializado")
+	}
+	return a.updater.DownloadAndApplyUpdate(downloadURL, func(percent int) {
+		a.EmitEvent("app:update_progress", map[string]interface{}{
+			"percent": percent,
+		})
+	})
+}
+
+// RestartApp reinicia la aplicación aplicando la nueva versión
+func (a *App) RestartApp() error {
+	return updater.RestartApp()
+}
+
+// -------------------------------------------------------------
+// Métodos de Gestor de Modelos de IA (Model Hub)
+// -------------------------------------------------------------
+
+// GetModelCatalogStatus devuelve el catálogo con el estado actual de cada modelo
+func (a *App) GetModelCatalogStatus() []models.ModelInfo {
+	if a.modelManager == nil {
+		return []models.ModelInfo{}
+	}
+	return a.modelManager.GetCatalogStatus()
+}
+
+// DownloadModel descarga o repara un modelo emitiendo progreso en tiempo real
+func (a *App) DownloadModel(modelID string) error {
+	if a.modelManager == nil {
+		return fmt.Errorf("model manager no inicializado")
+	}
+	return a.modelManager.DownloadModel(modelID, func(percent int) {
+		a.EmitEvent("model:download_progress", map[string]interface{}{
+			"modelId": modelID,
+			"percent": percent,
+		})
+	})
+}
+
+// DeleteModel elimina un modelo local para liberar espacio
+func (a *App) DeleteModel(modelID string) error {
+	if a.modelManager == nil {
+		return fmt.Errorf("model manager no inicializado")
+	}
+	return a.modelManager.DeleteModel(modelID)
+}
+
+

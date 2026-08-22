@@ -5,10 +5,22 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"time"
 )
+
+// RecentCompendium almacena información de compendios abiertos recientemente
+type RecentCompendium struct {
+	Path         string    `json:"path"`
+	Name         string    `json:"name"`
+	LastOpenedAt time.Time `json:"last_opened_at"`
+}
 
 // Config define la estructura del archivo de configuración
 type Config struct {
+	LastCompendiumPath string             `json:"last_compendium_path,omitempty"`
+	LastOpenedFile     string             `json:"last_opened_file,omitempty"`
+	RecentCompendiums  []RecentCompendium `json:"recent_compendiums,omitempty"`
+	AutoSaveDebounceMs int                `json:"auto_save_debounce_ms,omitempty"`
 	Whisper struct {
 		UseLocal bool   `json:"use_local"`
 		Language string `json:"language"` // "es", "en", "auto"
@@ -106,4 +118,44 @@ func Save(c *Config) error {
 		return err
 	}
 	return os.WriteFile("config.json", data, 0644)
+}
+
+// AddRecentCompendium añade o actualiza un compendio a la lista de recientes (máx 10)
+func (c *Config) AddRecentCompendium(path, name string) {
+	cleanPath := filepath.Clean(path)
+	var updated []RecentCompendium
+
+	// Insertar el nuevo en la primera posición
+	updated = append(updated, RecentCompendium{
+		Path:         cleanPath,
+		Name:         name,
+		LastOpenedAt: time.Now(),
+	})
+
+	// Añadir el resto sin duplicar
+	for _, item := range c.RecentCompendiums {
+		if filepath.Clean(item.Path) != cleanPath && len(updated) < 10 {
+			updated = append(updated, item)
+		}
+	}
+
+	c.RecentCompendiums = updated
+	c.LastCompendiumPath = cleanPath
+}
+
+// RemoveRecentCompendium elimina un compendio de la lista de recientes
+func (c *Config) RemoveRecentCompendium(path string) {
+	cleanPath := filepath.Clean(path)
+	var updated []RecentCompendium
+
+	for _, item := range c.RecentCompendiums {
+		if filepath.Clean(item.Path) != cleanPath {
+			updated = append(updated, item)
+		}
+	}
+
+	c.RecentCompendiums = updated
+	if filepath.Clean(c.LastCompendiumPath) == cleanPath {
+		c.LastCompendiumPath = ""
+	}
 }

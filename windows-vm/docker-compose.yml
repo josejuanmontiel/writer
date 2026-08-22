@@ -1,0 +1,25 @@
+services:
+  windows:
+    image: dockurr/windows:latest
+    container_name: test-windows11
+    environment:
+      # "11" descarga la ISO oficial de Windows 11 Pro de Microsoft
+      # "tiny11" descarga la versión recortada
+      VERSION: "${VERSION:-11}"
+      RAM_SIZE: "6G"
+      CPU_CORES: "4"
+      DISK_SIZE: "25G"
+      MANUAL: "N"
+      ARGUMENTS: "-audiodev none,id=audio0 -device ich9-intel-hda -device hda-duplex,audiodev=audio0"
+    devices:
+      - /dev/kvm
+    cap_add:
+      - NET_ADMIN
+    ports:
+      - "8006:8006" # Interfaz Web en el navegador
+      - "3389:3389" # RDP (Remmina, xfreerdp, etc.)
+    volumes:
+      - ./storage:/storage
+      - ../dist-win:/shared
+    restart: "no"
+    stop_grace_period: 2m

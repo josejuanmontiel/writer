@@ -126,6 +126,17 @@ package-windows:
 	@echo "⚠️  Nota: Asegúrate de tener las DLLs (whisper, tokenizers, onnxruntime) en lib/windows"
 	@echo "✅ Paquete creado: antigravity-writer-windows-offline.zip"
 
+package-windows-slim:
+	@echo "📦 Empaquetando para Windows (Slim Update)..."
+	rm -rf dist-win-slim
+	mkdir -p dist-win-slim
+	cp build/bin/writer.exe dist-win-slim/
+	cp config.json dist-win-slim/
+	-cp lib/windows/*.dll dist-win-slim/ || true
+	-cp /usr/x86_64-w64-mingw32/lib/libwinpthread-1.dll dist-win-slim/ || true
+	zip -r antigravity-writer-windows-slim.zip dist-win-slim
+	@echo "✅ Paquete slim creado: antigravity-writer-windows-slim.zip"
+
 test-windows-vm:
 	@echo "🧪 Ejecutando suite de pruebas e2e en la VM de Windows 11..."
 	python3 windows-vm/test_vm.py test-e2e
@@ -178,6 +189,25 @@ package-macos:
 	cp -r models/gliner2_native $(DIST_MAC_DIR)/models/
 	zip -r antigravity-writer-macos-offline.zip $(DIST_MAC_DIR)
 	@echo "✅ Paquete creado: antigravity-writer-macos-offline.zip"
+
+package-macos-slim:
+	@echo "📦 Empaquetando para macOS (Slim Update)..."
+	rm -rf dist-mac-slim
+	mkdir -p dist-mac-slim
+	cp -r build/bin/antigravity-writer.app dist-mac-slim/
+	cp config.json dist-mac-slim/
+	zip -r antigravity-writer-macos-slim.zip dist-mac-slim
+	@echo "✅ Paquete slim creado: antigravity-writer-macos-slim.zip"
+
+package-linux-slim:
+	@echo "📦 Empaquetando para Linux (Slim Update)..."
+	rm -rf dist-linux-slim
+	mkdir -p dist-linux-slim
+	cp build/bin/writer dist-linux-slim/
+	cp config.json dist-linux-slim/
+	-cp lib/onnxruntime/lib/libonnxruntime.so.1.22.0 dist-linux-slim/libonnxruntime.so || true
+	tar -czf antigravity-writer-linux-slim.tar.gz -C dist-linux-slim .
+	@echo "✅ Paquete slim creado: antigravity-writer-linux-slim.tar.gz"
 
 clean:
 	@echo "🧹 Limpiando..."

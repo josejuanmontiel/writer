@@ -1,30 +1,54 @@
 {
+  "last_compendium_path": "/home/jose/Documentos/plantilla2",
+  "last_opened_file": "content/módulo-1/sesion-08.adoc",
+  "recent_compendiums": [
+    {
+      "path": "/home/jose/Documentos/plantilla2",
+      "name": "Nuevo Compendio Formativo",
+      "last_opened_at": "2026-08-22T12:01:17.873668703+02:00"
+    },
+    {
+      "path": "/home/jose/Documentos/plantilla",
+      "name": "Catequesis",
+      "last_opened_at": "2026-08-22T11:45:42.921314522+02:00"
+    },
+    {
+      "path": "/tmp/app-draft-convert-1894450546",
+      "name": "Compendio Desde Borrador",
+      "last_opened_at": "2026-08-22T11:39:32.871409604+02:00"
+    },
+    {
+      "path": "/tmp/app-compendium-test-2370805132",
+      "name": "Curso de Go",
+      "last_opened_at": "2026-08-22T11:39:32.859808501+02:00"
+    }
+  ],
   "whisper": {
-    "use_local": true,
-    "language": "auto",
+    "use_local": false,
+    "language": "",
     "local": {
-      "model": "base",
-      "threads": 4
+      "model": "",
+      "threads": 0
     },
     "remote": {
-      "url": "http://192.168.1.4:10300/v1/audio/transcriptions",
-      "model": "Systran/faster-whisper-small"
+      "url": "",
+      "model": ""
     }
   },
-  "llm_url": "http://192.168.1.4:8000/v3/chat/completions",
-  "kokoro_url": "http://192.168.1.4:8880/v1/audio/speech",
+  "llm_url": "",
+  "kokoro_url": "",
   "recording_device": "",
-  "audio_temp_path": "antigravity_dictation.wav",
+  "audio_temp_path": "",
   "only_ttt": false,
   "canva": {
-    "client_id": "OC-AZ3vDQszTZi5",
-    "client_secret": "YOUR_CANVA_SECRET",
-    "access_token": "TOKEN_REMOVED",
-    "refresh_token": "TOKEN_REMOVED"
+    "client_id": "",
+    "client_secret": "",
+    "access_token": "",
+    "refresh_token": ""
   },
   "gliner": {
-    "use_local": true,
-    "model_path": "models/gliner2_native",
-    "threshold": 0.5
+    "use_local": false,
+    "model_path": "/home/jose/workspace/sandbox/gemini/writer/build/bin",
+    "threshold": 0
   }
 }
