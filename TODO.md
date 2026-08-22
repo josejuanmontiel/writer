@@ -64,18 +64,20 @@
 
 ---
 
-### 🧩 1.4. Gestión Progresiva de Grafos por Capítulo y Temas Flotantes (`Progressive Graph & Staging`)
+### 🧩 1.4. Gestión Progresiva de Grafos por Capítulo y Temas Flotantes (`Progressive Graph & Staging`) ✅
 *(Facilita escribir primero y organizar después, manteniendo la coherencia conceptual)*
-- [ ] **Activación de Contexto al Iniciar Capítulo/Tema**:
+- [x] **Activación de Contexto al Iniciar Capítulo/Tema**:
   - Al abrir un capítulo, el editor carga los conceptos previos ya existentes en el "Grafo del Año" como sugerencias de autocompletado y referencia rápida.
   - Extracción y actualización del **Grafo Local del Capítulo** mientras se escribe.
-- [ ] **Fusión Continua con el Grafo Global del Año/Curso**:
+- [x] **Fusión Continua con el Grafo Global del Año/Curso**:
   - A medida que se añade un nuevo tema (ej. Tema 2), sus nodos y aristas se fusionan automáticamente con el grafo global acumulado, preservando IDs de conceptos compartidos.
-- [ ] **Bandeja de "Temas e Ideas Flotantes" (`Unassigned / Staging Buffer`)**:
+- [x] **Bandeja de "Temas e Ideas Flotantes" (`Unassigned / Staging Buffer`)**:
   - Permitir al autor volcar temas, reflexiones o lecciones sueltas sin necesidad de colocarlos de inmediato en una clase/semana fija.
   - Los temas flotantes generan sus propios nodos y aristas en el grafo de trabajo.
-- [ ] **Asistente de Reubicación y Ordenación por Dependencias**:
+- [x] **Asistente de Reubicación y Ordenación por Dependencias**:
   - El sistema analiza las conexiones del grafo de un tema flotante y sugiere su ubicación temporal ideal en el calendario (ej: *"Este tema 'La Confesión' requiere 'Pecado' (explicado en Clase 3) y es prerrequisito de 'Comunión' (Clase 8) $\rightarrow$ Sugerencia: ubicar en Clase 4 o 5"*).
+- [x] **Suite de Tests de Catequesis en Cada Build (GLiNER2 Validation)**:
+  - Pruebas reales de extracción de entidades y relaciones sobre textos doctrinales (Iniciación Cristiana, Sacramentos, Credo, Mandamientos) integradas en `make test` y GitHub Actions.
 
 ---
 
@@ -171,3 +173,4 @@
 - [x] **Servidor MCP Básico**: Endpoint SSE en puerto 3000 con herramientas `insert_text` y `get_editor_content`.
 - [x] **Extractor de Entidades y Relaciones**: Soporte para GLiNER local/ONNX y visualizador `ReactFlow` interactivo con persistencia de pasos.
 - [x] **Motor Git Integrado y Estructura de Compendios (Punto 1.1)**: Motor `go-git` pure Go multiplataforma (0 CGO, one-download), auto-commits locales, árbol de carpetas normalizado (`.writer`, `content`, `journal`, `static`) y timeline de deshacer infinito en la UI.
+- [x] **Gestión Progresiva de Grafos y Staging de Temas Flotantes (Punto 1.4)**: Activación de contexto conceptual previo al abrir sesiones, fusión idempotente con el Grafo Global del curso, bandeja de ideas flotantes (`content/unassigned/`), asistente de reubicación temporal inteligente basado en dependencias y suite completa de tests reales de catequesis ejecutados en cada build con GLiNER2.

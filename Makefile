@@ -2,13 +2,14 @@ APP_NAME=antigravity-writer
 BINARY_LINUX=build/bin/writer
 BINARY_WINDOWS=build/bin/writer.exe
 
-.PHONY: all build-linux build-windows clean help package-linux
+.PHONY: all test build-linux build-windows clean help package-linux
 
 all: build-linux
 
 help:
 	@echo "Comandos disponibles:"
-	@echo "  make build-linux   - Compila la aplicación para Linux"
+	@echo "  make test          - Ejecuta la suite de pruebas unitarias y E2E (GLiNER2, Grafos, Storage)"
+	@echo "  make build-linux   - Compila la aplicación para Linux (ejecuta tests primero)"
 	@echo "  make build-windows - Compila la aplicación para Windows"
 	@echo "  make package-linux - Crea un tar.gz con modelos para uso offline"
 	@echo "  make package-linux-docker - Crea el paquete de Linux dentro de un contenedor Ubuntu 20.04 (Evita error GLIBC)"
@@ -25,7 +26,15 @@ build-whisper:
 
 WAILS_BUILD_TAGS ?= -tags webkit2_41
 
-build-linux: build-whisper
+test: build-whisper
+	@echo "🧪 Ejecutando suite de pruebas automatizadas en cada build (Punto 1.4 y GLiNER2)..."
+	CGO_ENABLED=1 \
+	CGO_CFLAGS="-I$(WHISPER_DIR)/include -I$(WHISPER_DIR)/ggml/include -I$(CURDIR)/lib/onnxruntime/include" \
+	CGO_LDFLAGS="-L$(WHISPER_BUILD_DIR)/src -L$(WHISPER_BUILD_DIR)/ggml/src -L$(CURDIR)/lib/tokenizers -L$(CURDIR)/lib/onnxruntime/lib" \
+	LD_LIBRARY_PATH="$(CURDIR)/lib/onnxruntime/lib:$(WHISPER_BUILD_DIR)/src:$(WHISPER_BUILD_DIR)/ggml/src:$$LD_LIBRARY_PATH" \
+	go test -count=1 -v ./internal/storage/... ./internal/git/... ./internal/config/... ./internal/ai/...
+
+build-linux: build-whisper test
 	@echo "🚀 Construyendo para Linux..."
 	@echo "Nota: Si tienes errores de GLIBC, compila en una distro más antigua (ej. Ubuntu 20.04)"
 	REAL_CC=gcc CGO_ENABLED=1 CGO_CFLAGS="-I$(WHISPER_DIR)/include -I$(WHISPER_DIR)/ggml/include" \

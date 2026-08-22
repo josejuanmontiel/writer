@@ -122,3 +122,21 @@ export function UpdateCompendiumModule(arg1:string,arg2:string,arg3:string):Prom
 export function UpdateConfig(arg1:config.Config):Promise<void>;
 
 export function UpdateDiagramStep(arg1:number,arg2:string):Promise<void>;
+
+export function GetGlobalGraph():Promise<any>;
+
+export function GetChapterGraph(arg1:string):Promise<any>;
+
+export function SaveChapterGraph(arg1:string,arg2:any):Promise<void>;
+
+export function ExtractAndMergeChapterGraph(arg1:string,arg2:string):Promise<any>;
+
+export function GetContextSuggestions(arg1:string):Promise<any>;
+
+export function GetUnassignedTopics():Promise<Array<any>>;
+
+export function CreateUnassignedTopic(arg1:string,arg2:string):Promise<string>;
+
+export function AnalyzeUnassignedPlacement(arg1:string):Promise<any>;
+
+export function PromoteUnassignedTopic(arg1:string,arg2:string,arg3:string):Promise<string>;

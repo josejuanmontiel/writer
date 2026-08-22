@@ -15,37 +15,55 @@ func init() {
 		exeDir := filepath.Dir(exePath)
 		var libPath string
 
-		if runtime.GOOS == "windows" {
-			libPath = filepath.Join(exeDir, "onnxruntime.dll")
-		} else if runtime.GOOS == "darwin" {
-			libPath = filepath.Join(exeDir, "libonnxruntime.dylib")
-		} else {
-			// Intentar varias rutas posibles para Linux
-			paths := []string{
-				filepath.Join(exeDir, "libonnxruntime.so"),
-				filepath.Join(exeDir, "libonnxruntime.so.1.22.0"),
-				filepath.Join(filepath.Dir(exeDir), "lib", "libonnxruntime.so"),
-				filepath.Join(filepath.Dir(exeDir), "lib", "libonnxruntime.so.1.22.0"),
-				filepath.Join(filepath.Dir(filepath.Dir(exeDir)), "lib", "onnxruntime", "lib", "libonnxruntime.so"),
-				filepath.Join(filepath.Dir(filepath.Dir(exeDir)), "lib", "onnxruntime", "lib", "libonnxruntime.so.1.22.0"),
-			}
-			for _, p := range paths {
-				if _, err := os.Stat(p); err == nil {
-					libPath = p
-					break
-				}
-			}
-			if libPath == "" {
-				// Si no se encuentra ninguno, dejamos que el default apunte al primero esperado
-				libPath = filepath.Join(exeDir, "libonnxruntime.so")
+		if envPath := os.Getenv("ORT_LIB_PATH"); envPath != "" {
+			if _, err := os.Stat(envPath); err == nil {
+				libPath = envPath
 			}
 		}
 
-		if _, err := os.Stat(libPath); err == nil {
+		if libPath == "" {
+			cwd, _ := os.Getwd()
+			searchBases := []string{exeDir, filepath.Dir(exeDir), filepath.Dir(filepath.Dir(exeDir)), cwd, filepath.Dir(cwd), filepath.Dir(filepath.Dir(cwd))}
+			
+			for _, base := range searchBases {
+				var candidates []string
+				if runtime.GOOS == "windows" {
+					candidates = []string{
+						filepath.Join(base, "onnxruntime.dll"),
+						filepath.Join(base, "lib", "windows", "onnxruntime.dll"),
+					}
+				} else if runtime.GOOS == "darwin" {
+					candidates = []string{
+						filepath.Join(base, "libonnxruntime.dylib"),
+						filepath.Join(base, "lib", "onnxruntime", "lib", "libonnxruntime.dylib"),
+					}
+				} else {
+					candidates = []string{
+						filepath.Join(base, "libonnxruntime.so"),
+						filepath.Join(base, "libonnxruntime.so.1.22.0"),
+						filepath.Join(base, "lib", "libonnxruntime.so"),
+						filepath.Join(base, "lib", "libonnxruntime.so.1.22.0"),
+						filepath.Join(base, "lib", "onnxruntime", "lib", "libonnxruntime.so"),
+						filepath.Join(base, "lib", "onnxruntime", "lib", "libonnxruntime.so.1.22.0"),
+					}
+				}
+				for _, cand := range candidates {
+					if _, err := os.Stat(cand); err == nil {
+						libPath = cand
+						break
+					}
+				}
+				if libPath != "" {
+					break
+				}
+			}
+		}
+
+		if libPath != "" {
 			ort.SetSharedLibraryPath(libPath)
 			fmt.Printf("⚡ [ORT-INIT] SetSharedLibraryPath: %s\n", libPath)
 		} else {
-			fmt.Printf("⚡ [ORT-INIT] No local library found at %s, using system default\n", libPath)
+			fmt.Printf("⚡ [ORT-INIT] No local library found, using system default\n")
 		}
 	}
 

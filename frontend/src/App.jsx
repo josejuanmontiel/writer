@@ -14,6 +14,7 @@ import CompendiumWizardModal from './components/CompendiumWizardModal';
 import WorkspaceSelector from './components/WorkspaceSelector';
 import ModelManagerModal from './components/ModelManagerModal';
 import LogsModal from './components/LogsModal';
+import PlacementAssistantModal from './components/PlacementAssistantModal';
 import { asciidocToHtml, htmlToAsciidoc } from './utils/asciidoc';
 import { useAudioRecorder } from './hooks/useAudioRecorder';
 import { EventsOn } from '../wailsjs/runtime/runtime';
@@ -50,7 +51,16 @@ import {
   GetRecentCompendiums,
   GetInitialSessionState,
   DeleteCompendiumModule,
-  DeleteCompendiumFile
+  DeleteCompendiumFile,
+  GetGlobalGraph,
+  GetChapterGraph,
+  SaveChapterGraph,
+  ExtractAndMergeChapterGraph,
+  GetContextSuggestions,
+  GetUnassignedTopics,
+  CreateUnassignedTopic,
+  AnalyzeUnassignedPlacement,
+  PromoteUnassignedTopic
 } from '../wailsjs/go/main/App';
 import IdeaGraph from './components/IdeaGraph';
 import { Share2, FileText, ChevronRight } from 'lucide-react';
@@ -92,6 +102,11 @@ function App() {
   const [showTimelineModal, setShowTimelineModal] = useState(false);
   const [showModelManagerModal, setShowModelManagerModal] = useState(false);
   const [showLogsModal, setShowLogsModal] = useState(false);
+  const [showPlacementModal, setShowPlacementModal] = useState(false);
+  const [placementTopicPath, setPlacementTopicPath] = useState('');
+  const [previousConcepts, setPreviousConcepts] = useState([]);
+  const [isExtractingGraph, setIsExtractingGraph] = useState(false);
+  const [chapterGraph, setChapterGraph] = useState(null);
   const [isTestingMic, setIsTestingMic] = useState(false);
   const [audioLevel, setAudioLevel] = useState(0);
   const [availableUpdate, setAvailableUpdate] = useState(null);
@@ -132,9 +147,55 @@ function App() {
       if (editorRef.current) {
         editorRef.current.setContent(htmlContent);
       }
+
+      // Punto 1.4: Cargar sugerencias de contexto y subgrafo local del capítulo
+      try {
+        const [suggestions, chG] = await Promise.all([
+          GetContextSuggestions(relPath),
+          GetChapterGraph(relPath)
+        ]);
+        setPreviousConcepts(suggestions?.previous_concepts || []);
+        setChapterGraph(chG || null);
+      } catch (graphErr) {
+        console.warn("Aviso cargando contexto pedagógico:", graphErr);
+      }
     } catch (err) {
       alert("Error abriendo archivo: " + err);
     }
+  };
+
+  const handleExtractGraph = async () => {
+    if (!activeFile) return;
+    setIsExtractingGraph(true);
+    try {
+      const rawContent = editorRef.current?.getContent() || editorContent;
+      const chG = await ExtractAndMergeChapterGraph(activeFile, rawContent);
+      setChapterGraph(chG);
+      const suggestions = await GetContextSuggestions(activeFile);
+      setPreviousConcepts(suggestions?.previous_concepts || []);
+    } catch (err) {
+      console.error("Error extrayendo grafo con GLiNER2:", err);
+      alert("Error en extracción: " + err);
+    } finally {
+      setIsExtractingGraph(false);
+    }
+  };
+
+  const handleNewUnassignedTopic = async () => {
+    const title = prompt("Título del tema o idea flotante (Staging):", "Nueva Reflexión Pedagógica");
+    if (!title) return;
+    try {
+      const relPath = await CreateUnassignedTopic(title, "");
+      await refreshTree();
+      handleSelectFile(relPath);
+    } catch (err) {
+      alert("Error creando tema flotante: " + err);
+    }
+  };
+
+  const handleOpenPlacementAssistant = (topicPath) => {
+    setPlacementTopicPath(topicPath);
+    setShowPlacementModal(true);
   };
 
   const handleOpenCompendium = async () => {
@@ -725,6 +786,8 @@ function App() {
           onEditFile={handleEditFile}
           onDeleteFile={handleDeleteFile}
           onNewJournalEntry={() => setShowNewJournalModal(true)}
+          onNewUnassignedTopic={handleNewUnassignedTopic}
+          onOpenPlacementAssistant={handleOpenPlacementAssistant}
           onOpenTimeline={() => setShowTimelineModal(true)}
           lastSaved={lastSavedTime}
         />
@@ -738,6 +801,10 @@ function App() {
                 ref={editorRef} 
                 initialContent={editorContent} 
                 onUpdate={handleEditorUpdate} 
+                previousConcepts={previousConcepts}
+                onExtractGraph={handleExtractGraph}
+                isExtractingGraph={isExtractingGraph}
+                extractedNodesCount={chapterGraph?.nodes?.length || 0}
               />
             ) : (
               <IdeaGraph steps={diagramSteps} />
@@ -923,6 +990,18 @@ function App() {
         onClose={() => setShowTimelineModal(false)}
         activeFile={activeFile}
         onRestoreVersion={handleRestoreVersion}
+      />
+
+      <PlacementAssistantModal
+        isOpen={showPlacementModal}
+        topicRelPath={placementTopicPath}
+        onClose={() => setShowPlacementModal(false)}
+        onPromoted={async (newPath) => {
+          await refreshTree();
+          if (newPath) {
+            handleSelectFile(newPath);
+          }
+        }}
       />
 
       <ModelManagerModal

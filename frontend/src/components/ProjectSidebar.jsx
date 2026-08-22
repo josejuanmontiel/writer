@@ -38,6 +38,8 @@ export default function ProjectSidebar({
   onEditFile,
   onDeleteFile,
   onNewJournalEntry,
+  onNewUnassignedTopic,
+  onOpenPlacementAssistant,
   onOpenTimeline,
   lastSaved
 }) {
@@ -183,8 +185,26 @@ export default function ProjectSidebar({
                     </div>
                   )}
 
+                  {/* Acciones para Bandeja de Ideas Flotantes */}
+                  {(node.relative_path === 'content/unassigned' || node.name.includes('Ideas Flotantes')) && onNewUnassignedTopic && (
+                    <div className="flex items-center gap-1 opacity-0 group-hover/item:opacity-100 transition-opacity">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onNewUnassignedTopic();
+                        }}
+                        title="Crear nuevo tema o idea flotante (Staging)"
+                        className="p-1 rounded hover:bg-slate-700 text-amber-400 hover:text-amber-300 transition-colors"
+                      >
+                        <FilePlus className="w-3 h-3" />
+                      </button>
+                    </div>
+                  )}
+
                   {node.children && (
-                    <span className="text-[10px] text-slate-500 font-mono px-1.5 py-0.5 rounded bg-slate-800 flex-shrink-0">
+                    <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded flex-shrink-0 ${
+                      node.name.includes('Ideas Flotantes') ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : 'bg-slate-800 text-slate-500'
+                    }`}>
                       {node.children.length}
                     </span>
                   )}
@@ -199,24 +219,46 @@ export default function ProjectSidebar({
           }
 
           // File Node
+          const isUnassigned = node.relative_path.startsWith('content/unassigned/') || node.relative_path.includes('/unassigned/');
+
           return (
             <li key={node.relative_path} className="group/file">
               <div
                 className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-md text-xs transition-all ${
                   isSelected 
-                    ? 'bg-indigo-600/20 text-indigo-300 font-semibold border border-indigo-500/30 shadow-sm' 
-                    : 'text-slate-400 hover:bg-slate-800/40 hover:text-slate-200'
+                    ? isUnassigned
+                      ? 'bg-amber-500/20 text-amber-300 font-semibold border border-amber-500/30 shadow-sm'
+                      : 'bg-indigo-600/20 text-indigo-300 font-semibold border border-indigo-500/30 shadow-sm' 
+                    : isUnassigned
+                      ? 'text-amber-200/80 hover:bg-amber-950/20 hover:text-amber-200'
+                      : 'text-slate-400 hover:bg-slate-800/40 hover:text-slate-200'
                 }`}
               >
                 <button
                   onClick={() => onSelectFile(node.relative_path)}
                   className="flex items-center gap-2 truncate flex-1 text-left"
                 >
-                  <FileText className={`w-3.5 h-3.5 flex-shrink-0 ${isSelected ? 'text-indigo-400' : 'text-slate-500'}`} />
+                  {isUnassigned ? (
+                    <Sparkles className={`w-3.5 h-3.5 flex-shrink-0 ${isSelected ? 'text-amber-400' : 'text-amber-500/70'}`} />
+                  ) : (
+                    <FileText className={`w-3.5 h-3.5 flex-shrink-0 ${isSelected ? 'text-indigo-400' : 'text-slate-500'}`} />
+                  )}
                   <span className="truncate">{node.name}</span>
                 </button>
 
                 <div className="flex items-center gap-1 opacity-0 group-hover/file:opacity-100 transition-opacity">
+                  {isUnassigned && onOpenPlacementAssistant && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onOpenPlacementAssistant(node.relative_path);
+                      }}
+                      title="Asistente de Reubicación por Dependencias (Punto 1.4)"
+                      className="p-1 rounded hover:bg-amber-900/40 text-amber-400 hover:text-amber-300 transition-colors"
+                    >
+                      <Compass className="w-3.5 h-3.5" />
+                    </button>
+                  )}
                   {onEditFile && (
                     <button
                       onClick={(e) => {
@@ -244,7 +286,7 @@ export default function ProjectSidebar({
                     </button>
                   )}
                   {isSelected && (
-                    <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 flex-shrink-0 ml-1"></span>
+                    <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ml-1 ${isUnassigned ? 'bg-amber-400' : 'bg-indigo-400'}`}></span>
                   )}
                 </div>
               </div>

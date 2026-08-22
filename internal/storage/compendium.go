@@ -917,5 +917,26 @@ func GetJournalEntries(targetDir string) ([]JournalEntryInfo, error) {
 	return results, nil
 }
 
+// ExtractDocumentTitle parses the document content and extracts the main title (= Title or # Title or title: Title)
+func ExtractDocumentTitle(content string) string {
+	lines := strings.Split(content, "\n")
+	for _, line := range lines {
+		lineTrim := strings.TrimSpace(line)
+		if strings.HasPrefix(lineTrim, "= ") && !strings.HasPrefix(lineTrim, "== ") {
+			title := strings.TrimPrefix(lineTrim, "= ")
+			title = strings.TrimPrefix(title, "📝 ")
+			title = strings.TrimPrefix(title, "✍️ ")
+			title = strings.TrimPrefix(title, "🎯 ")
+			title = strings.TrimPrefix(title, "💡 ")
+			return strings.TrimSpace(title)
+		} else if strings.HasPrefix(lineTrim, "# ") && !strings.HasPrefix(lineTrim, "## ") {
+			return strings.TrimSpace(strings.TrimPrefix(lineTrim, "# "))
+		} else if strings.HasPrefix(lineTrim, "title:") {
+			return strings.Trim(strings.TrimPrefix(lineTrim, "title:"), ` "'`)
+		}
+	}
+	return ""
+}
+
 
 

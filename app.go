@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 
@@ -1078,6 +1079,228 @@ func (a *App) GetJournalEntries() ([]storage.JournalEntryInfo, error) {
 		return []storage.JournalEntryInfo{}, nil
 	}
 	return storage.GetJournalEntries(a.activeCompendium.Path)
+}
+
+// -------------------------------------------------------------
+// 🧩 Métodos de Gestión Progresiva de Grafos y Staging (Punto 1.4)
+// -------------------------------------------------------------
+
+// GetGlobalGraph devuelve el grafo curricular consolidado acumulado del compendio
+func (a *App) GetGlobalGraph() (*storage.GraphData, error) {
+	if a.activeCompendium == nil {
+		return &storage.GraphData{Version: "1.0", Nodes: []storage.GraphNode{}, Edges: []storage.GraphEdge{}}, nil
+	}
+	return storage.LoadGlobalGraph(a.activeCompendium.Path)
+}
+
+// GetChapterGraph devuelve el grafo conceptual local de un capítulo o tema específico
+func (a *App) GetChapterGraph(relativePath string) (*storage.ChapterGraph, error) {
+	if a.activeCompendium == nil {
+		return &storage.ChapterGraph{RelativePath: relativePath, Nodes: []storage.GraphNode{}, Edges: []storage.GraphEdge{}}, nil
+	}
+	return storage.LoadChapterGraph(a.activeCompendium.Path, relativePath)
+}
+
+// SaveChapterGraph guarda el subgrafo local de un capítulo y lo fusiona automáticamente con el grafo global
+func (a *App) SaveChapterGraph(relativePath string, chGraph storage.ChapterGraph) error {
+	if a.activeCompendium == nil {
+		return fmt.Errorf("no hay ningún compendio abierto")
+	}
+
+	chGraph.RelativePath = relativePath
+	if err := storage.SaveChapterGraph(a.activeCompendium.Path, &chGraph); err != nil {
+		return err
+	}
+
+	globalGraph, err := storage.LoadGlobalGraph(a.activeCompendium.Path)
+	if err != nil {
+		globalGraph = &storage.GraphData{Version: "1.0", Nodes: []storage.GraphNode{}, Edges: []storage.GraphEdge{}}
+	}
+
+	globalGraph = storage.MergeChapterGraph(globalGraph, &chGraph)
+	if err := storage.SaveGlobalGraph(a.activeCompendium.Path, globalGraph); err != nil {
+		return err
+	}
+
+	// Auto-commit del grafo
+	authorName := a.activeCompendium.Meta.Author
+	authorEmail := a.activeCompendium.Meta.Email
+	git.CommitFiles(a.activeCompendium.Path, []string{storage.GraphGlobalFile}, "Actualizar grafo global acumulado", authorName, authorEmail)
+
+	return nil
+}
+
+// ExtractAndMergeChapterGraph extrae entidades y relaciones usando GLiNER2 nativo y actualiza los grafos local y global
+func (a *App) ExtractAndMergeChapterGraph(relativePath string, content string) (*storage.ChapterGraph, error) {
+	if a.activeCompendium == nil {
+		return nil, fmt.Errorf("no hay ningún compendio abierto")
+	}
+
+	plainText := cleanHtmlForExtraction(content)
+	if plainText == "" {
+		plainText = content
+	}
+
+	title := storage.ExtractDocumentTitle(plainText)
+	if title == "" {
+		title = filepath.Base(relativePath)
+	}
+
+	chGraph := &storage.ChapterGraph{
+		RelativePath: relativePath,
+		Title:        title,
+		Nodes:        []storage.GraphNode{},
+		Edges:        []storage.GraphEdge{},
+		ExtractedAt:  time.Now(),
+	}
+
+	isUnassigned := strings.HasPrefix(filepath.ToSlash(filepath.Clean(relativePath)), "content/unassigned/")
+
+	// Extraer usando GLiNER2 si está disponible
+	if a.aiProcessor != nil && a.aiProcessor.GLiNERProcessor != nil {
+		entities, relations, err := a.aiProcessor.GLiNERProcessor.ExtractFromText(context.Background(), plainText)
+		if err == nil {
+			nodeMap := make(map[string]storage.GraphNode)
+			for _, ent := range entities {
+				id := storage.NormalizeConceptID(ent.Text)
+				if id == "" {
+					continue
+				}
+				nodeType := ent.Label
+				if nodeType == "" || nodeType == "Concept" {
+					nodeType = "Concepto"
+				}
+				nodeMap[id] = storage.GraphNode{
+					ID:           id,
+					Label:        ent.Text,
+					Type:         nodeType,
+					SourceFiles:  []string{relativePath},
+					Occurrences:  1,
+					IsUnassigned: isUnassigned,
+				}
+			}
+
+			for _, rel := range relations {
+				srcID := storage.NormalizeConceptID(rel.Head)
+				tgtID := storage.NormalizeConceptID(rel.Tail)
+				if srcID == "" || tgtID == "" || srcID == tgtID {
+					continue
+				}
+				if _, ok := nodeMap[srcID]; !ok {
+					nodeMap[srcID] = storage.GraphNode{ID: srcID, Label: rel.Head, Type: "Concepto", SourceFiles: []string{relativePath}, Occurrences: 1, IsUnassigned: isUnassigned}
+				}
+				if _, ok := nodeMap[tgtID]; !ok {
+					nodeMap[tgtID] = storage.GraphNode{ID: tgtID, Label: rel.Tail, Type: "Concepto", SourceFiles: []string{relativePath}, Occurrences: 1, IsUnassigned: isUnassigned}
+				}
+
+				chGraph.Edges = append(chGraph.Edges, storage.GraphEdge{
+					ID:           fmt.Sprintf("%s--%s-->%s", srcID, rel.Label, tgtID),
+					Source:       srcID,
+					Target:       tgtID,
+					Label:        rel.Label,
+					Score:        rel.Score,
+					SourceFiles:  []string{relativePath},
+					IsUnassigned: isUnassigned,
+				})
+			}
+
+			for _, n := range nodeMap {
+				chGraph.Nodes = append(chGraph.Nodes, n)
+			}
+		}
+	}
+
+	// Persistir grafo de capítulo
+	if err := storage.SaveChapterGraph(a.activeCompendium.Path, chGraph); err != nil {
+		return nil, err
+	}
+
+	// Fusionar con grafo global acumulado
+	globalGraph, err := storage.LoadGlobalGraph(a.activeCompendium.Path)
+	if err != nil {
+		globalGraph = &storage.GraphData{Version: "1.0", Nodes: []storage.GraphNode{}, Edges: []storage.GraphEdge{}}
+	}
+
+	globalGraph = storage.MergeChapterGraph(globalGraph, chGraph)
+	if err := storage.SaveGlobalGraph(a.activeCompendium.Path, globalGraph); err != nil {
+		return nil, err
+	}
+
+	return chGraph, nil
+}
+
+// GetContextSuggestions devuelve conceptos previos aprendidos en el curso para autocompletado en el editor
+func (a *App) GetContextSuggestions(relativePath string) (*storage.ContextSuggestions, error) {
+	if a.activeCompendium == nil {
+		return &storage.ContextSuggestions{
+			PreviousConcepts:        []storage.GraphNode{},
+			GlobalConcepts:          []storage.GraphNode{},
+			PrerequisiteSuggestions: []storage.GraphEdge{},
+		}, nil
+	}
+	return storage.GetContextSuggestions(a.activeCompendium.Path, relativePath)
+}
+
+// GetUnassignedTopics lista los temas y reflexiones flotantes en content/unassigned/
+func (a *App) GetUnassignedTopics() ([]storage.UnassignedTopicInfo, error) {
+	if a.activeCompendium == nil {
+		return []storage.UnassignedTopicInfo{}, nil
+	}
+	return storage.GetUnassignedTopics(a.activeCompendium.Path)
+}
+
+// CreateUnassignedTopic crea un nuevo borrador de tema flotante
+func (a *App) CreateUnassignedTopic(title string, initialContent string) (string, error) {
+	if a.activeCompendium == nil {
+		return "", fmt.Errorf("no hay ningún compendio abierto")
+	}
+	authorName := a.activeCompendium.Meta.Author
+	authorEmail := a.activeCompendium.Meta.Email
+	return storage.CreateUnassignedTopic(a.activeCompendium.Path, title, initialContent, authorName, authorEmail)
+}
+
+// AnalyzeUnassignedPlacement analiza los prerrequisitos de un tema flotante y recomienda su posición ideal
+func (a *App) AnalyzeUnassignedPlacement(topicRelPath string) (*storage.PlacementSuggestion, error) {
+	if a.activeCompendium == nil {
+		return nil, fmt.Errorf("no hay ningún compendio abierto")
+	}
+	return storage.AnalyzeUnassignedPlacement(a.activeCompendium.Path, topicRelPath)
+}
+
+// PromoteUnassignedTopic reubica y asigna un tema flotante a un módulo del compendio
+func (a *App) PromoteUnassignedTopic(topicRelPath string, targetModuleSlug string, sessionTitle string) (string, error) {
+	if a.activeCompendium == nil {
+		return "", fmt.Errorf("no hay ningún compendio abierto")
+	}
+	authorName := a.activeCompendium.Meta.Author
+	authorEmail := a.activeCompendium.Meta.Email
+	return storage.PromoteUnassignedTopic(a.activeCompendium.Path, topicRelPath, targetModuleSlug, sessionTitle, authorName, authorEmail)
+}
+
+func cleanHtmlForExtraction(html string) string {
+	// Reemplazar saltos de línea HTML por saltos reales
+	r := strings.ReplaceAll(html, "<br>", "\n")
+	r = strings.ReplaceAll(r, "<br/>", "\n")
+	r = strings.ReplaceAll(r, "</p>", "\n")
+	r = strings.ReplaceAll(r, "</div>", "\n")
+	r = strings.ReplaceAll(r, "</h1>", "\n")
+	r = strings.ReplaceAll(r, "</h2>", "\n")
+	r = strings.ReplaceAll(r, "</h3>", "\n")
+
+	// Quitar tags HTML
+	re := regexp.MustCompile(`<[^>]*>`)
+	cleaned := re.ReplaceAllString(r, " ")
+
+	// Normalizar espacios
+	lines := strings.Split(cleaned, "\n")
+	var resultLines []string
+	for _, l := range lines {
+		trimmed := strings.TrimSpace(l)
+		if trimmed != "" {
+			resultLines = append(resultLines, trimmed)
+		}
+	}
+	return strings.Join(resultLines, "\n")
 }
 
 

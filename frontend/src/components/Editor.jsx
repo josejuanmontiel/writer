@@ -323,7 +323,15 @@ const MenuBar = ({ editor }) => {
   );
 };
 
-const Editor = forwardRef(({ placeholder = 'Empieza a escribir o dicta tu sesión...', initialContent = '', onUpdate }, ref) => {
+const Editor = forwardRef(({ 
+  placeholder = 'Empieza a escribir o dicta tu sesión...', 
+  initialContent = '', 
+  onUpdate,
+  previousConcepts = [],
+  onExtractGraph,
+  isExtractingGraph = false,
+  extractedNodesCount = 0
+}, ref) => {
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -384,9 +392,65 @@ const Editor = forwardRef(({ placeholder = 'Empieza a escribir o dicta tu sesió
     return null;
   }
 
+  const handleInsertConcept = (conceptLabel) => {
+    if (editor) {
+      editor.chain().focus().insertContent(`<strong>${conceptLabel}</strong> `).run();
+    }
+  };
+
   return (
     <div className="flex-1 w-full overflow-y-auto flex flex-col relative group bg-slate-950/40">
       <MenuBar editor={editor} />
+      
+      {/* Barra de Sugerencias de Contexto y Extracción de Grafo (Punto 1.4) */}
+      <div className="bg-slate-900/90 border-b border-slate-800/80 px-4 py-2 flex flex-wrap items-center justify-between gap-2 text-xs">
+        <div className="flex items-center gap-2 overflow-x-auto py-0.5 flex-1 min-w-0">
+          <span className="text-[11px] font-semibold text-slate-400 shrink-0 flex items-center gap-1.5">
+            <Lightbulb className="w-3.5 h-3.5 text-amber-400" />
+            Conceptos Previos:
+          </span>
+          {previousConcepts && previousConcepts.length > 0 ? (
+            <div className="flex items-center gap-1.5 flex-wrap">
+              {previousConcepts.map((c) => (
+                <button
+                  key={c.id}
+                  onClick={() => handleInsertConcept(c.label)}
+                  title={`Insertar concepto "${c.label}" (${c.type || 'Concepto'}) en el texto`}
+                  className="px-2 py-0.5 rounded-full bg-slate-800 hover:bg-amber-500/20 hover:text-amber-300 text-slate-300 border border-slate-700/80 text-[11px] font-medium transition-all cursor-pointer shadow-xs hover:border-amber-500/40"
+                >
+                  +{c.label}
+                </button>
+              ))}
+            </div>
+          ) : (
+            <span className="text-slate-500 text-[11px] italic">
+              Sesión inicial del curso (sin conceptos previos requeridos)
+            </span>
+          )}
+        </div>
+
+        {onExtractGraph && (
+          <button
+            onClick={onExtractGraph}
+            disabled={isExtractingGraph}
+            title="Extraer entidades y relaciones con GLiNER2 y sincronizar con el Grafo Global"
+            className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 font-medium text-xs transition-all shadow-sm shrink-0 disabled:opacity-50"
+          >
+            {isExtractingGraph ? (
+              <>
+                <div className="w-3 h-3 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin"></div>
+                <span>Extrayendo con GLiNER2...</span>
+              </>
+            ) : (
+              <>
+                <Bookmark className="w-3.5 h-3.5 text-indigo-400" />
+                <span>Sincronizar Grafo Local {extractedNodesCount > 0 ? `(${extractedNodesCount})` : ''}</span>
+              </>
+            )}
+          </button>
+        )}
+      </div>
+
       <div className="flex-1 w-full max-w-4xl mx-auto py-6 px-4">
         <EditorContent editor={editor} />
       </div>

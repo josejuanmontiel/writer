@@ -230,3 +230,39 @@ export function UpdateDiagramStep(arg1, arg2) {
   return window['go']['main']['App']['UpdateDiagramStep'](arg1, arg2);
 }
 
+export function GetGlobalGraph() {
+  return window['go']['main']['App']['GetGlobalGraph']();
+}
+
+export function GetChapterGraph(arg1) {
+  return window['go']['main']['App']['GetChapterGraph'](arg1);
+}
+
+export function SaveChapterGraph(arg1, arg2) {
+  return window['go']['main']['App']['SaveChapterGraph'](arg1, arg2);
+}
+
+export function ExtractAndMergeChapterGraph(arg1, arg2) {
+  return window['go']['main']['App']['ExtractAndMergeChapterGraph'](arg1, arg2);
+}
+
+export function GetContextSuggestions(arg1) {
+  return window['go']['main']['App']['GetContextSuggestions'](arg1);
+}
+
+export function GetUnassignedTopics() {
+  return window['go']['main']['App']['GetUnassignedTopics']();
+}
+
+export function CreateUnassignedTopic(arg1, arg2) {
+  return window['go']['main']['App']['CreateUnassignedTopic'](arg1, arg2);
+}
+
+export function AnalyzeUnassignedPlacement(arg1) {
+  return window['go']['main']['App']['AnalyzeUnassignedPlacement'](arg1);
+}
+
+export function PromoteUnassignedTopic(arg1, arg2, arg3) {
+  return window['go']['main']['App']['PromoteUnassignedTopic'](arg1, arg2, arg3);
+}
+

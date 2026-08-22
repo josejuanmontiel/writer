@@ -233,8 +233,10 @@ jobs:
             go build -x -ldflags "-linkmode external -extldflags '-lntdll -lbcrypt -luserenv -lws2_32'" -o test-cgo-app.exe ./cmd/test-cgo
           else
             go build -x -o test-cgo-app ./cmd/test-cgo
+            echo "🧪 Ejecutando suite de tests en CI (GLiNER2 + Grafos Curriculares)..."
+            go test -v ./internal/storage/... ./internal/git/... ./internal/config/... ./internal/ai/...
           fi
-          echo "✅ CGO Compilation test passed for ${{ matrix.platform }}"
+          echo "✅ CGO Compilation & Tests passed for ${{ matrix.platform }}"
 
       - name: Build and Package
         run: |

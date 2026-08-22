@@ -1,7 +1,7 @@
 #!/bin/bash
 # Script para descargar los modelos desde Hugging Face bypassando Git LFS
 
-BASE_URL="https://huggingface.co/josejuanmontiel/writer-models/resolve/main"
+BASE_URL="https://huggingface.co/josejuanmontiel/writer-models/resolve/main/models"
 MODELS_DIR="$(dirname "$0")"
 
 echo "📥 Descargando modelos desde Hugging Face..."

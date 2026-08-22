@@ -4,10 +4,12 @@ import (
 	"context"
 	"fmt"
 	"testing"
+
+	_ "antigravity-writer/internal/ortinit"
 )
 
 func TestGLiNERExtraction(t *testing.T) {
-	processor, err := NewGLiNER2Processor("../../models/gliner2")
+	processor, err := NewGLiNER2Processor("../../models/gliner2_native")
 	if err != nil {
 		t.Skipf("Saltando test: No se pudo cargar el modelo (probablemente faltan librerías nativas): %v", err)
 		return
