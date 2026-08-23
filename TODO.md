@@ -78,19 +78,19 @@
   - El sistema analiza las conexiones del grafo de un tema flotante y sugiere su ubicación temporal ideal en el calendario (ej: *"Este tema 'La Confesión' requiere 'Pecado' (explicado en Clase 3) y es prerrequisito de 'Comunión' (Clase 8) $\rightarrow$ Sugerencia: ubicar en Clase 4 o 5"*).
 - [x] **Suite de Tests de Catequesis en Cada Build (GLiNER2 Validation)**:
   - Pruebas reales de extracción de entidades y relaciones sobre textos doctrinales (Iniciación Cristiana, Sacramentos, Credo, Mandamientos) integradas en `make test` y GitHub Actions.
-- [ ] **📖 Sistema de Documentación Global y Manual Interactivo**:
+- [x] **📖 Sistema de Documentación Global y Manual Interactivo**:
   - Documentación global escrita (`docs/MANUAL_DE_USUARIO.md`, `docs/ARQUITECTURA_GRAFOS.md`) y visor/modal interactivo de ayuda integrado en la UI con buscador y ejemplos pedagógicos.
-- [ ] **✂️ Extraer Selección a Tema Flotante (`Selection-to-Floating-Idea`)**:
+- [x] **✂️ Extraer Selección a Tema Flotante (`Selection-to-Floating-Idea`)**:
   - Acción en editor para convertir fragmentos seleccionados en notas flotantes automáticas en `content/unassigned/`, dejando un bloque de enlace en el texto origen.
-- [ ] **🎙️ Captura Rápida por Dictado (`Quick Voice Braindump`)**:
+- [x] **🎙️ Captura Rápida por Dictado (`Quick Voice Braindump`)**:
   - Acceso directo y atajo de teclado para grabar y transcribir notas efímeras de voz instantáneas en la bandeja flotante con extracción semántica.
-- [ ] **🏷️ Semáforo de Madurez en la Bandeja Flotante (`Readiness Badges`)**:
+- [x] **🏷️ Semáforo de Madurez en la Bandeja Flotante (`Readiness Badges`)**:
   - Indicadores visuales automáticos en las ideas flotantes: 🟢 Listo para ubicar, 🟡 Bloqueado por prerrequisito previo, 🟣 Concepto raíz.
-- [ ] **🔀 Opción Doble en Asistente: "Nueva Sesión" vs "Incrustar en Sesión Existente"**:
+- [x] **🔀 Opción Doble en Asistente: "Nueva Sesión" vs "Incrustar en Sesión Existente"**:
   - Capacidad en el Asistente de Reubicación para fusionar una nota flotante directamente como subsección o nota dentro de una sesión ya planificada.
-- [ ] **⚡ Extracción en Background No Invasiva (`Debounced Auto-Extraction`)**:
+- [x] **⚡ Extracción en Background No Invasiva (`Debounced Auto-Extraction`)**:
   - Extracción automática no bloqueante tras pausas en la redacción con notificación sutil de nuevos conceptos detectados.
-- [ ] **📊 Matriz de Coherencia Curricular (`Curriculum Coherence Heatmap`)**:
+- [x] **📊 Matriz de Coherencia Curricular (`Curriculum Coherence Heatmap`)**:
   - Vista tabular que mapea la introducción (★), refuerzo (●) y alertas de uso prematuro (⚠️) de conceptos a lo largo de las sesiones del compendio.
 
 ---
