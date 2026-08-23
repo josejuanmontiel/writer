@@ -18,10 +18,11 @@ import {
   Heading1, Heading2, Heading3, Quote, CodeXml, 
   Undo, Redo, Eraser, Lightbulb, AlertTriangle, 
   Bookmark, GraduationCap, Minus, Table as TableIcon,
-  AlignLeft, AlignCenter, AlignRight, AlertOctagon, Info
+  AlignLeft, AlignCenter, AlignRight, AlertOctagon, Info,
+  Scissors
 } from 'lucide-react';
 
-const MenuBar = ({ editor }) => {
+const MenuBar = ({ editor, onExtractSelection }) => {
   if (!editor) {
     return null;
   }
@@ -309,7 +310,29 @@ const MenuBar = ({ editor }) => {
         </button>
       </div>
 
-      {/* 8. Limpiar Formato */}
+      {/* 8. Extraer Selección a Tema Flotante (Punto 1.4) */}
+      {onExtractSelection && (
+        <div className="flex items-center gap-1 pl-1.5 border-l border-slate-800">
+          <button
+            onClick={() => {
+              const { from, to } = editor.state.selection;
+              const text = editor.state.doc.textBetween(from, to, '\n');
+              if (!text || text.trim().length === 0) {
+                alert("Selecciona primero con el ratón el fragmento de texto que deseas extraer como idea flotante.");
+                return;
+              }
+              onExtractSelection(text);
+            }}
+            className="flex items-center gap-1 px-2 py-1 rounded bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/30 transition-all text-xs font-semibold shadow-xs"
+            title="Convertir el texto seleccionado en una Idea Flotante independiente"
+          >
+            <Scissors size={12} />
+            <span>Extraer a Flotante</span>
+          </button>
+        </div>
+      )}
+
+      {/* 9. Limpiar Formato */}
       <div className="ml-auto pl-1.5 border-l border-slate-800">
         <button
           onClick={() => editor.chain().focus().unsetAllMarks().clearNodes().run()}
@@ -329,6 +352,7 @@ const Editor = forwardRef(({
   onUpdate,
   previousConcepts = [],
   onExtractGraph,
+  onExtractSelection,
   isExtractingGraph = false,
   extractedNodesCount = 0
 }, ref) => {
@@ -400,7 +424,7 @@ const Editor = forwardRef(({
 
   return (
     <div className="flex-1 w-full overflow-y-auto flex flex-col relative group bg-slate-950/40">
-      <MenuBar editor={editor} />
+      <MenuBar editor={editor} onExtractSelection={onExtractSelection} />
       
       {/* Barra de Sugerencias de Contexto y Extracción de Grafo (Punto 1.4) */}
       <div className="bg-slate-900/90 border-b border-slate-800/80 px-4 py-2 flex flex-wrap items-center justify-between gap-2 text-xs">

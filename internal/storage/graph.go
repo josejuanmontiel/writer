@@ -69,14 +69,50 @@ type ContextSuggestions struct {
 	PrerequisiteSuggestions []GraphEdge `json:"prerequisite_suggestions"`
 }
 
-// UnassignedTopicInfo describe un tema o lección flotante en la bandeja de staging
+// UnassignedTopicInfo describe un tema o lección flotante en la bandeja de staging con su estado de madurez
 type UnassignedTopicInfo struct {
-	RelativePath string      `json:"relative_path"`
-	Title        string      `json:"title"`
-	Summary      string      `json:"summary,omitempty"`
-	Nodes        []GraphNode `json:"nodes"`
-	Edges        []GraphEdge `json:"edges"`
-	ModTime      time.Time   `json:"mod_time"`
+	RelativePath         string      `json:"relative_path"`
+	Title                string      `json:"title"`
+	Summary              string      `json:"summary,omitempty"`
+	Nodes                []GraphNode `json:"nodes"`
+	Edges                []GraphEdge `json:"edges"`
+	Readiness            string      `json:"readiness"` // "ready" (🟢), "blocked" (🟡), "root" (🟣)
+	ReadinessReason      string      `json:"readiness_reason"`
+	MissingPrerequisites []string    `json:"missing_prerequisites,omitempty"`
+	CoveredPrerequisites []string    `json:"covered_prerequisites,omitempty"`
+	ModTime              time.Time   `json:"mod_time"`
+}
+
+// MatrixCell representa el estado de un concepto en una sesión concreta
+type MatrixCell struct {
+	Type   string `json:"type"` // "intro", "reinforce", "premature_warning", "empty"
+	Detail string `json:"detail,omitempty"`
+}
+
+// MatrixSessionHeader representa una columna de sesión en la matriz de coherencia
+type MatrixSessionHeader struct {
+	RelPath string `json:"rel_path"`
+	Title   string `json:"title"`
+	Module  string `json:"module"`
+	Order   int    `json:"order"`
+}
+
+// MatrixConceptRow representa una fila conceptual en la matriz de coherencia
+type MatrixConceptRow struct {
+	ID            string                `json:"id"`
+	Label         string                `json:"label"`
+	Type          string                `json:"type"`
+	IntroducedIn  string                `json:"introduced_in"`
+	Occurrences   int                   `json:"occurrences"`
+	Cells         map[string]MatrixCell `json:"cells"` // key = session rel_path
+	WarningsCount int                   `json:"warnings_count"`
+}
+
+// CurriculumMatrix almacena la matriz completa de coherencia curricular
+type CurriculumMatrix struct {
+	Sessions      []MatrixSessionHeader `json:"sessions"`
+	Concepts      []MatrixConceptRow    `json:"concepts"`
+	TotalWarnings int                   `json:"total_warnings"`
 }
 
 // PlacementSuggestion representa la recomendación pedagógica para ubicar un tema flotante
@@ -610,7 +646,7 @@ func GetContextSuggestions(targetDir string, currentFile string) (*ContextSugges
 	}, nil
 }
 
-// GetUnassignedTopics obtiene la lista de lecciones y reflexiones flotantes en content/unassigned/
+// GetUnassignedTopics obtiene la lista de lecciones y reflexiones flotantes en content/unassigned/ calculando su semáforo de madurez
 func GetUnassignedTopics(targetDir string) ([]UnassignedTopicInfo, error) {
 	unassignedPath := filepath.Join(targetDir, UnassignedDir)
 	if _, err := os.Stat(unassignedPath); os.IsNotExist(err) {
@@ -620,6 +656,24 @@ func GetUnassignedTopics(targetDir string) ([]UnassignedTopicInfo, error) {
 	entries, err := os.ReadDir(unassignedPath)
 	if err != nil {
 		return nil, fmt.Errorf("error leyendo bandeja de temas flotantes: %w", err)
+	}
+
+	// Cargar todos los conceptos ya impartidos en las sesiones del curso
+	globalGraph, _ := LoadGlobalGraph(targetDir)
+	orderedSessions, _ := GetOrderedCourseSessions(targetDir)
+	courseSessionsMap := make(map[string]bool)
+	for _, s := range orderedSessions {
+		courseSessionsMap[s] = true
+	}
+
+	courseConcepts := make(map[string]bool)
+	for _, n := range globalGraph.Nodes {
+		for _, sf := range n.SourceFiles {
+			if courseSessionsMap[sf] {
+				courseConcepts[n.ID] = true
+				break
+			}
+		}
 	}
 
 	var topics []UnassignedTopicInfo
@@ -650,13 +704,51 @@ func GetUnassignedTopics(targetDir string) ([]UnassignedTopicInfo, error) {
 
 		chGraph, _ := LoadChapterGraph(targetDir, relPath)
 
+		// Evaluar semáforo de madurez conceptual
+		topicNodeIDs := make(map[string]bool)
+		for _, n := range chGraph.Nodes {
+			topicNodeIDs[n.ID] = true
+		}
+
+		var missingPrereqs []string
+		var coveredPrereqs []string
+		hasIncomingPrereqs := false
+
+		for _, edge := range globalGraph.Edges {
+			// Si la arista apunta a un nodo de este tema flotante
+			if topicNodeIDs[edge.Target] && !topicNodeIDs[edge.Source] {
+				hasIncomingPrereqs = true
+				if courseConcepts[edge.Source] {
+					coveredPrereqs = append(coveredPrereqs, edge.Source)
+				} else {
+					missingPrereqs = append(missingPrereqs, edge.Source)
+				}
+			}
+		}
+
+		readiness := "root"
+		readinessReason := "Concepto introductorio / independiente (sin prerrequisitos previos)"
+		if hasIncomingPrereqs {
+			if len(missingPrereqs) == 0 {
+				readiness = "ready"
+				readinessReason = fmt.Sprintf("Listo para ubicar (%d prerrequisitos ya cubiertos en el curso)", len(coveredPrereqs))
+			} else {
+				readiness = "blocked"
+				readinessReason = fmt.Sprintf("Requiere conceptos previos no impartidos: %s", strings.Join(missingPrereqs, ", "))
+			}
+		}
+
 		topic := UnassignedTopicInfo{
-			RelativePath: relPath,
-			Title:        title,
-			Summary:      extractBriefSummary(content),
-			Nodes:        chGraph.Nodes,
-			Edges:        chGraph.Edges,
-			ModTime:      modTime,
+			RelativePath:         relPath,
+			Title:                title,
+			Summary:              extractBriefSummary(content),
+			Nodes:                chGraph.Nodes,
+			Edges:                chGraph.Edges,
+			Readiness:            readiness,
+			ReadinessReason:      readinessReason,
+			MissingPrerequisites: missingPrereqs,
+			CoveredPrerequisites: coveredPrereqs,
+			ModTime:              modTime,
 		}
 		topics = append(topics, topic)
 	}
@@ -977,4 +1069,317 @@ func PromoteUnassignedTopic(targetDir string, topicRelPath string, targetModuleS
 		fmt.Sprintf("Promocionar tema flotante '%s' a %s", sessionTitle, destRelPath), authorName, authorEmail)
 
 	return destRelPath, nil
+}
+
+// ExtractSelectionToUnassigned extrae un fragmento de texto de una sesión activa y lo convierte en una idea flotante independiente,
+// dejando en el documento original un bloque de referencia vinculado.
+func ExtractSelectionToUnassigned(targetDir string, sourceRelPath string, selectionText string, title string, authorName string, authorEmail string) (string, string, error) {
+	trimmedSelection := strings.TrimSpace(selectionText)
+	if trimmedSelection == "" {
+		return "", "", fmt.Errorf("la selección de texto no puede estar vacía")
+	}
+
+	if title == "" {
+		lines := strings.Split(trimmedSelection, "\n")
+		firstLine := strings.TrimSpace(lines[0])
+		firstLine = strings.TrimPrefix(firstLine, "=")
+		firstLine = strings.TrimSpace(firstLine)
+		if len(firstLine) > 40 {
+			firstLine = firstLine[:40] + "..."
+		}
+		title = firstLine
+		if title == "" {
+			title = fmt.Sprintf("Idea Extraída (%s)", time.Now().Format("15:04:05"))
+		}
+	}
+
+	slug := NormalizeConceptID(title)
+	if slug == "" {
+		slug = fmt.Sprintf("idea-extraida-%d", time.Now().Unix())
+	}
+
+	unassignedRelPath := filepath.ToSlash(filepath.Join(UnassignedDir, slug+".adoc"))
+	unassignedFullPath := filepath.Join(targetDir, filepath.Clean(unassignedRelPath))
+
+	if err := os.MkdirAll(filepath.Dir(unassignedFullPath), 0755); err != nil {
+		return "", "", fmt.Errorf("error creando carpeta unassigned: %w", err)
+	}
+
+	// Contenido del nuevo archivo flotante
+	unassignedContent := fmt.Sprintf("= %s\n:author: %s\n:date: %s\n:type: unassigned\n:extracted_from: %s\n\n%s\n",
+		title, authorName, time.Now().Format("2006-01-02"), sourceRelPath, trimmedSelection)
+
+	if err := os.WriteFile(unassignedFullPath, []byte(unassignedContent), 0644); err != nil {
+		return "", "", fmt.Errorf("error escribiendo idea flotante: %w", err)
+	}
+
+	// Leer y actualizar el archivo de origen
+	sourceFullPath := filepath.Join(targetDir, filepath.Clean(sourceRelPath))
+	sourceContentBytes, err := os.ReadFile(sourceFullPath)
+	if err != nil {
+		return "", "", fmt.Errorf("error leyendo archivo origen: %w", err)
+	}
+	sourceContent := string(sourceContentBytes)
+
+	// Bloque de referencia AsciiDoc a sustituir
+	referenceBlock := fmt.Sprintf("\n\n[NOTE]\n.📌 Idea pedagógica complementaria: %s\n====\nConsulte el desarrollo en: xref:../unassigned/%s.adoc[%s]\n====\n\n",
+		title, slug, title)
+
+	var modifiedSource string
+	if strings.Contains(sourceContent, selectionText) {
+		modifiedSource = strings.Replace(sourceContent, selectionText, referenceBlock, 1)
+	} else if strings.Contains(sourceContent, trimmedSelection) {
+		modifiedSource = strings.Replace(sourceContent, trimmedSelection, referenceBlock, 1)
+	} else {
+		// Si no se encuentra coincidencia exacta de whitespace, se añade como nota al final
+		modifiedSource = sourceContent + referenceBlock
+	}
+
+	if err := os.WriteFile(sourceFullPath, []byte(modifiedSource), 0644); err != nil {
+		return "", "", fmt.Errorf("error actualizando archivo origen: %w", err)
+	}
+
+	git.CommitFiles(targetDir, []string{sourceRelPath, unassignedRelPath},
+		fmt.Sprintf("Extraer fragmento '%s' a tema flotante", title), authorName, authorEmail)
+
+	return unassignedRelPath, modifiedSource, nil
+}
+
+// EmbedUnassignedTopicIntoSession incrusta una nota o lección flotante dentro de una sesión ya existente
+// (como subsección o bloque de aviso), fusionando sus conceptos y eliminando el archivo flotante.
+func EmbedUnassignedTopicIntoSession(targetDir string, unassignedRelPath string, targetSessionRelPath string, embedMode string, authorName string, authorEmail string) error {
+	cleanUnassigned := filepath.ToSlash(filepath.Clean(unassignedRelPath))
+	cleanTarget := filepath.ToSlash(filepath.Clean(targetSessionRelPath))
+
+	unassignedFullPath := filepath.Join(targetDir, filepath.Clean(cleanUnassigned))
+	targetFullPath := filepath.Join(targetDir, filepath.Clean(cleanTarget))
+
+	unassignedBytes, err := os.ReadFile(unassignedFullPath)
+	if err != nil {
+		return fmt.Errorf("error leyendo tema flotante: %w", err)
+	}
+	unassignedContent := string(unassignedBytes)
+
+	targetBytes, err := os.ReadFile(targetFullPath)
+	if err != nil {
+		return fmt.Errorf("error leyendo sesión destino: %w", err)
+	}
+	targetContent := string(targetBytes)
+
+	title := ExtractDocumentTitle(unassignedContent)
+	if title == "" {
+		title = "Apunte Pedagógico Complementario"
+	}
+
+	// Limpiar encabezados de metadatos del contenido flotante
+	lines := strings.Split(unassignedContent, "\n")
+	var bodyLines []string
+	isHeader := true
+	for _, l := range lines {
+		trimmed := strings.TrimSpace(l)
+		if isHeader && (strings.HasPrefix(trimmed, "=") || strings.HasPrefix(trimmed, ":")) {
+			continue
+		}
+		isHeader = false
+		bodyLines = append(bodyLines, l)
+	}
+	cleanBody := strings.TrimSpace(strings.Join(bodyLines, "\n"))
+
+	var embedBlock string
+	if embedMode == "section" {
+		embedBlock = fmt.Sprintf("\n\n=== %s\n\n%s\n", title, cleanBody)
+	} else {
+		embedBlock = fmt.Sprintf("\n\n[NOTE]\n.📌 %s\n====\n%s\n====\n", title, cleanBody)
+	}
+
+	updatedTargetContent := targetContent + embedBlock
+	if err := os.WriteFile(targetFullPath, []byte(updatedTargetContent), 0644); err != nil {
+		return fmt.Errorf("error escribiendo sesión destino: %w", err)
+	}
+
+	// Fusionar grafo si existe
+	uGraph, uErr := LoadChapterGraph(targetDir, cleanUnassigned)
+	tGraph, _ := LoadChapterGraph(targetDir, cleanTarget)
+	if uErr == nil {
+		for _, n := range uGraph.Nodes {
+			n.SourceFiles = []string{cleanTarget}
+			tGraph.Nodes = append(tGraph.Nodes, n)
+		}
+		for _, e := range uGraph.Edges {
+			e.SourceFiles = []string{cleanTarget}
+			tGraph.Edges = append(tGraph.Edges, e)
+		}
+		SaveChapterGraph(targetDir, tGraph)
+	}
+
+	// Eliminar archivo flotante y su subgrafo
+	os.Remove(unassignedFullPath)
+	os.Remove(getChapterGraphPath(targetDir, cleanUnassigned))
+
+	// Actualizar grafo global
+	globalGraph, err := LoadGlobalGraph(targetDir)
+	if err == nil {
+		globalGraph = RemoveFileFromGlobalGraph(globalGraph, cleanUnassigned)
+		if uErr == nil {
+			globalGraph = MergeChapterGraph(globalGraph, tGraph)
+		}
+		SaveGlobalGraph(targetDir, globalGraph)
+	}
+
+	git.CommitFiles(targetDir, []string{cleanTarget, cleanUnassigned, GraphGlobalFile},
+		fmt.Sprintf("Incrustar tema flotante '%s' en %s", title, cleanTarget), authorName, authorEmail)
+
+	return nil
+}
+
+// GetCurriculumCoherenceMatrix genera la matriz de cobertura y mapa de calor de conceptos vs sesiones ordenadas
+func GetCurriculumCoherenceMatrix(targetDir string) (*CurriculumMatrix, error) {
+	globalGraph, err := LoadGlobalGraph(targetDir)
+	if err != nil {
+		return nil, err
+	}
+
+	orderedSessions, err := GetOrderedCourseSessions(targetDir)
+	if err != nil {
+		return nil, err
+	}
+
+	var sessionHeaders []MatrixSessionHeader
+	sessionGraphs := make(map[string]*ChapterGraph)
+
+	for idx, sRel := range orderedSessions {
+		chGraph, _ := LoadChapterGraph(targetDir, sRel)
+		sessionGraphs[sRel] = chGraph
+
+		// Extraer título de sesión
+		title := chGraph.Title
+		if title == "" {
+			content, _ := ReadFile(targetDir, sRel)
+			title = ExtractDocumentTitle(content)
+			if title == "" {
+				title = filepath.Base(sRel)
+			}
+		}
+
+		parts := strings.Split(sRel, "/")
+		mod := "general"
+		if len(parts) >= 2 {
+			mod = parts[1]
+		}
+
+		sessionHeaders = append(sessionHeaders, MatrixSessionHeader{
+			RelPath: sRel,
+			Title:   title,
+			Module:  mod,
+			Order:   idx + 1,
+		})
+	}
+
+	// Mapear prerrequisitos ontológicos entre conceptos
+	prereqMap := make(map[string][]string) // targetConceptID -> list of required sourceConceptIDs
+	for _, edge := range globalGraph.Edges {
+		if strings.Contains(strings.ToLower(edge.Label), "prerrequisito") || strings.Contains(strings.ToLower(edge.Label), "requiere") {
+			prereqMap[edge.Target] = append(prereqMap[edge.Target], edge.Source)
+		}
+	}
+
+	// Construir filas conceptuales
+	var conceptRows []MatrixConceptRow
+	totalWarnings := 0
+
+	for _, node := range globalGraph.Nodes {
+		if node.IsUnassigned && len(node.SourceFiles) == 1 && strings.HasPrefix(node.SourceFiles[0], "content/unassigned/") {
+			continue // No incluir conceptos aislados de flotantes si no aparecen en el temario
+		}
+
+		cells := make(map[string]MatrixCell)
+		introducedIn := ""
+		warningsInRow := 0
+		seenSoFar := make(map[string]bool)
+
+		for _, sHeader := range sessionHeaders {
+			sRel := sHeader.RelPath
+			chGraph := sessionGraphs[sRel]
+
+			hasConcept := false
+			if chGraph != nil {
+				for _, cn := range chGraph.Nodes {
+					if cn.ID == node.ID {
+						hasConcept = true
+						break
+					}
+				}
+			}
+
+			if hasConcept {
+				if introducedIn == "" {
+					// Primera vez que aparece -> Introducción
+					introducedIn = sRel
+
+					// Verificar si se introdujo sin cumplir prerrequisitos previos
+					var missingPrereqs []string
+					for _, req := range prereqMap[node.ID] {
+						if !seenSoFar[req] {
+							missingPrereqs = append(missingPrereqs, req)
+						}
+					}
+
+					if len(missingPrereqs) > 0 {
+						warningsInRow++
+						totalWarnings++
+						cells[sRel] = MatrixCell{
+							Type:   "premature_warning",
+							Detail: fmt.Sprintf("Introducido antes de sus prerrequisitos: %s", strings.Join(missingPrereqs, ", ")),
+						}
+					} else {
+						cells[sRel] = MatrixCell{
+							Type:   "intro",
+							Detail: "Concepto introducido por primera vez en el curso",
+						}
+					}
+				} else {
+					// Ya fue introducido previamente -> Refuerzo
+					cells[sRel] = MatrixCell{
+						Type:   "reinforce",
+						Detail: "Refuerzo / profundización del concepto",
+					}
+				}
+			} else {
+				cells[sRel] = MatrixCell{
+					Type: "empty",
+				}
+			}
+
+			// Actualizar conceptos vistos hasta esta sesión
+			if chGraph != nil {
+				for _, cn := range chGraph.Nodes {
+					seenSoFar[cn.ID] = true
+				}
+			}
+		}
+
+		conceptRows = append(conceptRows, MatrixConceptRow{
+			ID:            node.ID,
+			Label:         node.Label,
+			Type:          node.Type,
+			IntroducedIn:  introducedIn,
+			Occurrences:   node.Occurrences,
+			Cells:         cells,
+			WarningsCount: warningsInRow,
+		})
+	}
+
+	// Ordenar conceptos: primero los que tienen avisos, luego por ocurrencias descendente
+	sort.Slice(conceptRows, func(i, j int) bool {
+		if conceptRows[i].WarningsCount != conceptRows[j].WarningsCount {
+			return conceptRows[i].WarningsCount > conceptRows[j].WarningsCount
+		}
+		return conceptRows[i].Occurrences > conceptRows[j].Occurrences
+	})
+
+	return &CurriculumMatrix{
+		Sessions:      sessionHeaders,
+		Concepts:      conceptRows,
+		TotalWarnings: totalWarnings,
+	}, nil
 }

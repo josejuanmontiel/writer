@@ -2,6 +2,7 @@ package storage
 
 import (
 	"os"
+	"strings"
 	"testing"
 )
 
@@ -222,5 +223,208 @@ func TestNormalizeConceptID(t *testing.T) {
 		if res != tc.expected {
 			t.Errorf("NormalizeConceptID(%q) = %q, esperado %q", tc.input, res, tc.expected)
 		}
+	}
+}
+
+func TestExtractSelectionAndEmbedTopic(t *testing.T) {
+	tmpDir, err := os.MkdirTemp("", "writer_extract_test_*")
+	if err != nil {
+		t.Fatalf("Error creando tmpDir: %v", err)
+	}
+	defer os.RemoveAll(tmpDir)
+
+	meta := ProjectMeta{
+		Name:   "Test Compendio",
+		Author: "Profesor",
+		Email:  "profesor@example.com",
+	}
+	_, _ = CreateCompendium(tmpDir, meta)
+
+	session1Rel := "content/modulo-1/sesion-01.adoc"
+	originalText := `= Sesión 1: Los Sacramentos
+:author: Profesor
+
+== Introducción
+Los sacramentos son signos eficaces de la gracia divina.
+
+== Actividad Pedagógica Especial
+Explicar a los alumnos mediante una parábola visual la importancia de la reconciliación.
+
+== Conclusión
+Resumen de la lección.`
+
+	_ = SaveLessonFile(tmpDir, session1Rel, originalText, "Sesión 1", meta.Author, meta.Email)
+
+	// 1. Probar Extraer Selección a Tema Flotante (Selection-to-Floating-Idea)
+	selectionToExtract := `== Actividad Pedagógica Especial
+Explicar a los alumnos mediante una parábola visual la importancia de la reconciliación.`
+
+	unassignedRel, modifiedSource, err := ExtractSelectionToUnassigned(tmpDir, session1Rel, selectionToExtract, "Parábola de la Reconciliación", meta.Author, meta.Email)
+	if err != nil {
+		t.Fatalf("Error extrayendo selección: %v", err)
+	}
+
+	if unassignedRel == "" {
+		t.Fatal("unassignedRel devuelto es vacío")
+	}
+
+	// Verificar que el documento origen ahora contiene el bloque de referencia
+	if !strings.Contains(modifiedSource, "xref:../unassigned/parabola-de-la-reconciliacion.adoc") {
+		t.Errorf("El documento origen modificado no contiene el enlace xref al tema flotante: %s", modifiedSource)
+	}
+
+	// Verificar que el archivo flotante fue creado con el contenido
+	unassignedContent, err := ReadFile(tmpDir, unassignedRel)
+	if err != nil {
+		t.Fatalf("Error leyendo archivo flotante creado: %v", err)
+	}
+	if !strings.Contains(unassignedContent, "parábola visual") {
+		t.Errorf("El archivo flotante no contiene el texto extraído: %s", unassignedContent)
+	}
+
+	// 2. Probar Incrustar Tema Flotante en otra Sesión (EmbedUnassignedTopicIntoSession)
+	session2Rel := "content/modulo-1/sesion-02.adoc"
+	session2Content := `= Sesión 2: La Penitencia
+:author: Profesor
+
+== Desarrollo Principal
+La confesión restaura la amistad con Dios.`
+	_ = SaveLessonFile(tmpDir, session2Rel, session2Content, "Sesión 2", meta.Author, meta.Email)
+
+	err = EmbedUnassignedTopicIntoSession(tmpDir, unassignedRel, session2Rel, "section", meta.Author, meta.Email)
+	if err != nil {
+		t.Fatalf("Error incrustando tema flotante en sesión 2: %v", err)
+	}
+
+	// Verificar que sesión 2 contiene el contenido incrustado
+	s2Updated, _ := ReadFile(tmpDir, session2Rel)
+	if !strings.Contains(s2Updated, "=== Parábola de la Reconciliación") || !strings.Contains(s2Updated, "parábola visual") {
+		t.Errorf("La sesión destino no contiene la sección incrustada: %s", s2Updated)
+	}
+
+	// Verificar que el archivo flotante fue eliminado
+	unassignedList, _ := GetUnassignedTopics(tmpDir)
+	if len(unassignedList) != 0 {
+		t.Errorf("Esperado 0 temas flotantes tras incrustar, obtenido %d", len(unassignedList))
+	}
+}
+
+func TestUnassignedReadinessAndCurriculumMatrix(t *testing.T) {
+	tmpDir, err := os.MkdirTemp("", "writer_matrix_test_*")
+	if err != nil {
+		t.Fatalf("Error creando tmpDir: %v", err)
+	}
+	defer os.RemoveAll(tmpDir)
+
+	meta := ProjectMeta{
+		Name:   "Compendio Matriz Coherencia",
+		Author: "Catequista",
+		Email:  "catequista@example.com",
+	}
+	_, _ = CreateCompendium(tmpDir, meta)
+
+	// Crear Sesión 1 con concepto 'bautismo'
+	s1Rel := "content/modulo-1/sesion-01.adoc"
+	_ = SaveLessonFile(tmpDir, s1Rel, "= Sesión 1\nEl Bautismo cristiano.\n", "Sesión 1", meta.Author, meta.Email)
+	ch1 := &ChapterGraph{
+		RelativePath: s1Rel,
+		Title:        "Sesión 1: El Bautismo",
+		Nodes: []GraphNode{
+			{ID: "bautismo", Label: "Bautismo", Type: "Sacramento", SourceFiles: []string{s1Rel}, Occurrences: 1},
+		},
+	}
+	SaveChapterGraph(tmpDir, ch1)
+
+	// Crear Sesión 2 con concepto 'eucaristia' (requiere 'confesion')
+	s2Rel := "content/modulo-1/sesion-02.adoc"
+	_ = SaveLessonFile(tmpDir, s2Rel, "= Sesión 2\nLa Eucaristía.\n", "Sesión 2", meta.Author, meta.Email)
+	ch2 := &ChapterGraph{
+		RelativePath: s2Rel,
+		Title:        "Sesión 2: La Eucaristía",
+		Nodes: []GraphNode{
+			{ID: "eucaristia", Label: "Eucaristía", Type: "Sacramento", SourceFiles: []string{s2Rel}, Occurrences: 1},
+			{ID: "bautismo", Label: "Bautismo", Type: "Sacramento", SourceFiles: []string{s2Rel}, Occurrences: 1},
+		},
+		Edges: []GraphEdge{
+			{Source: "confesion", Target: "eucaristia", Label: "prerrequisito_de", Score: 0.9},
+		},
+	}
+	SaveChapterGraph(tmpDir, ch2)
+
+	// Crear tema flotante 1: 'confesion' (requiere 'bautismo' que ya está impartido en Sesión 1 -> debe ser "ready")
+	u1Rel, _ := CreateUnassignedTopic(tmpDir, "La Confesión", "El sacramento de la confesión.", meta.Author, meta.Email)
+	chU1 := &ChapterGraph{
+		RelativePath: u1Rel,
+		Title:        "La Confesión",
+		Nodes: []GraphNode{
+			{ID: "confesion", Label: "Confesión", Type: "Sacramento", IsUnassigned: true},
+		},
+		Edges: []GraphEdge{
+			{Source: "bautismo", Target: "confesion", Label: "prerrequisito_de", Score: 0.95},
+		},
+	}
+	SaveChapterGraph(tmpDir, chU1)
+
+	// Fusionar todo en el grafo global
+	gGlobal, _ := LoadGlobalGraph(tmpDir)
+	gGlobal = MergeChapterGraph(gGlobal, ch1)
+	gGlobal = MergeChapterGraph(gGlobal, ch2)
+	gGlobal = MergeChapterGraph(gGlobal, chU1)
+	SaveGlobalGraph(tmpDir, gGlobal)
+
+	// 1. Probar semáforo de madurez en Unassigned
+	unassignedTopics, err := GetUnassignedTopics(tmpDir)
+	if err != nil {
+		t.Fatalf("Error obteniendo temas flotantes con madurez: %v", err)
+	}
+	if len(unassignedTopics) != 1 {
+		t.Fatalf("Esperado 1 tema flotante, obtenido %d", len(unassignedTopics))
+	}
+	if unassignedTopics[0].Readiness != "ready" {
+		t.Errorf("Esperado estado 'ready' (bautismo ya está en sesión 1), obtenido '%s' (Razón: %s)",
+			unassignedTopics[0].Readiness, unassignedTopics[0].ReadinessReason)
+	}
+
+	// 2. Probar Matriz de Coherencia Curricular
+	matrix, err := GetCurriculumCoherenceMatrix(tmpDir)
+	if err != nil {
+		t.Fatalf("Error calculando matriz curricular: %v", err)
+	}
+
+	if len(matrix.Sessions) < 2 {
+		t.Errorf("Esperadas al menos 2 sesiones en la matriz, obtenido %d", len(matrix.Sessions))
+	}
+
+	// Verificar que 'bautismo' en sesión 1 es 'intro' y en sesión 2 es 'reinforce'
+	var bautismoRow *MatrixConceptRow
+	var eucaristiaRow *MatrixConceptRow
+	for i := range matrix.Concepts {
+		if matrix.Concepts[i].ID == "bautismo" {
+			bautismoRow = &matrix.Concepts[i]
+		}
+		if matrix.Concepts[i].ID == "eucaristia" {
+			eucaristiaRow = &matrix.Concepts[i]
+		}
+	}
+
+	if bautismoRow == nil {
+		t.Fatal("Fila conceptual 'bautismo' no encontrada en la matriz")
+	}
+	if bautismoRow.Cells[s1Rel].Type != "intro" {
+		t.Errorf("Esperado tipo 'intro' para bautismo en sesión 1, obtenido '%s'", bautismoRow.Cells[s1Rel].Type)
+	}
+	if bautismoRow.Cells[s2Rel].Type != "reinforce" {
+		t.Errorf("Esperado tipo 'reinforce' para bautismo en sesión 2, obtenido '%s'", bautismoRow.Cells[s2Rel].Type)
+	}
+
+	if eucaristiaRow == nil {
+		t.Fatal("Fila conceptual 'eucaristia' no encontrada en la matriz")
+	}
+	// 'eucaristia' requiere 'confesion', que no ha sido impartida aún en las sesiones 1 ni 2 -> alerta de uso prematuro!
+	if eucaristiaRow.Cells[s2Rel].Type != "premature_warning" {
+		t.Errorf("Esperado tipo 'premature_warning' para eucaristia en sesión 2, obtenido '%s'", eucaristiaRow.Cells[s2Rel].Type)
+	}
+	if matrix.TotalWarnings < 1 {
+		t.Errorf("Esperado al menos 1 aviso en la matriz curricular, obtenido %d", matrix.TotalWarnings)
 	}
 }

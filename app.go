@@ -1372,4 +1372,64 @@ func (a *App) DeleteModel(modelID string) error {
 	return a.modelManager.DeleteModel(modelID)
 }
 
+// -------------------------------------------------------------
+// Métodos de Agilidad Pedagógica y Coherencia Conceptual (Punto 1.4)
+// -------------------------------------------------------------
+
+// ExtractSelectionToUnassigned extrae un fragmento de texto seleccionado y crea un tema flotante independiente
+func (a *App) ExtractSelectionToUnassigned(sourceRelPath string, selectionText string, title string) (map[string]string, error) {
+	if a.compendiumManager == nil {
+		return nil, fmt.Errorf("no hay ningún compendio abierto")
+	}
+	targetDir := a.compendiumManager.GetTargetDir()
+	meta := a.compendiumManager.GetMeta()
+
+	unassignedRel, modifiedSource, err := storage.ExtractSelectionToUnassigned(targetDir, sourceRelPath, selectionText, title, meta.Author, meta.Email)
+	if err != nil {
+		return nil, err
+	}
+
+	// Extraer subgrafo automáticamente para la nueva idea en background
+	go func() {
+		cleanContent := a.cleanHtmlForExtraction(selectionText)
+		if cleanContent != "" && a.glinerExtractor != nil {
+			chGraph, extErr := a.glinerExtractor.ExtractChapterGraph(cleanContent, unassignedRel, title)
+			if extErr == nil {
+				for i := range chGraph.Nodes {
+					chGraph.Nodes[i].IsUnassigned = true
+				}
+				storage.SaveChapterGraph(targetDir, chGraph)
+				globalGraph, _ := storage.LoadGlobalGraph(targetDir)
+				globalGraph = storage.MergeChapterGraph(globalGraph, chGraph)
+				storage.SaveGlobalGraph(targetDir, globalGraph)
+			}
+		}
+	}()
+
+	return map[string]string{
+		"unassigned_path": unassignedRel,
+		"modified_source": modifiedSource,
+	}, nil
+}
+
+// EmbedUnassignedTopicIntoSession incrusta una nota o lección flotante dentro de una sesión ya existente
+func (a *App) EmbedUnassignedTopicIntoSession(unassignedRelPath string, targetSessionRelPath string, embedMode string) error {
+	if a.compendiumManager == nil {
+		return fmt.Errorf("no hay ningún compendio abierto")
+	}
+	targetDir := a.compendiumManager.GetTargetDir()
+	meta := a.compendiumManager.GetMeta()
+
+	return storage.EmbedUnassignedTopicIntoSession(targetDir, unassignedRelPath, targetSessionRelPath, embedMode, meta.Author, meta.Email)
+}
+
+// GetCurriculumCoherenceMatrix genera la matriz de cobertura y mapa de calor de conceptos vs sesiones ordenadas
+func (a *App) GetCurriculumCoherenceMatrix() (*storage.CurriculumMatrix, error) {
+	if a.compendiumManager == nil {
+		return nil, fmt.Errorf("no hay ningún compendio abierto")
+	}
+	targetDir := a.compendiumManager.GetTargetDir()
+	return storage.GetCurriculumCoherenceMatrix(targetDir)
+}
+
 

@@ -140,3 +140,9 @@ export function CreateUnassignedTopic(arg1:string,arg2:string):Promise<string>;
 export function AnalyzeUnassignedPlacement(arg1:string):Promise<any>;
 
 export function PromoteUnassignedTopic(arg1:string,arg2:string,arg3:string):Promise<string>;
+
+export function ExtractSelectionToUnassigned(arg1:string,arg2:string,arg3:string):Promise<any>;
+
+export function EmbedUnassignedTopicIntoSession(arg1:string,arg2:string,arg3:string):Promise<void>;
+
+export function GetCurriculumCoherenceMatrix():Promise<any>;

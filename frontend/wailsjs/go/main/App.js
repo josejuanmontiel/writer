@@ -266,3 +266,15 @@ export function PromoteUnassignedTopic(arg1, arg2, arg3) {
   return window['go']['main']['App']['PromoteUnassignedTopic'](arg1, arg2, arg3);
 }
 
+export function ExtractSelectionToUnassigned(arg1, arg2, arg3) {
+  return window['go']['main']['App']['ExtractSelectionToUnassigned'](arg1, arg2, arg3);
+}
+
+export function EmbedUnassignedTopicIntoSession(arg1, arg2, arg3) {
+  return window['go']['main']['App']['EmbedUnassignedTopicIntoSession'](arg1, arg2, arg3);
+}
+
+export function GetCurriculumCoherenceMatrix() {
+  return window['go']['main']['App']['GetCurriculumCoherenceMatrix']();
+}
+

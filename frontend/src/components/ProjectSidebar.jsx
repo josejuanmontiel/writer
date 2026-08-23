@@ -186,18 +186,32 @@ export default function ProjectSidebar({
                   )}
 
                   {/* Acciones para Bandeja de Ideas Flotantes */}
-                  {(node.relative_path === 'content/unassigned' || node.name.includes('Ideas Flotantes')) && onNewUnassignedTopic && (
+                  {(node.relative_path === 'content/unassigned' || node.name.includes('Ideas Flotantes')) && (
                     <div className="flex items-center gap-1 opacity-0 group-hover/item:opacity-100 transition-opacity">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onNewUnassignedTopic();
-                        }}
-                        title="Crear nuevo tema o idea flotante (Staging)"
-                        className="p-1 rounded hover:bg-slate-700 text-amber-400 hover:text-amber-300 transition-colors"
-                      >
-                        <FilePlus className="w-3 h-3" />
-                      </button>
+                      {onQuickVoiceCapture && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onQuickVoiceCapture();
+                          }}
+                          title="Captura Rápida de Voz (Whisper Directo a Flotante)"
+                          className="p-1 rounded hover:bg-slate-700 text-rose-400 hover:text-rose-300 transition-colors"
+                        >
+                          <Mic className="w-3 h-3" />
+                        </button>
+                      )}
+                      {onNewUnassignedTopic && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onNewUnassignedTopic();
+                          }}
+                          title="Crear nuevo tema o idea flotante (Staging)"
+                          className="p-1 rounded hover:bg-slate-700 text-amber-400 hover:text-amber-300 transition-colors"
+                        >
+                          <FilePlus className="w-3 h-3" />
+                        </button>
+                      )}
                     </div>
                   )}
 
@@ -239,7 +253,18 @@ export default function ProjectSidebar({
                   className="flex items-center gap-2 truncate flex-1 text-left"
                 >
                   {isUnassigned ? (
-                    <Sparkles className={`w-3.5 h-3.5 flex-shrink-0 ${isSelected ? 'text-amber-400' : 'text-amber-500/70'}`} />
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <Sparkles className={`w-3.5 h-3.5 ${isSelected ? 'text-amber-400' : 'text-amber-500/70'}`} />
+                      {node.readiness === 'ready' && (
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" title="🟢 Listo para ubicar en el curso" />
+                      )}
+                      {node.readiness === 'blocked' && (
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-400" title="🟡 Requiere prerrequisitos previos" />
+                      )}
+                      {node.readiness === 'root' && (
+                        <span className="w-1.5 h-1.5 rounded-full bg-purple-400" title="🟣 Concepto raíz independiente" />
+                      )}
+                    </div>
                   ) : (
                     <FileText className={`w-3.5 h-3.5 flex-shrink-0 ${isSelected ? 'text-indigo-400' : 'text-slate-500'}`} />
                   )}

@@ -15,6 +15,8 @@ import WorkspaceSelector from './components/WorkspaceSelector';
 import ModelManagerModal from './components/ModelManagerModal';
 import LogsModal from './components/LogsModal';
 import PlacementAssistantModal from './components/PlacementAssistantModal';
+import DocumentationModal from './components/DocumentationModal';
+import CurriculumMatrixModal from './components/CurriculumMatrixModal';
 import { asciidocToHtml, htmlToAsciidoc } from './utils/asciidoc';
 import { useAudioRecorder } from './hooks/useAudioRecorder';
 import { EventsOn } from '../wailsjs/runtime/runtime';
@@ -60,10 +62,13 @@ import {
   GetUnassignedTopics,
   CreateUnassignedTopic,
   AnalyzeUnassignedPlacement,
-  PromoteUnassignedTopic
+  PromoteUnassignedTopic,
+  ExtractSelectionToUnassigned,
+  EmbedUnassignedTopicIntoSession,
+  GetCurriculumCoherenceMatrix
 } from '../wailsjs/go/main/App';
 import IdeaGraph from './components/IdeaGraph';
-import { Share2, FileText, ChevronRight } from 'lucide-react';
+import { Share2, FileText, ChevronRight, Table, HelpCircle, Scissors } from 'lucide-react';
 
 function App() {
   const [mode, setMode] = useState('Ficción');
@@ -103,6 +108,9 @@ function App() {
   const [showModelManagerModal, setShowModelManagerModal] = useState(false);
   const [showLogsModal, setShowLogsModal] = useState(false);
   const [showPlacementModal, setShowPlacementModal] = useState(false);
+  const [showDocModal, setShowDocModal] = useState(false);
+  const [showMatrixModal, setShowMatrixModal] = useState(false);
+  const [detectedConceptsPill, setDetectedConceptsPill] = useState('');
   const [placementTopicPath, setPlacementTopicPath] = useState('');
   const [previousConcepts, setPreviousConcepts] = useState([]);
   const [isExtractingGraph, setIsExtractingGraph] = useState(false);
@@ -116,6 +124,7 @@ function App() {
   
   const editorRef = useRef(null);
   const autoSaveTimerRef = useRef(null);
+  const autoExtractTimerRef = useRef(null);
 
   const handleTranscribed = (text) => {
     if (editorRef.current) {
@@ -173,11 +182,56 @@ function App() {
       setChapterGraph(chG);
       const suggestions = await GetContextSuggestions(activeFile);
       setPreviousConcepts(suggestions?.previous_concepts || []);
+      setDetectedConceptsPill(`✨ ${chG?.nodes?.length || 0} conceptos sincronizados`);
+      setTimeout(() => setDetectedConceptsPill(''), 4000);
     } catch (err) {
       console.error("Error extrayendo grafo con GLiNER2:", err);
       alert("Error en extracción: " + err);
     } finally {
       setIsExtractingGraph(false);
+    }
+  };
+
+  const handleExtractSelection = async (selectionText) => {
+    if (!activeFile) {
+      alert("Abre o crea un documento antes de extraer ideas.");
+      return;
+    }
+    const defaultTitle = selectionText.split('\n')[0].replace(/^[#=*\s]+/, '').substring(0, 35) || "Idea Extraída";
+    const title = prompt("Título para la nueva idea flotante:", defaultTitle);
+    if (!title) return;
+    try {
+      const res = await ExtractSelectionToUnassigned(activeFile, selectionText, title);
+      if (res && res.modified_source) {
+        const html = (activeFile.endsWith('.adoc') || activeFile.endsWith('.md'))
+          ? asciidocToHtml(res.modified_source)
+          : res.modified_source;
+        setEditorContent(html);
+        if (editorRef.current) {
+          editorRef.current.setContent(html);
+        }
+      }
+      await refreshTree();
+      setDetectedConceptsPill(`✂️ Extraído a '${title}'`);
+      setTimeout(() => setDetectedConceptsPill(''), 4000);
+    } catch (err) {
+      alert("Error extrayendo selección: " + err);
+    }
+  };
+
+  const handleQuickVoiceCapture = async () => {
+    const timestamp = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' }).replace(/:/g, '');
+    const title = `Borrador de Voz (${new Date().toLocaleDateString('es-ES')} ${timestamp})`;
+    try {
+      const relPath = await CreateUnassignedTopic(title, `= ${title}\n\n`);
+      await refreshTree();
+      await handleSelectFile(relPath);
+      // Iniciar grabación automáticamente si el micrófono no está grabando
+      if (!isRecording) {
+        toggleRecording();
+      }
+    } catch (err) {
+      alert("Error creando captura rápida de voz: " + err);
     }
   };
 
@@ -256,11 +310,32 @@ function App() {
       clearTimeout(autoSaveTimerRef.current);
     }
 
+    if (autoExtractTimerRef.current) {
+      clearTimeout(autoExtractTimerRef.current);
+    }
+
     if (activeCompendium && activeFile) {
       // Auto-save con debounce de 3 segundos
       autoSaveTimerRef.current = setTimeout(() => {
         handleSaveCompendium();
       }, 3000);
+
+      // Auto-extracción no invasiva en background tras 6 segundos de inactividad
+      autoExtractTimerRef.current = setTimeout(async () => {
+        try {
+          const raw = editorRef.current?.getContent() || html;
+          const chG = await ExtractAndMergeChapterGraph(activeFile, raw);
+          setChapterGraph(chG);
+          const suggestions = await GetContextSuggestions(activeFile);
+          setPreviousConcepts(suggestions?.previous_concepts || []);
+          if (chG?.nodes?.length > 0) {
+            setDetectedConceptsPill(`✨ ${chG.nodes.length} conceptos al día`);
+            setTimeout(() => setDetectedConceptsPill(''), 3500);
+          }
+        } catch (e) {
+          console.debug("Auto-extracción de fondo:", e);
+        }
+      }, 6000);
     } else {
       // Persistir borrador libre en localStorage
       localStorage.setItem('antigravity_free_draft', html);
@@ -727,6 +802,24 @@ function App() {
             </button>
           )}
 
+          {/* Botón Matriz de Coherencia Curricular (Punto 1.4) */}
+          <button 
+            className="p-1.5 text-slate-400 hover:text-indigo-300 hover:bg-slate-800 rounded-lg transition-colors" 
+            onClick={() => setShowMatrixModal(true)}
+            title="Matriz de Coherencia Curricular (Mapa de Calor Conceptual)"
+          >
+            <Table size={17} />
+          </button>
+
+          {/* Botón Manual de Usuario & Documentación Interactiva */}
+          <button 
+            className="p-1.5 text-slate-400 hover:text-amber-300 hover:bg-slate-800 rounded-lg transition-colors" 
+            onClick={() => setShowDocModal(true)}
+            title="Manual de Usuario & Guía de Coherencia Conceptual (Punto 1.4)"
+          >
+            <BookOpen size={17} />
+          </button>
+
           {/* Botón Ver Logs del Sistema */}
           <button 
             className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors" 
@@ -787,6 +880,7 @@ function App() {
           onDeleteFile={handleDeleteFile}
           onNewJournalEntry={() => setShowNewJournalModal(true)}
           onNewUnassignedTopic={handleNewUnassignedTopic}
+          onQuickVoiceCapture={handleQuickVoiceCapture}
           onOpenPlacementAssistant={handleOpenPlacementAssistant}
           onOpenTimeline={() => setShowTimelineModal(true)}
           lastSaved={lastSavedTime}
@@ -803,6 +897,7 @@ function App() {
                 onUpdate={handleEditorUpdate} 
                 previousConcepts={previousConcepts}
                 onExtractGraph={handleExtractGraph}
+                onExtractSelection={handleExtractSelection}
                 isExtractingGraph={isExtractingGraph}
                 extractedNodesCount={chapterGraph?.nodes?.length || 0}
               />
@@ -820,6 +915,11 @@ function App() {
                 {activeFile && (
                   <span className="font-mono text-[10px] text-indigo-400 bg-indigo-950/40 px-2 py-0.5 rounded border border-indigo-500/20">
                     {activeFile}
+                  </span>
+                )}
+                {detectedConceptsPill && (
+                  <span className="text-[10px] font-semibold text-emerald-300 bg-emerald-950/50 px-2 py-0.5 rounded-full border border-emerald-500/30 animate-in fade-in">
+                    {detectedConceptsPill}
                   </span>
                 )}
                 {lastSavedTime && (
@@ -1007,6 +1107,20 @@ function App() {
       <ModelManagerModal
         isOpen={showModelManagerModal}
         onClose={() => setShowModelManagerModal(false)}
+      />
+
+      <DocumentationModal
+        isOpen={showDocModal}
+        onClose={() => setShowDocModal(false)}
+      />
+
+      <CurriculumMatrixModal
+        isOpen={showMatrixModal}
+        onClose={() => setShowMatrixModal(false)}
+        onSelectSession={(sessionPath) => {
+          setShowMatrixModal(false);
+          handleSelectFile(sessionPath);
+        }}
       />
 
       {/* Settings Sidebar */}
