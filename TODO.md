@@ -96,16 +96,16 @@
 ---
 
 ### 🕸️ 1.5. Grafo de Dependencias y Validador Curricular (`IdeaGraph 2.0 & Linter`)
-- [ ] **Evolución del Grafo Conceptual y Tipos de Relaciones**:
+- [x] **Evolución del Grafo Conceptual y Tipos de Relaciones**:
   - Modelar relaciones pedagógicas y técnicas:
     - `prerrequisito_de` (ej: *Sistema Eléctrico* $\rightarrow$ *Alternador*, o *Bautismo* $\rightarrow$ *Comunión*).
     - `profundiza_en` (ej: *Año 1* introduce $\rightarrow$ *Año 2* profundiza).
     - `relacionado_con` (asociaciones transversales).
-- [ ] **Validador de Coherencia y Lagunas (Knowledge / Curriculum Linter)**:
+- [x] **Validador de Coherencia y Lagunas (Knowledge / Curriculum Linter)**:
   - Detección automática de inconsistencias: alertar si en una sesión avanzada se introduce un concepto cuyos prerrequisitos no han sido cubiertos en sesiones anteriores.
-- [ ] **Navegación Bidireccional Grafo ↔ Editor**:
+- [x] **Navegación Bidireccional Grafo ↔ Editor**:
   - Clicar en un nodo del grafo abre o resalta la sesión/sección correspondiente.
-- [ ] **Filtrado por Capas y Niveles**:
+- [x] **Filtrado por Capas y Niveles**:
   - Visualización del grafo por año, nivel de dificultad, módulo temático o estado (asignado vs flotante).
 
 ---

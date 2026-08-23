@@ -209,8 +209,34 @@ const SECTIONS = [
     )
   },
   {
+    id: 'linter',
+    title: '8. IdeaGraph 2.0 & Validador Curricular',
+    icon: Layers,
+    badge: 'Linter & Diagnósticos',
+    content: (
+      <div className="space-y-4 text-sm leading-relaxed text-slate-300">
+        <p>
+          <strong>IdeaGraph 2.0</strong> es el lienzo visual ontológico del compendio. Conecta directamente con el Grafo Global y cuenta con un <strong>Linter Curricular Automático</strong>:
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+          <div className="p-3 rounded-lg bg-slate-900/60 border border-slate-800 space-y-1">
+            <strong className="text-indigo-300 block font-semibold">🔍 Inspector de Nodos</strong>
+            <p className="text-slate-400">Haz clic sobre cualquier concepto para ver en qué sesiones se menciona y abrir el archivo con un clic.</p>
+          </div>
+          <div className="p-3 rounded-lg bg-slate-900/60 border border-slate-800 space-y-1">
+            <strong className="text-rose-300 block font-semibold">🛡️ Auditoría del Linter</strong>
+            <p className="text-slate-400">Detecta ciclos circulares (A ➔ B ➔ A), conceptos requeridos ausentes y lagunas temporales.</p>
+          </div>
+        </div>
+        <p className="text-xs text-slate-400">
+          Usa la cápsula de <strong>Salud Curricular</strong> para abrir el panel de diagnósticos y saltar de inmediato a la sesión con inconsistencias.
+        </p>
+      </div>
+    )
+  },
+  {
     id: 'git',
-    title: '8. Control de Versiones Git & Timeline',
+    title: '9. Control de Versiones Git & Timeline',
     icon: GitBranch,
     badge: 'Deshacer Infinito',
     content: (

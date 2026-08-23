@@ -1432,4 +1432,45 @@ func (a *App) GetCurriculumCoherenceMatrix() (*storage.CurriculumMatrix, error) 
 	return storage.GetCurriculumCoherenceMatrix(targetDir)
 }
 
+// -------------------------------------------------------------
+// Métodos de Grafo de Dependencias y Linter Curricular (Punto 1.5)
+// -------------------------------------------------------------
+
+// GetCurriculumLintReport genera el informe de inconsistencias y salud ontológica del compendio
+func (a *App) GetCurriculumLintReport() (*storage.CurriculumLintReport, error) {
+	if a.compendiumManager == nil {
+		return nil, fmt.Errorf("no hay ningún compendio abierto")
+	}
+	targetDir := a.compendiumManager.GetTargetDir()
+	return storage.GetCurriculumLintReport(targetDir)
+}
+
+// SaveGlobalGraphPositions persiste las coordenadas de los nodos arrastrados en el visualizador
+func (a *App) SaveGlobalGraphPositions(positions map[string]storage.NodePosition) error {
+	if a.compendiumManager == nil {
+		return fmt.Errorf("no hay ningún compendio abierto")
+	}
+	targetDir := a.compendiumManager.GetTargetDir()
+	return storage.SaveGlobalGraphPositions(targetDir, positions)
+}
+
+// SaveGlobalGraphManualEdge añade o actualiza una relación conceptual manual
+func (a *App) SaveGlobalGraphManualEdge(source string, target string, label string) error {
+	if a.compendiumManager == nil {
+		return fmt.Errorf("no hay ningún compendio abierto")
+	}
+	targetDir := a.compendiumManager.GetTargetDir()
+	return storage.SaveGlobalGraphManualEdge(targetDir, source, target, label)
+}
+
+// DeleteGlobalGraphEdge elimina una arista entre dos nodos en el grafo global
+func (a *App) DeleteGlobalGraphEdge(source string, target string) error {
+	if a.compendiumManager == nil {
+		return fmt.Errorf("no hay ningún compendio abierto")
+	}
+	targetDir := a.compendiumManager.GetTargetDir()
+	return storage.DeleteGlobalGraphEdge(targetDir, source, target)
+}
+
+
 

@@ -146,3 +146,12 @@ export function ExtractSelectionToUnassigned(arg1:string,arg2:string,arg3:string
 export function EmbedUnassignedTopicIntoSession(arg1:string,arg2:string,arg3:string):Promise<void>;
 
 export function GetCurriculumCoherenceMatrix():Promise<any>;
+
+export function GetCurriculumLintReport():Promise<any>;
+
+export function SaveGlobalGraphPositions(arg1:any):Promise<void>;
+
+export function SaveGlobalGraphManualEdge(arg1:string,arg2:string,arg3:string):Promise<void>;
+
+export function DeleteGlobalGraphEdge(arg1:string,arg2:string):Promise<void>;
+

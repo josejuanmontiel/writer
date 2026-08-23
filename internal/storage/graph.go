@@ -1383,3 +1383,79 @@ func GetCurriculumCoherenceMatrix(targetDir string) (*CurriculumMatrix, error) {
 		TotalWarnings: totalWarnings,
 	}, nil
 }
+
+// NodePosition representa la coordenada x, y de un nodo en el visor ReactFlow
+type NodePosition struct {
+	X float64 `json:"x"`
+	Y float64 `json:"y"`
+}
+
+// SaveGlobalGraphPositions guarda las posiciones X/Y de los nodos para persistir el layout visual
+func SaveGlobalGraphPositions(targetDir string, positions map[string]NodePosition) error {
+	globalGraph, err := LoadGlobalGraph(targetDir)
+	if err != nil {
+		return err
+	}
+
+	for i := range globalGraph.Nodes {
+		nodeID := globalGraph.Nodes[i].ID
+		if pos, ok := positions[nodeID]; ok {
+			globalGraph.Nodes[i].X = pos.X
+			globalGraph.Nodes[i].Y = pos.Y
+		}
+	}
+
+	return SaveGlobalGraph(targetDir, globalGraph)
+}
+
+// SaveGlobalGraphManualEdge añade o actualiza una conexión manual entre dos nodos en el grafo global
+func SaveGlobalGraphManualEdge(targetDir string, source, target, label string) error {
+	globalGraph, err := LoadGlobalGraph(targetDir)
+	if err != nil {
+		return err
+	}
+
+	if label == "" {
+		label = "relacionado_con"
+	}
+
+	found := false
+	for i := range globalGraph.Edges {
+		if globalGraph.Edges[i].Source == source && globalGraph.Edges[i].Target == target {
+			globalGraph.Edges[i].Label = label
+			found = true
+			break
+		}
+	}
+
+	if !found {
+		globalGraph.Edges = append(globalGraph.Edges, GraphEdge{
+			ID:    fmt.Sprintf("e-%s-%s", source, target),
+			Source: source,
+			Target: target,
+			Label: label,
+			Score: 1.0,
+		})
+	}
+
+	return SaveGlobalGraph(targetDir, globalGraph)
+}
+
+// DeleteGlobalGraphEdge elimina una arista entre dos nodos en el grafo global
+func DeleteGlobalGraphEdge(targetDir string, source, target string) error {
+	globalGraph, err := LoadGlobalGraph(targetDir)
+	if err != nil {
+		return err
+	}
+
+	var remainingEdges []GraphEdge
+	for _, e := range globalGraph.Edges {
+		if !(e.Source == source && e.Target == target) && !(e.Source == target && e.Target == source) {
+			remainingEdges = append(remainingEdges, e)
+		}
+	}
+	globalGraph.Edges = remainingEdges
+
+	return SaveGlobalGraph(targetDir, globalGraph)
+}
+

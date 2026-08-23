@@ -636,7 +636,7 @@ function App() {
             />
           </div>
 
-          {/* Selector de Vista (Escritura / Grafo) */}
+          {/* Selector de Vista (Escritura / Grafo 2.0) */}
           <div className="flex bg-slate-900/80 p-0.5 rounded-lg border border-slate-800">
             <button
               onClick={() => setView('Escritura')}
@@ -648,13 +648,13 @@ function App() {
               <span>Escritura</span>
             </button>
             <button
-              onClick={() => setView('Diagrama')}
+              onClick={() => setView('Grafo')}
               className={`flex items-center gap-1.5 px-3 py-1 rounded-md transition-all text-xs font-medium ${
-                view === 'Diagrama' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400 hover:text-white'
+                view === 'Grafo' || view === 'Diagrama' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400 hover:text-white'
               }`}
             >
-              <Share2 size={13} />
-              <span>Diagrama</span>
+              <Layers size={13} />
+              <span>Grafo 2.0</span>
             </button>
           </div>
         </div>
@@ -898,11 +898,18 @@ function App() {
                 previousConcepts={previousConcepts}
                 onExtractGraph={handleExtractGraph}
                 onExtractSelection={handleExtractSelection}
+                onOpenGraphView={() => setView('Grafo')}
                 isExtractingGraph={isExtractingGraph}
                 extractedNodesCount={chapterGraph?.nodes?.length || 0}
               />
             ) : (
-              <IdeaGraph steps={diagramSteps} />
+              <IdeaGraph 
+                activeSessionRelPath={activeFile}
+                onSelectSession={(sessionRelPath) => {
+                  setView('Escritura');
+                  handleSelectFile(sessionRelPath);
+                }}
+              />
             )}
             
             {/* Status Bar */}

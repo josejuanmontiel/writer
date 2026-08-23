@@ -92,8 +92,37 @@ Accesible desde la barra superior (icono de rejilla / matriz):
 
 ---
 
-## 🛠️ 7. Control de Versiones Git y Línea Temporal
+## 🕸️ 7. IdeaGraph 2.0 y Validador Curricular (Knowledge Linter)
+
+El visor **IdeaGraph 2.0** te permite explorar, editar e inspeccionar de forma visual todo el mapa conceptual y las dependencias de tu curso.
+
+### Tipos de Nodos y Relaciones
+- **Nodos Semánticos**: Cada concepto aparece clasificado por tipo (ej. *Sacramento*, *Doctrina*, *Moral*, *Biblia*, *Liturgia*) con su contador de menciones en el compendio.
+- **Relaciones Tipadas**:
+  - `prerrequisito_de` (flecha ámbar sólida): Requisito previo indispensable.
+  - `profundiza_en` (flecha púrpura discontinua): Ampliación pedagógica de un concepto introducido antes.
+  - `asociado_con` (flecha cian tenue): Conexión doctrinal transversal.
+
+### Inspector de Nodos y Navegación Bidireccional
+- Al hacer clic sobre cualquier nodo del grafo, se abre un **Panel Inspector** lateral con:
+  - Definición y metadatos del concepto.
+  - Lista de todas las sesiones donde se menciona, con botón directo para **abrir el archivo en el editor**.
+  - Observaciones y advertencias específicas del Linter.
+
+### Auditoría Automática del Curriculum Linter
+Pulsando sobre la cápsula de **Salud Curricular** en la barra superior del grafo:
+- Se despliega el panel de auditoría automática que detecta:
+  - 🔴 **Dependencias Circulares**: Bucles cerrados de requisitos (A $\rightarrow$ B $\rightarrow$ A).
+  - 🔴 **Prerrequisitos Ausentes**: Conceptos necesarios que no se explican en ninguna clase planificada.
+  - 🟡 **Uso Prematuro**: Conceptos avanzados introducidos antes de que se impartan sus fundamentos.
+  - ℹ️ **Conceptos Aislados / Huérfanos**: Entidades sin conexiones explícitas.
+- Cada aviso incluye una **Sugerencia de Solución** y un enlace para saltar a la sesión afectada.
+
+---
+
+## 🛠️ 8. Control de Versiones Git y Línea Temporal
 
 - Cada compendio es un repositorio Git local (`pure Go` con `go-git`, sin necesidad de instalar Git externamente).
 - Cada autoguardado genera un commit silencioso con autor y fecha.
 - El botón **Línea Temporal (Timeline)** permite inspeccionar versiones anteriores y restaurar cualquier estado pasado sin perder datos.
+

@@ -81,3 +81,21 @@ $$M(c, s_j) = \begin{cases}
 \text{"premature_warning"} \ (\triangle) & \text{si } c \in s_j \land \exists p \in \text{Prereq}(c) \text{ tal que } p \notin \bigcup_{k=1}^j s_k \\
 \text{"empty"} & \text{en otro caso}
 \end{cases}$$
+
+---
+
+## 🛡️ 6. Algoritmo del Validador Curricular (`Curriculum Linter`)
+
+El validador ejecuta una auditoría estática multidimensional sobre el grafo global $G = (V, E)$:
+
+1. **Detección de Ciclos de Prerrequisitos (DFS / Tarjan)**:
+   - Se construye el subgrafo dirigido de aristas de tipo prerrequisito $E_{\text{prereq}} \subseteq E$.
+   - Se ejecuta un recorrido en profundidad con seguimiento de pila de recursión (3 estados: *unvisited*, *visiting*, *visited*).
+   - Cualquier arista de retroceso a un nodo con estado *visiting* delata un ciclo circular insoluble $c_1 \to c_2 \to \dots \to c_1$.
+2. **Detección de Prerrequisitos Ausentes**:
+   - Para toda arista $(u, v) \in E_{\text{prereq}}$ donde $v \in \text{Curso}$, se verifica si $u \in \text{Curso}$. Si $u \notin \text{Curso}$, se emite un diagnóstico de severidad `error`.
+3. **Detección de Uso Prematuro**:
+   - Sean $\text{idx}(u)$ y $\text{idx}(v)$ los índices de la primera sesión donde se introducen $u$ y $v$. Si $\text{idx}(v) < \text{idx}(u)$, se emite un diagnóstico de severidad `warning`.
+4. **Cálculo del Índice de Salud ($H$)**:
+   $$H = \max\left(0, 100 - 20 \cdot |\text{Errors}| - 5 \cdot |\text{Warnings}|\right)$$
+

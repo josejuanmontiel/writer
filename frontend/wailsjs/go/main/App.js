@@ -278,3 +278,20 @@ export function GetCurriculumCoherenceMatrix() {
   return window['go']['main']['App']['GetCurriculumCoherenceMatrix']();
 }
 
+export function GetCurriculumLintReport() {
+  return window['go']['main']['App']['GetCurriculumLintReport']();
+}
+
+export function SaveGlobalGraphPositions(arg1) {
+  return window['go']['main']['App']['SaveGlobalGraphPositions'](arg1);
+}
+
+export function SaveGlobalGraphManualEdge(arg1, arg2, arg3) {
+  return window['go']['main']['App']['SaveGlobalGraphManualEdge'](arg1, arg2, arg3);
+}
+
+export function DeleteGlobalGraphEdge(arg1, arg2) {
+  return window['go']['main']['App']['DeleteGlobalGraphEdge'](arg1, arg2);
+}
+
+

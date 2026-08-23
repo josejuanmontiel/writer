@@ -19,7 +19,7 @@ import {
   Undo, Redo, Eraser, Lightbulb, AlertTriangle, 
   Bookmark, GraduationCap, Minus, Table as TableIcon,
   AlignLeft, AlignCenter, AlignRight, AlertOctagon, Info,
-  Scissors
+  Scissors, Layers
 } from 'lucide-react';
 
 const MenuBar = ({ editor, onExtractSelection }) => {
@@ -353,6 +353,7 @@ const Editor = forwardRef(({
   previousConcepts = [],
   onExtractGraph,
   onExtractSelection,
+  onOpenGraphView,
   isExtractingGraph = false,
   extractedNodesCount = 0
 }, ref) => {
@@ -453,26 +454,39 @@ const Editor = forwardRef(({
           )}
         </div>
 
-        {onExtractGraph && (
-          <button
-            onClick={onExtractGraph}
-            disabled={isExtractingGraph}
-            title="Extraer entidades y relaciones con GLiNER2 y sincronizar con el Grafo Global"
-            className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 font-medium text-xs transition-all shadow-sm shrink-0 disabled:opacity-50"
-          >
-            {isExtractingGraph ? (
-              <>
-                <div className="w-3 h-3 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin"></div>
-                <span>Extrayendo con GLiNER2...</span>
-              </>
-            ) : (
-              <>
-                <Bookmark className="w-3.5 h-3.5 text-indigo-400" />
-                <span>Sincronizar Grafo Local {extractedNodesCount > 0 ? `(${extractedNodesCount})` : ''}</span>
-              </>
-            )}
-          </button>
-        )}
+        <div className="flex items-center gap-2 shrink-0">
+          {onExtractGraph && (
+            <button
+              onClick={onExtractGraph}
+              disabled={isExtractingGraph}
+              title="Extraer entidades y relaciones con GLiNER2 y sincronizar con el Grafo Global"
+              className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 font-medium text-xs transition-all shadow-sm disabled:opacity-50"
+            >
+              {isExtractingGraph ? (
+                <>
+                  <div className="w-3 h-3 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin"></div>
+                  <span>Extrayendo con GLiNER2...</span>
+                </>
+              ) : (
+                <>
+                  <Bookmark className="w-3.5 h-3.5 text-indigo-400" />
+                  <span>Sincronizar Grafo {extractedNodesCount > 0 ? `(${extractedNodesCount})` : ''}</span>
+                </>
+              )}
+            </button>
+          )}
+
+          {onOpenGraphView && (
+            <button
+              onClick={onOpenGraphView}
+              title="Abrir vista de IdeaGraph 2.0 y validador curricular"
+              className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-medium text-xs transition-all shadow-sm"
+            >
+              <Layers className="w-3.5 h-3.5 text-amber-400" />
+              <span>Ver en Grafo 2.0</span>
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="flex-1 w-full max-w-4xl mx-auto py-6 px-4">
