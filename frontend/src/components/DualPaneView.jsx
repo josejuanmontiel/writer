@@ -31,6 +31,35 @@ export default function DualPaneView({
   const [filteredContent, setFilteredContent] = useState('');
   const [isFiltering, setIsFiltering] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [syncScroll, setSyncScroll] = useState(true);
+
+  const masterScrollRef = useRef(null);
+  const previewScrollRef = useRef(null);
+
+  // Estadísticas de bloques condicionales en el documento maestro
+  const blockStats = useMemo(() => {
+    const raw = (content || '').toLowerCase();
+    const instructorCount = (raw.match(/admonition-instructor|\[instructor\]|\[note\.instructor\]/g) || []).length;
+    const studentCount = (raw.match(/admonition-student|\[student\]|\[note\.student\]/g) || []).length;
+    const workshopCount = (raw.match(/admonition-workshop|\[workshop\]|\[note\.workshop\]/g) || []).length;
+    const simplifiedCount = (raw.match(/admonition-simplified|\[simplified\]|\[note\.simplified\]/g) || []).length;
+
+    return {
+      instructor: instructorCount,
+      student: studentCount,
+      workshop: workshopCount,
+      simplified: simplifiedCount,
+      total: instructorCount + studentCount + workshopCount + simplifiedCount
+    };
+  }, [content]);
+
+  // Scroll sincronizado entre panel maestro y previsualizador
+  const handleMasterScroll = (e) => {
+    if (!syncScroll || !previewScrollRef.current) return;
+    const { scrollTop, scrollHeight, clientHeight } = e.target;
+    const scrollRatio = scrollTop / (scrollHeight - clientHeight || 1);
+    previewScrollRef.current.scrollTop = scrollRatio * (previewScrollRef.current.scrollHeight - previewScrollRef.current.clientHeight);
+  };
 
   // Filtrar contenido cada vez que cambia el texto o la audiencia
   useEffect(() => {
@@ -51,6 +80,7 @@ export default function DualPaneView({
     filter();
     return () => { isCancelled = true; };
   }, [content, audience]);
+
 
   const handleCopyFiltered = () => {
     navigator.clipboard.writeText(filteredContent);
@@ -210,7 +240,11 @@ export default function DualPaneView({
             </span>
           </div>
 
-          <div className="flex-1 overflow-y-auto">
+          <div 
+            ref={masterScrollRef}
+            onScroll={handleMasterScroll}
+            className="flex-1 overflow-y-auto"
+          >
             {editorComponent}
           </div>
         </div>
@@ -226,15 +260,30 @@ export default function DualPaneView({
                 audience === 'simplified' ? '🧒 Infantil / Lectura Fácil' : '🛠️ Taller Práctico'
               }
             </span>
-            {isFiltering && (
-              <span className="flex items-center gap-1 text-[10px] text-indigo-400">
-                <RefreshCw size={10} className="animate-spin" />
-                Sincronizando...
-              </span>
-            )}
+            <div className="flex items-center gap-3">
+              <label className="flex items-center gap-1 text-[10px] text-slate-400 cursor-pointer hover:text-slate-200">
+                <input 
+                  type="checkbox" 
+                  checked={syncScroll} 
+                  onChange={(e) => setSyncScroll(e.target.checked)}
+                  className="rounded bg-slate-950 border-slate-700 text-indigo-600 focus:ring-0"
+                />
+                <span>Scroll Sincronizado</span>
+              </label>
+
+              {isFiltering && (
+                <span className="flex items-center gap-1 text-[10px] text-indigo-400">
+                  <RefreshCw size={10} className="animate-spin" />
+                  Sincronizando...
+                </span>
+              )}
+            </div>
           </div>
 
-          <div className="flex-1 p-6 overflow-y-auto select-text prose prose-invert max-w-none">
+          <div 
+            ref={previewScrollRef}
+            className="flex-1 p-6 overflow-y-auto select-text prose prose-invert max-w-none"
+          >
             {/* Si el contenido es HTML se inyecta directamente, si es AsciiDoc/texto se preformatea */}
             {filteredContent && (filteredContent.includes('<p>') || filteredContent.includes('<div')) ? (
               <div 
@@ -253,6 +302,20 @@ export default function DualPaneView({
           </div>
         </div>
 
+      </div>
+
+      {/* Barra Inferior de Métricas de Audiencia */}
+      <div className="h-7 px-4 bg-slate-950/95 border-t border-slate-800 flex items-center justify-between text-[10px] text-slate-400 shrink-0 select-none">
+        <div className="flex items-center gap-3 font-mono">
+          <span className="text-slate-500">Bloques Condicionales:</span>
+          <span className="text-purple-400">👨‍🏫 {blockStats.instructor} Profesor</span>
+          <span className="text-emerald-400">🧑‍🎓 {blockStats.student} Alumno</span>
+          <span className="text-sky-400">🛠️ {blockStats.workshop} Taller</span>
+          <span className="text-amber-400">🧒 {blockStats.simplified} Infantil</span>
+        </div>
+        <div className="text-slate-500">
+          Total: {blockStats.total} bloques multi-audiencia
+        </div>
       </div>
 
     </div>
