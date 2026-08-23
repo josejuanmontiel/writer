@@ -1472,5 +1472,46 @@ func (a *App) DeleteGlobalGraphEdge(source string, target string) error {
 	return storage.DeleteGlobalGraphEdge(targetDir, source, target)
 }
 
+// -------------------------------------------------------------
+// Métodos de Redacción Dual y Multi-Audiencia (Punto 1.6)
+// -------------------------------------------------------------
+
+// FilterContentForAudience filtra un documento según el rol de audiencia elegido
+func (a *App) FilterContentForAudience(content string, audience string) string {
+	return storage.FilterContentForAudience(content, audience)
+}
+
+// DeriveStudentWorksheet genera una ficha didáctica del alumno a partir de la lección maestra
+func (a *App) DeriveStudentWorksheet(masterContent string, lessonTitle string) string {
+	return storage.DeriveStudentWorksheet(masterContent, lessonTitle)
+}
+
+// DeriveSimplifiedVersion genera una versión adaptada a lenguaje sencillo o infantil
+func (a *App) DeriveSimplifiedVersion(masterContent string, lessonTitle string) string {
+	return storage.DeriveSimplifiedVersion(masterContent, lessonTitle)
+}
+
+// SaveDerivedLesson guarda una lección derivada en el compendio
+func (a *App) SaveDerivedLesson(relPath string, content string, title string) (string, error) {
+	if a.compendiumManager == nil {
+		return "", fmt.Errorf("no hay ningún compendio abierto")
+	}
+	targetDir := a.compendiumManager.GetTargetDir()
+	meta := a.compendiumManager.GetMeta()
+
+	fullPath := filepath.Join(targetDir, filepath.Clean(relPath))
+	if err := os.MkdirAll(filepath.Dir(fullPath), 0755); err != nil {
+		return "", err
+	}
+
+	if err := os.WriteFile(fullPath, []byte(content), 0644); err != nil {
+		return "", err
+	}
+
+	git.CommitFiles(targetDir, []string{relPath}, fmt.Sprintf("Crear lección derivada: %s", title), meta.Author, meta.Email)
+	return relPath, nil
+}
+
+
 
 

@@ -16,7 +16,9 @@ import {
   Scissors,
   Table,
   Zap,
-  Bookmark
+  Bookmark,
+  Split,
+  Users
 } from 'lucide-react';
 
 const SECTIONS = [
@@ -235,8 +237,34 @@ const SECTIONS = [
     )
   },
   {
+    id: 'dual',
+    title: '9. Redacción Dual & Multi-Audiencia',
+    icon: Split,
+    badge: 'Single-Source Authoring',
+    content: (
+      <div className="space-y-4 text-sm leading-relaxed text-slate-300">
+        <p>
+          Redacta una <strong>única lección maestra</strong> y obtén vistas personalizadas para alumnos, catequistas o talleres sin duplicar contenido:
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+          <div className="p-3 rounded-lg bg-slate-900/60 border border-slate-800 space-y-1">
+            <strong className="text-purple-300 block font-semibold">👨‍🏫 Solo Instructor</strong>
+            <p className="text-slate-400">Inserta notas didácticas, soluciones y guías metodológicas invisibles para los alumnos.</p>
+          </div>
+          <div className="p-3 rounded-lg bg-slate-900/60 border border-slate-800 space-y-1">
+            <strong className="text-emerald-300 block font-semibold">🧑‍🎓 Ficha del Alumno</strong>
+            <p className="text-slate-400">Preguntas de comprensión y actividades prácticas listas para imprimir o exportar.</p>
+          </div>
+        </div>
+        <p className="text-xs text-slate-400">
+          Usa el botón <strong>Vista Dual</strong> para previsualizar en vivo cómo se adaptará la lección según cada público y el <strong>Asistente de Derivación</strong> para generar archivos específicos con un clic.
+        </p>
+      </div>
+    )
+  },
+  {
     id: 'git',
-    title: '9. Control de Versiones Git & Timeline',
+    title: '10. Control de Versiones Git & Timeline',
     icon: GitBranch,
     badge: 'Deshacer Infinito',
     content: (

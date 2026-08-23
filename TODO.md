@@ -111,11 +111,11 @@
 ---
 
 ### 👥 1.6. Redacción Dual y Multi-Audiencia (`Single-Source Authoring`)
-- [ ] **Vista Dual / Sincronizada (Profesor/Experto ↔ Alumno/Aprendiz)**:
+- [x] **Vista Dual / Sincronizada (Profesor/Experto ↔ Alumno/Aprendiz)**:
   - Panel dividido: redactar el material maestro y sincronizar la versión didáctica/simplificada.
-- [ ] **Bloques Condicionales en el Editor**:
+- [x] **Bloques Condicionales en el Editor**:
   - Etiquetas contextuales: `[Solo Instructor]`, `[Ficha Alumno]`, `[Notas de Taller]`.
-- [ ] **Asistente de Derivación (IA Opcional)**:
+- [x] **Asistente de Derivación (IA Opcional)**:
   - Adaptación asistida de tono y formato según público (edad infantil, operario en prácticas, nivel avanzado).
 
 ---

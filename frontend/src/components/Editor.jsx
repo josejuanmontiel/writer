@@ -19,7 +19,7 @@ import {
   Undo, Redo, Eraser, Lightbulb, AlertTriangle, 
   Bookmark, GraduationCap, Minus, Table as TableIcon,
   AlignLeft, AlignCenter, AlignRight, AlertOctagon, Info,
-  Scissors, Layers
+  Scissors, Layers, Split, Users, Wrench, Baby, BookOpen
 } from 'lucide-react';
 
 const MenuBar = ({ editor, onExtractSelection }) => {
@@ -303,10 +303,37 @@ const MenuBar = ({ editor, onExtractSelection }) => {
         <button
           onClick={() => insertAdmonition('instructor', '👨‍🏫 SOLO INSTRUCTOR (PROFESOR)', 'Notas didácticas, soluciones de ejercicios o tiempos de clase.')}
           className="flex items-center gap-1 px-2 py-1 rounded bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 border border-purple-500/20 transition-all text-xs font-medium"
-          title="Insertar bloque condicional de Instructor"
+          title="Insertar bloque condicional de Instructor [INSTRUCTOR]"
         >
           <GraduationCap size={12} />
           <span>Profesor</span>
+        </button>
+
+        <button
+          onClick={() => insertAdmonition('student', '🧑‍🎓 FICHA ALUMNO', 'Pregunta de comprensión, ejercicio o actividad para el alumno.')}
+          className="flex items-center gap-1 px-2 py-1 rounded bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/20 transition-all text-xs font-medium"
+          title="Insertar bloque [STUDENT] para el alumno"
+        >
+          <BookOpen size={12} />
+          <span>Alumno</span>
+        </button>
+
+        <button
+          onClick={() => insertAdmonition('workshop', '🛠️ TALLER / DINÁMICA', 'Instrucción práctica, dinámica grupal o experimento.')}
+          className="flex items-center gap-1 px-2 py-1 rounded bg-sky-500/10 hover:bg-sky-500/20 text-sky-300 border border-sky-500/20 transition-all text-xs font-medium"
+          title="Insertar bloque [WORKSHOP] de taller"
+        >
+          <Wrench size={12} />
+          <span>Taller</span>
+        </button>
+
+        <button
+          onClick={() => insertAdmonition('simplified', '🧒 INFANTIL / FÁCIL', 'Explicación adaptada para niños o lectura sencilla.')}
+          className="flex items-center gap-1 px-2 py-1 rounded bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/20 transition-all text-xs font-medium"
+          title="Insertar bloque [SIMPLIFIED] infantil"
+        >
+          <Baby size={12} />
+          <span>Infantil</span>
         </button>
       </div>
 
@@ -354,6 +381,7 @@ const Editor = forwardRef(({
   onExtractGraph,
   onExtractSelection,
   onOpenGraphView,
+  onOpenDualView,
   isExtractingGraph = false,
   extractedNodesCount = 0
 }, ref) => {
@@ -484,6 +512,17 @@ const Editor = forwardRef(({
             >
               <Layers className="w-3.5 h-3.5 text-amber-400" />
               <span>Ver en Grafo 2.0</span>
+            </button>
+          )}
+
+          {onOpenDualView && (
+            <button
+              onClick={onOpenDualView}
+              title="Abrir vista dual sincronizada profesor / alumno"
+              className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-emerald-950/40 hover:bg-emerald-900/40 text-emerald-300 border border-emerald-500/30 font-medium text-xs transition-all shadow-sm"
+            >
+              <Split className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Vista Dual</span>
             </button>
           )}
         </div>

@@ -294,4 +294,21 @@ export function DeleteGlobalGraphEdge(arg1, arg2) {
   return window['go']['main']['App']['DeleteGlobalGraphEdge'](arg1, arg2);
 }
 
+export function FilterContentForAudience(arg1, arg2) {
+  return window['go']['main']['App']['FilterContentForAudience'](arg1, arg2);
+}
+
+export function DeriveStudentWorksheet(arg1, arg2) {
+  return window['go']['main']['App']['DeriveStudentWorksheet'](arg1, arg2);
+}
+
+export function DeriveSimplifiedVersion(arg1, arg2) {
+  return window['go']['main']['App']['DeriveSimplifiedVersion'](arg1, arg2);
+}
+
+export function SaveDerivedLesson(arg1, arg2, arg3) {
+  return window['go']['main']['App']['SaveDerivedLesson'](arg1, arg2, arg3);
+}
+
+
 

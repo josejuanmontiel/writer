@@ -155,3 +155,12 @@ export function SaveGlobalGraphManualEdge(arg1:string,arg2:string,arg3:string):P
 
 export function DeleteGlobalGraphEdge(arg1:string,arg2:string):Promise<void>;
 
+export function FilterContentForAudience(arg1:string,arg2:string):Promise<string>;
+
+export function DeriveStudentWorksheet(arg1:string,arg2:string):Promise<string>;
+
+export function DeriveSimplifiedVersion(arg1:string,arg2:string):Promise<string>;
+
+export function SaveDerivedLesson(arg1:string,arg2:string,arg3:string):Promise<string>;
+
+

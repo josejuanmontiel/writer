@@ -120,9 +120,34 @@ Pulsando sobre la cápsula de **Salud Curricular** en la barra superior del graf
 
 ---
 
-## 🛠️ 8. Control de Versiones Git y Línea Temporal
+---
+
+## 👥 8. Redacción Dual y Multi-Audiencia (`Single-Source Authoring`)
+
+Antigravity Writer permite escribir **una única lección maestra** y generar automáticamente múltiples versiones según quién la vaya a leer:
+
+### Bloques Condicionales Semánticos
+En la barra de herramientas del editor puedes insertar bloques específicos por rol:
+- `[INSTRUCTOR]` (👨‍🏫 **Solo Formador / Catequista**): Pautas metodológicas, soluciones de preguntas y tiempos estimados.
+- `[STUDENT]` (🧑‍🎓 **Ficha Alumno**): Preguntas de reflexión, ejercicios y compromisos semanales.
+- `[WORKSHOP]` (🛠️ **Taller Práctico**): Experimentos y dinámicas grupales activas.
+- `[SIMPLIFIED]` (🧒 **Infantil / Fácil Lectura**): Lenguaje adaptado y actividades de dibujo.
+
+### Vista Dual Sincronizada (Split Screen)
+El modo **Vista Dual** divide la pantalla en dos paneles:
+- **Panel Izquierdo**: Editor maestro con todos los bloques y notas.
+- **Panel Derecho**: Previsualizador en tiempo real filtrado para la audiencia elegida (*Ficha Alumno*, *Guía Profesor*, *Infantil*, *Taller*), ocultando automáticamente el contenido privado de los profesores.
+
+### Asistente de Derivación Multi-Audiencia
+Pulsando el botón **Asistente de Derivación**:
+- Puedes generar un nuevo archivo derivado (ej. `sesion-01-ficha-alumno.adoc` o `sesion-01-infantil.adoc`) listo para imprimir o compartir con los alumnos sin revelar las soluciones del catequista.
+
+---
+
+## 🛠️ 9. Control de Versiones Git y Línea Temporal
 
 - Cada compendio es un repositorio Git local (`pure Go` con `go-git`, sin necesidad de instalar Git externamente).
 - Cada autoguardado genera un commit silencioso con autor y fecha.
 - El botón **Línea Temporal (Timeline)** permite inspeccionar versiones anteriores y restaurar cualquier estado pasado sin perder datos.
+
 

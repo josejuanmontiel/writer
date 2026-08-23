@@ -68,7 +68,9 @@ import {
   GetCurriculumCoherenceMatrix
 } from '../wailsjs/go/main/App';
 import IdeaGraph from './components/IdeaGraph';
-import { Share2, FileText, ChevronRight, Table, HelpCircle, Scissors } from 'lucide-react';
+import DualPaneView from './components/DualPaneView';
+import AudienceDerivationModal from './components/AudienceDerivationModal';
+import { Share2, FileText, ChevronRight, Table, HelpCircle, Scissors, Split } from 'lucide-react';
 
 function App() {
   const [mode, setMode] = useState('Ficción');
@@ -110,6 +112,7 @@ function App() {
   const [showPlacementModal, setShowPlacementModal] = useState(false);
   const [showDocModal, setShowDocModal] = useState(false);
   const [showMatrixModal, setShowMatrixModal] = useState(false);
+  const [showDerivationModal, setShowDerivationModal] = useState(false);
   const [detectedConceptsPill, setDetectedConceptsPill] = useState('');
   const [placementTopicPath, setPlacementTopicPath] = useState('');
   const [previousConcepts, setPreviousConcepts] = useState([]);
@@ -636,7 +639,7 @@ function App() {
             />
           </div>
 
-          {/* Selector de Vista (Escritura / Grafo 2.0) */}
+          {/* Selector de Vista (Escritura / Vista Dual / Grafo 2.0) */}
           <div className="flex bg-slate-900/80 p-0.5 rounded-lg border border-slate-800">
             <button
               onClick={() => setView('Escritura')}
@@ -646,6 +649,16 @@ function App() {
             >
               <FileText size={13} />
               <span>Escritura</span>
+            </button>
+            <button
+              onClick={() => setView('Dual')}
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-md transition-all text-xs font-medium ${
+                view === 'Dual' ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-400 hover:text-white'
+              }`}
+              title="Vista dual sincronizada maestro / alumno"
+            >
+              <Split size={13} />
+              <span>Vista Dual</span>
             </button>
             <button
               onClick={() => setView('Grafo')}
@@ -899,8 +912,30 @@ function App() {
                 onExtractGraph={handleExtractGraph}
                 onExtractSelection={handleExtractSelection}
                 onOpenGraphView={() => setView('Grafo')}
+                onOpenDualView={() => setView('Dual')}
                 isExtractingGraph={isExtractingGraph}
                 extractedNodesCount={chapterGraph?.nodes?.length || 0}
+              />
+            ) : view === 'Dual' ? (
+              <DualPaneView
+                content={editorContent}
+                activeFile={activeFile}
+                onUpdateContent={handleEditorUpdate}
+                onOpenDerivationModal={() => setShowDerivationModal(true)}
+                editorComponent={
+                  <Editor 
+                    ref={editorRef} 
+                    initialContent={editorContent} 
+                    onUpdate={handleEditorUpdate} 
+                    previousConcepts={previousConcepts}
+                    onExtractGraph={handleExtractGraph}
+                    onExtractSelection={handleExtractSelection}
+                    onOpenGraphView={() => setView('Grafo')}
+                    onOpenDualView={() => setView('Dual')}
+                    isExtractingGraph={isExtractingGraph}
+                    extractedNodesCount={chapterGraph?.nodes?.length || 0}
+                  />
+                }
               />
             ) : (
               <IdeaGraph 
@@ -1470,6 +1505,18 @@ function App() {
       <LogsModal
         isOpen={showLogsModal}
         onClose={() => setShowLogsModal(false)}
+      />
+
+      {/* Asistente de Derivación Multi-Audiencia */}
+      <AudienceDerivationModal
+        isOpen={showDerivationModal}
+        onClose={() => setShowDerivationModal(false)}
+        masterContent={editorContent}
+        activeFilePath={activeFile}
+        onSelectFile={(newPath) => {
+          handleSelectFile(newPath);
+          setView('Escritura');
+        }}
       />
     </div>
   );
