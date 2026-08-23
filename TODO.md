@@ -144,6 +144,10 @@
 ---
 
 ### 📦 1.9. Producción Multimedia y Publicación Multiformato
+- [ ] **Configuración de Git Remoto & Sincronización Push/Pull (`Remote Sync`)**:
+  - Configuración de URL remota (`origin` en GitHub, GitLab o servidor Git propio) y autenticación segura (Personal Access Token o clave SSH).
+  - Botón de sincronización con un solo clic (`Push` / `Pull`) en la barra lateral para publicar el compendio, colaborar en equipo y respaldar en la nube.
+  - Notificaciones de estado de sincronización (commits pendientes de subir / ramas sincronizadas).
 - [ ] **Audio de la Lección / Cápsula**:
   - Grabación propia del autor o síntesis vocal de alta calidad (Kokoro TTS) para escucha autónoma.
 - [ ] **Generador de Guiones para Vídeo / YouTube / Presentaciones**:
