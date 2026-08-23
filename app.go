@@ -1653,6 +1653,55 @@ func (a *App) FormatAsciidocImage(imageRelPath string, caption string, layout st
 	return storage.FormatAsciidocImage(imageRelPath, caption, layout, width)
 }
 
+// -------------------------------------------------------------
+// Métodos de Captura de Voz a Estructura (Punto 1.8)
+// -------------------------------------------------------------
+
+// StructureTranscription clasifica semánticamente una transcripción verbal y genera una sesión completa
+func (a *App) StructureTranscription(rawTranscript string, sessionTitle string, audioRelPath string) *storage.StructuredSessionDraft {
+	return storage.StructureTranscription(rawTranscript, sessionTitle, audioRelPath)
+}
+
+// SaveSessionAudioResource guarda una grabación de sesión completa en assets/audio/
+func (a *App) SaveSessionAudioResource(sessionSlug string, filename string, audioBase64 string) (*storage.AssetInfo, error) {
+	if a.compendiumManager == nil {
+		return nil, fmt.Errorf("no hay ningún compendio abierto")
+	}
+	targetDir := a.compendiumManager.GetTargetDir()
+	meta := a.compendiumManager.GetMeta()
+
+	asset, err := storage.SaveSessionAudioResource(targetDir, sessionSlug, filename, audioBase64)
+	if err != nil {
+		return nil, err
+	}
+
+	git.CommitFiles(targetDir, []string{asset.RelativePath}, fmt.Sprintf("Guardar grabación de sesión: %s", asset.Name), meta.Author, meta.Email)
+	return asset, nil
+}
+
+// SaveVoiceStructuredSession persiste la nueva lección generada y su audio en el compendio
+func (a *App) SaveVoiceStructuredSession(moduleSlug string, sessionSlug string, title string, content string, audioRelPath string) (string, error) {
+	if a.compendiumManager == nil {
+		return "", fmt.Errorf("no hay ningún compendio abierto")
+	}
+	targetDir := a.compendiumManager.GetTargetDir()
+	meta := a.compendiumManager.GetMeta()
+
+	relPath, err := storage.SaveVoiceStructuredSession(targetDir, moduleSlug, sessionSlug, title, content, audioRelPath)
+	if err != nil {
+		return "", err
+	}
+
+	git.CommitFiles(targetDir, []string{relPath}, fmt.Sprintf("Crear sesión a partir de voz: %s", title), meta.Author, meta.Email)
+	return relPath, nil
+}
+
+// FormatAsciidocAudio genera la macro de reproductor de audio AsciiDoc
+func (a *App) FormatAsciidocAudio(audioRelPath string, title string) string {
+	return storage.FormatAsciidocAudio(audioRelPath, title)
+}
+
+
 
 
 

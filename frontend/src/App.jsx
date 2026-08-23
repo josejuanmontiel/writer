@@ -72,6 +72,7 @@ import DualPaneView from './components/DualPaneView';
 import AudienceDerivationModal from './components/AudienceDerivationModal';
 import ContentQualityModal from './components/ContentQualityModal';
 import MediaGalleryModal from './components/MediaGalleryModal';
+import VoiceStructureModal from './components/VoiceStructureModal';
 import { Share2, FileText, ChevronRight, Table, HelpCircle, Scissors, Split, Clock, Image as ImageIcon } from 'lucide-react';
 
 function App() {
@@ -117,6 +118,7 @@ function App() {
   const [showDerivationModal, setShowDerivationModal] = useState(false);
   const [showQualityModal, setShowQualityModal] = useState(false);
   const [showMediaModal, setShowMediaModal] = useState(false);
+  const [showVoiceStructureModal, setShowVoiceStructureModal] = useState(false);
   const [detectedConceptsPill, setDetectedConceptsPill] = useState('');
   const [placementTopicPath, setPlacementTopicPath] = useState('');
   const [previousConcepts, setPreviousConcepts] = useState([]);
@@ -848,6 +850,15 @@ function App() {
             title="Matriz de Coherencia Curricular (Mapa de Calor Conceptual)"
           >
             <Table size={17} />
+          </button>
+
+          {/* Botón Captura de Voz a Estructura (Punto 1.8) */}
+          <button 
+            className="p-1.5 text-slate-400 hover:text-purple-300 hover:bg-slate-800 rounded-lg transition-colors" 
+            onClick={() => setShowVoiceStructureModal(true)}
+            title="Captura de Voz a Estructura (Vuelca tu Experiencia Hablando - Punto 1.8)"
+          >
+            <Mic size={17} />
           </button>
 
           {/* Botón Mediateca & Galería de Recursos (Imágenes y Maquetación de Libro) */}
@@ -1585,6 +1596,22 @@ function App() {
         isOpen={showMediaModal}
         onClose={() => setShowMediaModal(false)}
         onInsertImage={handleInsertImageFromGallery}
+      />
+
+      {/* Captura de Voz a Estructura ("Vuelca tu Experiencia Hablando" - Punto 1.8) */}
+      <VoiceStructureModal
+        isOpen={showVoiceStructureModal}
+        onClose={() => setShowVoiceStructureModal(false)}
+        activeModule={activeFile ? activeFile.split('/')[1] : 'modulo-1'}
+        onSessionCreated={(relPath) => {
+          handleSelectFile(relPath);
+          setView('Escritura');
+        }}
+        onInsertIntoEditor={(content) => {
+          if (editorRef.current?.insertText) {
+            editorRef.current.insertText(content);
+          }
+        }}
       />
     </div>
   );

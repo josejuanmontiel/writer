@@ -189,11 +189,37 @@ Al insertar una imagen desde el portapapeles (`Ctrl+V`), arrastrando o desde la 
 
 ---
 
-## 🛠️ 11. Control de Versiones Git y Línea Temporal
+---
+
+## 🎙️ 11. Captura de Voz a Estructura ("Vuelca tu Experiencia Hablando")
+
+Antigravity Writer permite a los catequistas y docentes redactar sesiones completas simplemente hablando de forma natural:
+
+### 🗣️ Grabación Continua / Volcado Verbal Libre
+- Pulsa el botón de micrófono en la cabecera (🎙️) para iniciar una sesión de dictado sin límites.
+- Puedes explicar el tema como si estuvieras en clase: contar anécdotas, mencionar dinámicas, formular preguntas y enumerar materiales necesarios.
+
+### ✨ Clasificador Inteligente de Transcripciones
+El motor semántico analiza el discurso y distribuye automáticamente el contenido en:
+- 🎯 **Objetivo de la Sesión**: Detecta las metas explicadas al inicio.
+- 📖 **Desarrollo Teórico & Doctrinal**: Transcribe la explicación principal y extrae conceptos teológicos.
+- 🧑‍🎓 **Ficha de Trabajo del Alumno (`[STUDENT]`)**: Agrupa las preguntas de reflexión formuladas oralmente.
+- 🛠️ **Dinámica y Taller Práctico (`[WORKSHOP]`)**: Aísla las instrucciones para actividades en grupo.
+- 🛒 **Materiales Necesarios**: Extrae el checklist de velas, cartulinas o elementos litúrgicos.
+- 🤝 **Compromiso Semanal**: Extrae el propósito o tarea moral para casa.
+
+### 🎧 Audios como Recursos de Primera Clase (`assets/audio/`)
+- La grabación de voz original se guarda en `assets/audio/<modulo>/` y se añade a la Mediateca.
+- Se incrusta automáticamente la macro `audio::assets/audio/...[title="...", opts="controls"]` para que otros formadores o alumnos puedan escuchar la explicación original.
+
+---
+
+## 🛠️ 12. Control de Versiones Git y Línea Temporal
 
 - Cada compendio es un repositorio Git local (`pure Go` con `go-git`, sin necesidad de instalar Git externamente).
 - Cada autoguardado genera un commit silencioso con autor y fecha.
 - El botón **Línea Temporal (Timeline)** permite inspeccionar versiones anteriores y restaurar cualquier estado pasado sin perder datos.
+
 
 
 

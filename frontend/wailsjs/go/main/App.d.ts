@@ -189,6 +189,15 @@ export function GetAssetBase64(arg1:string):Promise<string>;
 
 export function FormatAsciidocImage(arg1:string,arg2:string,arg3:string,arg4:number):Promise<string>;
 
+export function StructureTranscription(arg1:string,arg2:string,arg3:string):Promise<any>;
+
+export function SaveSessionAudioResource(arg1:string,arg2:string,arg3:string):Promise<any>;
+
+export function SaveVoiceStructuredSession(arg1:string,arg2:string,arg3:string,arg4:string,arg5:string):Promise<string>;
+
+export function FormatAsciidocAudio(arg1:string,arg2:string):Promise<string>;
+
+
 
 
 

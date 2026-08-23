@@ -323,8 +323,35 @@ const SECTIONS = [
     )
   },
   {
+    id: 'voice-structure',
+    title: '12. Captura de Voz a Estructura ("Vuelca tu Experiencia")',
+    icon: Mic,
+    badge: 'Dictado IA',
+    content: (
+      <div className="space-y-4 text-sm leading-relaxed text-slate-300">
+        <p>
+          Dicta de forma continua la explicación de tu tema como si hablaras con los alumnos en clase. El motor semántico clasificará las frases y creará una lección completa:
+        </p>
+        <div className="space-y-2 text-xs">
+          <div className="p-3 rounded-lg bg-slate-900/60 border border-slate-800">
+            <strong className="text-purple-300 block mb-1">🎙️ Dictado sin Límites</strong>
+            <p className="text-slate-400">Habla con total libertad sobre anécdotas, objetivos, preguntas y materiales sin preocuparte de escribir código AsciiDoc.</p>
+          </div>
+          <div className="p-3 rounded-lg bg-slate-900/60 border border-slate-800">
+            <strong className="text-indigo-300 block mb-1">✨ Estructuración Inteligente</strong>
+            <p className="text-slate-400">Separa automáticamente el <strong>Objetivo</strong>, la <strong>Teoría</strong>, la <strong>Ficha del Alumno</strong> (<code>[STUDENT]</code>), el <strong>Taller</strong> (<code>[WORKSHOP]</code>) y los <strong>Materiales</strong> (<code>[ ]</code>).</p>
+          </div>
+          <div className="p-3 rounded-lg bg-slate-900/60 border border-slate-800">
+            <strong className="text-emerald-300 block mb-1">🎧 Audios como Recursos del Compendio</strong>
+            <p className="text-slate-400">Guarda la pista de voz en <code>assets/audio/</code> y la integra en la Mediateca con un reproductor <code>audio::...</code> para otros catequistas.</p>
+          </div>
+        </div>
+      </div>
+    )
+  },
+  {
     id: 'git',
-    title: '12. Control de Versiones Git & Timeline',
+    title: '13. Control de Versiones Git & Timeline',
     icon: GitBranch,
     badge: 'Deshacer Infinito',
     content: (

@@ -362,6 +362,23 @@ export function FormatAsciidocImage(arg1, arg2, arg3, arg4) {
   return window['go']['main']['App']['FormatAsciidocImage'](arg1, arg2, arg3, arg4);
 }
 
+export function StructureTranscription(arg1, arg2, arg3) {
+  return window['go']['main']['App']['StructureTranscription'](arg1, arg2, arg3);
+}
+
+export function SaveSessionAudioResource(arg1, arg2, arg3) {
+  return window['go']['main']['App']['SaveSessionAudioResource'](arg1, arg2, arg3);
+}
+
+export function SaveVoiceStructuredSession(arg1, arg2, arg3, arg4, arg5) {
+  return window['go']['main']['App']['SaveVoiceStructuredSession'](arg1, arg2, arg3, arg4, arg5);
+}
+
+export function FormatAsciidocAudio(arg1, arg2) {
+  return window['go']['main']['App']['FormatAsciidocAudio'](arg1, arg2);
+}
+
+
 
 
 

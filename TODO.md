@@ -133,10 +133,13 @@
 ---
 
 ### 🎙️ 1.8. Captura de Voz a Estructura ("Vuelca tu Experiencia Hablando")
-- [ ] **Dictado Libre de Sesión Completa**:
+- [x] **Dictado Libre de Sesión Completa**:
   - Grabación continua de la explicación verbal de un tema sin preocuparse del formato.
-- [ ] **Estructurador Inteligente de Transcripción (IA Opcional)**:
-  - El LLM clasifica el audio transcrito y rellena automáticamente los apartados de la plantilla.
+- [x] **Estructurador Inteligente de Transcripción (IA Opcional / Motor Semántico)**:
+  - Clasifica el audio transcrito y rellena automáticamente los apartados de la plantilla (Objetivo, Teoría, Ficha Alumno, Taller, Materiales, Compromiso).
+- [x] **Audios como Recursos de Primera Clase (`assets/audio/`)**:
+  - Almacenamiento versionado en Git, integración con la Mediateca, previsualización con reproductor e incrustación de macros `audio::...[opts="controls"]` en AsciiDoc.
+
 
 ---
 

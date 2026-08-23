@@ -19,14 +19,19 @@ import {
   Layers, 
   Plus, 
   ExternalLink,
-  BookOpen
+  BookOpen,
+  Mic,
+  Volume2,
+  Play,
+  Pause
 } from 'lucide-react';
 import { 
   ListCompendiumAssets, 
   SaveAsset, 
   DeleteAsset, 
   GetAssetBase64, 
-  FormatAsciidocImage 
+  FormatAsciidocImage,
+  FormatAsciidocAudio
 } from '../../wailsjs/go/main/App';
 
 export default function MediaGalleryModal({
@@ -79,8 +84,8 @@ export default function MediaGalleryModal({
     setSelectedAsset(asset);
     setCaption(asset.name.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " "));
     
-    // Cargar previsualización base64 si es imagen
-    if (asset.mime_type.startsWith('image/')) {
+    // Cargar previsualización base64 si es imagen o audio
+    if (asset.mime_type.startsWith('image/') || asset.mime_type.startsWith('audio/') || asset.category === 'audio') {
       try {
         const b64 = await GetAssetBase64(asset.relative_path);
         setPreviewB64(b64);
@@ -104,7 +109,10 @@ export default function MediaGalleryModal({
       reader.readAsDataURL(file);
       reader.onloadend = async () => {
         const base64Data = reader.result.split(',')[1];
-        const subfolder = file.type.startsWith('image/') ? 'images' : 'attachments';
+        let subfolder = 'attachments';
+        if (file.type.startsWith('image/')) subfolder = 'images';
+        else if (file.type.startsWith('audio/')) subfolder = 'audio';
+
         const newAsset = await SaveAsset(subfolder, file.name, base64Data);
         await loadGallery();
         if (newAsset) {
@@ -151,6 +159,9 @@ export default function MediaGalleryModal({
   // Fragmento AsciiDoc calculado
   const generatedAsciidoc = useMemo(() => {
     if (!selectedAsset) return '';
+    if (selectedAsset.category === 'audio' || selectedAsset.mime_type.startsWith('audio/')) {
+      return FormatAsciidocAudio(selectedAsset.relative_path, caption);
+    }
     return FormatAsciidocImage(selectedAsset.relative_path, caption, layoutPreset, imageWidth);
   }, [selectedAsset, caption, layoutPreset, imageWidth]);
 
@@ -178,6 +189,7 @@ export default function MediaGalleryModal({
     if (!matchesSearch) return false;
 
     if (categoryFilter === 'images') return a.category === 'images' || a.category === 'diagrams';
+    if (categoryFilter === 'audio') return a.category === 'audio' || a.mime_type.startsWith('audio/');
     if (categoryFilter === 'attachments') return a.category === 'attachments';
     if (categoryFilter === 'orphans') return a.is_orphan;
     return true;
@@ -201,7 +213,7 @@ export default function MediaGalleryModal({
                 </span>
               </h2>
               <p className="text-[11px] text-slate-400">
-                Imágenes, diagramas y adjuntos con maquetación editorial tipo libro
+                Imágenes, grabaciones de audio, diagramas y adjuntos del compendio
               </p>
             </div>
           </div>
@@ -212,7 +224,7 @@ export default function MediaGalleryModal({
               ref={fileInputRef}
               onChange={handleFileUpload}
               className="hidden" 
-              accept="image/*,application/pdf"
+              accept="image/*,application/pdf,audio/*"
             />
             
             <button
@@ -266,6 +278,15 @@ export default function MediaGalleryModal({
             </button>
 
             <button
+              onClick={() => setCategoryFilter('audio')}
+              className={`px-2.5 py-1 rounded-md transition-all ${
+                categoryFilter === 'audio' ? 'bg-indigo-600 text-white font-medium' : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              🎙️ Audios ({gallery?.audios_count || 0})
+            </button>
+
+            <button
               onClick={() => setCategoryFilter('attachments')}
               className={`px-2.5 py-1 rounded-md transition-all ${
                 categoryFilter === 'attachments' ? 'bg-indigo-600 text-white font-medium' : 'text-slate-400 hover:text-slate-200'
@@ -304,8 +325,9 @@ export default function MediaGalleryModal({
             {filteredAssets.length > 0 ? (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                 {filteredAssets.map((asset) => {
-                  const isSelected = selectedAsset?.id === asset.id;
                   const isImg = asset.mime_type.startsWith('image/');
+                  const isAud = asset.category === 'audio' || asset.mime_type.startsWith('audio/');
+                  const isSelected = selectedAsset?.id === asset.id;
 
                   return (
                     <div
@@ -333,13 +355,20 @@ export default function MediaGalleryModal({
                               <ImageIcon size={28} className="text-slate-600" />
                             )}
                           </div>
+                        ) : isAud ? (
+                          <div className="flex flex-col items-center justify-center text-purple-400 p-2 text-center">
+                            <div className="w-10 h-10 rounded-full bg-purple-900/50 flex items-center justify-center mb-1">
+                              <Mic size={20} className="text-purple-300" />
+                            </div>
+                            <span className="text-[9px] font-mono text-purple-300">AUDIO</span>
+                          </div>
                         ) : (
                           <FileText size={32} className="text-indigo-400" />
                         )}
 
                         {asset.is_orphan && (
                           <span className="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded bg-rose-950/90 text-rose-300 border border-rose-500/40 text-[9px] font-mono font-semibold">
-                            Huérfana
+                            Huérfano
                           </span>
                         )}
                       </div>
@@ -366,7 +395,7 @@ export default function MediaGalleryModal({
               <div className="h-full flex flex-col items-center justify-center text-center p-8 text-slate-500">
                 <ImageIcon size={40} className="mb-2 opacity-40 text-slate-600" />
                 <p className="text-xs">No se encontraron archivos en la mediateca.</p>
-                <p className="text-[10px] text-slate-600 mt-1">Arrastra imágenes al editor o pulsa "Subir Archivo".</p>
+                <p className="text-[10px] text-slate-600 mt-1">Arrastra imágenes o audios al editor o pulsa "Subir Archivo".</p>
               </div>
             )}
           </div>
@@ -379,13 +408,27 @@ export default function MediaGalleryModal({
                 {/* Vista Previa Grande */}
                 <div className="space-y-1.5">
                   <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">Vista Previa:</span>
-                  <div className="w-full h-36 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center overflow-hidden p-2">
+                  <div className="w-full h-36 rounded-xl bg-slate-900 border border-slate-800 flex flex-col items-center justify-center overflow-hidden p-3">
                     {selectedAsset.mime_type.startsWith('image/') && previewB64 ? (
                       <img 
                         src={`data:${selectedAsset.mime_type};base64,${previewB64}`} 
                         alt={selectedAsset.name} 
                         className="max-h-full max-w-full object-contain rounded-lg"
                       />
+                    ) : (selectedAsset.category === 'audio' || selectedAsset.mime_type.startsWith('audio/')) ? (
+                      <div className="w-full text-center space-y-2">
+                        <div className="flex items-center justify-center gap-2 text-purple-300">
+                          <Mic size={20} />
+                          <span className="text-xs font-semibold">Grabación de Voz</span>
+                        </div>
+                        {previewB64 && (
+                          <audio 
+                            controls 
+                            className="w-full h-8 accent-purple-500" 
+                            src={`data:${selectedAsset.mime_type || 'audio/wav'};base64,${previewB64}`} 
+                          />
+                        )}
+                      </div>
                     ) : (
                       <div className="text-center space-y-1">
                         <FileText size={36} className="mx-auto text-indigo-400" />
@@ -411,84 +454,95 @@ export default function MediaGalleryModal({
                   )}
                 </div>
 
-                {/* Presets de Maquetación Editorial (Book Layout) */}
-                <div className="space-y-2">
-                  <span className="text-[11px] font-semibold text-sky-400 uppercase tracking-wider block flex items-center gap-1.5">
-                    <BookOpen size={13} />
-                    <span>Maquetación Editorial (AsciiDoc):</span>
-                  </span>
+                {/* Presets de Maquetación Editorial (Book Layout) para Imágenes */}
+                {!selectedAsset.mime_type.startsWith('audio/') && selectedAsset.category !== 'audio' ? (
+                  <div className="space-y-2">
+                    <span className="text-[11px] font-semibold text-sky-400 uppercase tracking-wider block flex items-center gap-1.5">
+                      <BookOpen size={13} />
+                      <span>Maquetación Editorial (AsciiDoc):</span>
+                    </span>
 
-                  <div className="grid grid-cols-2 gap-1.5">
-                    <button
-                      onClick={() => setLayoutPreset('left')}
-                      className={`p-2 rounded-lg border text-left text-xs transition-all ${
-                        layoutPreset === 'left' 
-                          ? 'bg-indigo-600/30 border-indigo-500 text-white font-semibold' 
-                          : 'bg-slate-900 border-slate-800 text-slate-300 hover:bg-slate-800'
-                      }`}
-                      title="Flotando a la izquierda con texto envolvente (diseño clásico de libro)"
-                    >
-                      <div className="flex items-center gap-1.5 mb-0.5">
-                        <AlignLeft size={13} className="text-sky-400" />
-                        <span className="font-semibold text-[11px]">Flotante Izq.</span>
-                      </div>
-                      <p className="text-[9px] text-slate-400 leading-tight">Texto envolvente</p>
-                    </button>
+                    <div className="grid grid-cols-2 gap-1.5">
+                      <button
+                        onClick={() => setLayoutPreset('left')}
+                        className={`p-2 rounded-lg border text-left text-xs transition-all ${
+                          layoutPreset === 'left' 
+                            ? 'bg-indigo-600/30 border-indigo-500 text-white font-semibold' 
+                            : 'bg-slate-900 border-slate-800 text-slate-300 hover:bg-slate-800'
+                        }`}
+                        title="Flotando a la izquierda con texto envolvente (diseño clásico de libro)"
+                      >
+                        <div className="flex items-center gap-1.5 mb-0.5">
+                          <AlignLeft size={13} className="text-sky-400" />
+                          <span className="font-semibold text-[11px]">Flotante Izq.</span>
+                        </div>
+                        <p className="text-[9px] text-slate-400 leading-tight">Texto envolvente</p>
+                      </button>
 
-                    <button
-                      onClick={() => setLayoutPreset('right')}
-                      className={`p-2 rounded-lg border text-left text-xs transition-all ${
-                        layoutPreset === 'right' 
-                          ? 'bg-indigo-600/30 border-indigo-500 text-white font-semibold' 
-                          : 'bg-slate-900 border-slate-800 text-slate-300 hover:bg-slate-800'
-                      }`}
-                      title="Flotando a la derecha con texto envolvente"
-                    >
-                      <div className="flex items-center gap-1.5 mb-0.5">
-                        <AlignRight size={13} className="text-sky-400" />
-                        <span className="font-semibold text-[11px]">Flotante Der.</span>
-                      </div>
-                      <p className="text-[9px] text-slate-400 leading-tight">Texto envolvente</p>
-                    </button>
+                      <button
+                        onClick={() => setLayoutPreset('right')}
+                        className={`p-2 rounded-lg border text-left text-xs transition-all ${
+                          layoutPreset === 'right' 
+                            ? 'bg-indigo-600/30 border-indigo-500 text-white font-semibold' 
+                            : 'bg-slate-900 border-slate-800 text-slate-300 hover:bg-slate-800'
+                        }`}
+                        title="Flotando a la derecha con texto envolvente"
+                      >
+                        <div className="flex items-center gap-1.5 mb-0.5">
+                          <AlignRight size={13} className="text-sky-400" />
+                          <span className="font-semibold text-[11px]">Flotante Der.</span>
+                        </div>
+                        <p className="text-[9px] text-slate-400 leading-tight">Texto envolvente</p>
+                      </button>
 
-                    <button
-                      onClick={() => setLayoutPreset('center')}
-                      className={`p-2 rounded-lg border text-left text-xs transition-all ${
-                        layoutPreset === 'center' 
-                          ? 'bg-indigo-600/30 border-indigo-500 text-white font-semibold' 
-                          : 'bg-slate-900 border-slate-800 text-slate-300 hover:bg-slate-800'
-                      }`}
-                      title="Figura centrada con pie de foto formal numerado"
-                    >
-                      <div className="flex items-center gap-1.5 mb-0.5">
-                        <AlignCenter size={13} className="text-amber-400" />
-                        <span className="font-semibold text-[11px]">Figura Central</span>
-                      </div>
-                      <p className="text-[9px] text-slate-400 leading-tight">Pie y numeración</p>
-                    </button>
+                      <button
+                        onClick={() => setLayoutPreset('center')}
+                        className={`p-2 rounded-lg border text-left text-xs transition-all ${
+                          layoutPreset === 'center' 
+                            ? 'bg-indigo-600/30 border-indigo-500 text-white font-semibold' 
+                            : 'bg-slate-900 border-slate-800 text-slate-300 hover:bg-slate-800'
+                        }`}
+                        title="Figura centrada con pie de foto formal numerado"
+                      >
+                        <div className="flex items-center gap-1.5 mb-0.5">
+                          <AlignCenter size={13} className="text-amber-400" />
+                          <span className="font-semibold text-[11px]">Figura Central</span>
+                        </div>
+                        <p className="text-[9px] text-slate-400 leading-tight">Pie y numeración</p>
+                      </button>
 
-                    <button
-                      onClick={() => setLayoutPreset('banner')}
-                      className={`p-2 rounded-lg border text-left text-xs transition-all ${
-                        layoutPreset === 'banner' 
-                          ? 'bg-indigo-600/30 border-indigo-500 text-white font-semibold' 
-                          : 'bg-slate-900 border-slate-800 text-slate-300 hover:bg-slate-800'
-                      }`}
-                      title="Banner a 100% de ancho para portadas de sesión"
-                    >
-                      <div className="flex items-center gap-1.5 mb-0.5">
-                        <Maximize2 size={13} className="text-emerald-400" />
-                        <span className="font-semibold text-[11px]">Banner 100%</span>
-                      </div>
-                      <p className="text-[9px] text-slate-400 leading-tight">Ancho completo</p>
-                    </button>
+                      <button
+                        onClick={() => setLayoutPreset('banner')}
+                        className={`p-2 rounded-lg border text-left text-xs transition-all ${
+                          layoutPreset === 'banner' 
+                            ? 'bg-indigo-600/30 border-indigo-500 text-white font-semibold' 
+                            : 'bg-slate-900 border-slate-800 text-slate-300 hover:bg-slate-800'
+                        }`}
+                        title="Banner a 100% de ancho para portadas de sesión"
+                      >
+                        <div className="flex items-center gap-1.5 mb-0.5">
+                          <Maximize2 size={13} className="text-emerald-400" />
+                          <span className="font-semibold text-[11px]">Banner 100%</span>
+                        </div>
+                        <p className="text-[9px] text-slate-400 leading-tight">Ancho completo</p>
+                      </button>
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  <div className="p-3 rounded-xl bg-purple-950/30 border border-purple-500/20 text-xs text-purple-200">
+                    <p className="font-semibold mb-1">🎧 Reproductor AsciiDoc</p>
+                    <p className="text-[11px] text-purple-300/80">
+                      Al insertar este audio, se generará la macro <code>audio::...[opts=controls]</code> compatible con exportación web y HTML.
+                    </p>
+                  </div>
+                )}
 
-                {/* Parámetros: Pie de foto y Ancho */}
+                {/* Parámetros: Título y Ancho */}
                 <div className="space-y-2 text-xs">
                   <div>
-                    <label className="text-[10px] text-slate-400 block mb-1">Pie de Foto / Título:</label>
+                    <label className="text-[10px] text-slate-400 block mb-1">
+                      {selectedAsset.category === 'audio' ? 'Título de la Grabación:' : 'Pie de Foto / Título:'}
+                    </label>
                     <input
                       type="text"
                       value={caption}
@@ -497,7 +551,7 @@ export default function MediaGalleryModal({
                     />
                   </div>
 
-                  {layoutPreset !== 'banner' && (
+                  {!selectedAsset.mime_type.startsWith('audio/') && selectedAsset.category !== 'audio' && layoutPreset !== 'banner' && (
                     <div>
                       <div className="flex items-center justify-between text-[10px] text-slate-400 mb-1">
                         <span>Ancho en Página:</span>

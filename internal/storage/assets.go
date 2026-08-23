@@ -32,6 +32,7 @@ type AssetGallery struct {
 	TotalAssets  int         `json:"total_assets"`
 	TotalBytes   int64       `json:"total_bytes"`
 	ImagesCount  int         `json:"images_count"`
+	AudiosCount  int         `json:"audios_count"`
 	DocsCount    int         `json:"docs_count"`
 	OrphansCount int         `json:"orphans_count"`
 }
@@ -120,6 +121,7 @@ func ListCompendiumAssets(targetDir string) (*AssetGallery, error) {
 	var assets []AssetInfo
 	var totalBytes int64
 	imagesCount := 0
+	audiosCount := 0
 	docsCount := 0
 	orphansCount := 0
 
@@ -142,6 +144,9 @@ func ListCompendiumAssets(targetDir string) (*AssetGallery, error) {
 		} else if strings.Contains(relPath, "assets/diagrams") {
 			category = "diagrams"
 			imagesCount++
+		} else if strings.Contains(relPath, "assets/audio") {
+			category = "audio"
+			audiosCount++
 		} else {
 			docsCount++
 		}
@@ -192,6 +197,7 @@ func ListCompendiumAssets(targetDir string) (*AssetGallery, error) {
 		TotalAssets:  len(assets),
 		TotalBytes:   totalBytes,
 		ImagesCount:  imagesCount,
+		AudiosCount:  audiosCount,
 		DocsCount:    docsCount,
 		OrphansCount: orphansCount,
 	}, nil
@@ -263,6 +269,14 @@ func FormatAsciidocImage(imageRelPath, caption, layout string, width int) string
 	}
 }
 
+// FormatAsciidocAudio genera la macro de inserción de reproductor de audio en AsciiDoc
+func FormatAsciidocAudio(audioRelPath, title string) string {
+	if title == "" {
+		title = "Grabación de audio"
+	}
+	return fmt.Sprintf("audio::%s[title=\"%s\", opts=\"controls\"]\n\n", audioRelPath, title)
+}
+
 func formatBytes(b int64) string {
 	const unit = 1024
 	if b < unit {
@@ -275,3 +289,4 @@ func formatBytes(b int64) string {
 	}
 	return fmt.Sprintf("%.1f %cB", float64(b)/float64(div), "KMGTPE"[exp])
 }
+

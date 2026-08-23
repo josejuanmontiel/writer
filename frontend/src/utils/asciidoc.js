@@ -309,6 +309,24 @@ export function asciidocToHtml(adocText) {
       continue;
     }
 
+    // 7.7. Macro de Audio AsciiDoc (audio::path[title=..., opts=...])
+    const audioMatch = line.match(/^audio::([^\[]+)\[(.*?)\]$/i);
+    if (audioMatch) {
+      closeList();
+      const audioPath = audioMatch[1].trim();
+      const attrs = audioMatch[2];
+      const titleMatch = attrs.match(/title="([^"]+)"/i) || attrs.match(/title=([^,\]]+)/i);
+      const audioTitle = titleMatch ? titleMatch[1] : 'Grabación de audio de la sesión';
+
+      htmlParts.push(
+        `<div class="audio-block my-4 p-3.5 rounded-xl bg-purple-950/40 border border-purple-500/30 text-purple-200" data-type="audio" data-title="${audioTitle}">` +
+        `<div class="flex items-center gap-2 text-xs font-semibold text-purple-300 mb-2"><span>🎙️ ${audioTitle}</span></div>` +
+        `<audio controls class="w-full h-8" src="${audioPath}"></audio>` +
+        `</div><p></p>`
+      );
+      continue;
+    }
+
     // 8. Regla horizontal / Separador (''' o ---)
     if (line === "'''" || line === '---' || line === '***') {
       closeList();
@@ -534,6 +552,19 @@ export function htmlToAsciidoc(html) {
         return `\nimage::${src}[${caption}, width=100%, role="banner-full"]\n\n`;
       }
       return `\nimage::${src}[${caption}, align=center]\n\n`;
+    }
+
+    // 1.3. Reproductor de Audio
+    if (node.classList.contains('audio-block') || node.getAttribute('data-type') === 'audio') {
+      const audio = node.querySelector('audio');
+      const src = audio ? audio.getAttribute('src') : '';
+      const title = node.getAttribute('data-title') || 'Grabación de audio';
+      return `\naudio::${src}[title="${title}", opts="controls"]\n\n`;
+    }
+
+    if (tagName === 'audio') {
+      const src = node.getAttribute('src') || '';
+      return `\naudio::${src}[opts="controls"]\n\n`;
     }
 
     // 2. Tablas
