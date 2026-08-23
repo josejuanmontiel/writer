@@ -197,6 +197,32 @@ export function SaveVoiceStructuredSession(arg1:string,arg2:string,arg3:string,a
 
 export function FormatAsciidocAudio(arg1:string,arg2:string):Promise<string>;
 
+export function BuildVideoScriptPrompt(arg1:string,arg2:number,arg3:string):Promise<any>;
+
+export function BuildCanvaSlidesPrompt(arg1:string):Promise<any>;
+
+export function BuildAudioCapsulePrompt(arg1:string,arg2:string):Promise<any>;
+
+export function GenerateMultimediaScript(arg1:string,arg2:string,arg3:number,arg4:string):Promise<any>;
+
+export function SaveSessionScript(arg1:string,arg2:any):Promise<void>;
+
+export function GetSessionScript(arg1:string):Promise<any>;
+
+export function ParseAndImportScript(arg1:string,arg2:string):Promise<any>;
+
+export function ExportScriptToMarkdown(arg1:any):Promise<string>;
+
+export function SetGitRemote(arg1:string,arg2:string):Promise<void>;
+
+export function GetGitRemoteInfo():Promise<any>;
+
+export function PushGitRemote(arg1:string,arg2:string):Promise<void>;
+
+export function PullGitRemote(arg1:string,arg2:string):Promise<void>;
+
+export function TestLLMConnection(arg1:any):Promise<string>;
+
 
 
 

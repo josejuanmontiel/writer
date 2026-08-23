@@ -65,7 +65,8 @@ import {
   PromoteUnassignedTopic,
   ExtractSelectionToUnassigned,
   EmbedUnassignedTopicIntoSession,
-  GetCurriculumCoherenceMatrix
+  GetCurriculumCoherenceMatrix,
+  TestLLMConnection
 } from '../wailsjs/go/main/App';
 import IdeaGraph from './components/IdeaGraph';
 import DualPaneView from './components/DualPaneView';
@@ -73,7 +74,9 @@ import AudienceDerivationModal from './components/AudienceDerivationModal';
 import ContentQualityModal from './components/ContentQualityModal';
 import MediaGalleryModal from './components/MediaGalleryModal';
 import VoiceStructureModal from './components/VoiceStructureModal';
-import { Share2, FileText, ChevronRight, Table, HelpCircle, Scissors, Split, Clock, Image as ImageIcon } from 'lucide-react';
+import PromptStudioModal from './components/PromptStudioModal';
+import GitSyncModal from './components/GitSyncModal';
+import { Share2, FileText, ChevronRight, Table, HelpCircle, Scissors, Split, Clock, Image as ImageIcon, Video, UploadCloud, ShieldCheck, Key } from 'lucide-react';
 
 function App() {
   const [mode, setMode] = useState('Ficción');
@@ -119,6 +122,11 @@ function App() {
   const [showQualityModal, setShowQualityModal] = useState(false);
   const [showMediaModal, setShowMediaModal] = useState(false);
   const [showVoiceStructureModal, setShowVoiceStructureModal] = useState(false);
+  const [showPromptStudioModal, setShowPromptStudioModal] = useState(false);
+  const [showGitSyncModal, setShowGitSyncModal] = useState(false);
+  const [testingLLM, setTestingLLM] = useState(false);
+  const [llmTestResult, setLlmTestResult] = useState(null);
+  const [showLLMKey, setShowLLMKey] = useState(false);
   const [detectedConceptsPill, setDetectedConceptsPill] = useState('');
   const [placementTopicPath, setPlacementTopicPath] = useState('');
   const [previousConcepts, setPreviousConcepts] = useState([]);
@@ -879,6 +887,26 @@ function App() {
             <Clock size={17} />
           </button>
 
+          {/* Botón Multimedia Prompt & Script Studio (Punto 1.9) */}
+          <button 
+            className="p-1.5 text-slate-400 hover:text-amber-400 hover:bg-slate-800 rounded-lg transition-colors" 
+            onClick={() => setShowPromptStudioModal(true)}
+            title="Multimedia Prompt & Script Studio (YouTube, Canva, Cápsulas - Punto 1.9)"
+          >
+            <Video size={17} />
+          </button>
+
+          {/* Botón Sincronización Git Remota (Push / Pull - Punto 1.9) */}
+          {activeCompendium && (
+            <button 
+              className="p-1.5 text-slate-400 hover:text-blue-400 hover:bg-slate-800 rounded-lg transition-colors" 
+              onClick={() => setShowGitSyncModal(true)}
+              title="Sincronización Git Remota (Push / Pull a GitHub/GitLab)"
+            >
+              <UploadCloud size={17} />
+            </button>
+          )}
+
           {/* Botón Manual de Usuario & Documentación Interactiva */}
           <button 
             className="p-1.5 text-slate-400 hover:text-amber-300 hover:bg-slate-800 rounded-lg transition-colors" 
@@ -1418,19 +1446,159 @@ function App() {
               )}
             </div>
 
-            <div className="space-y-2">
-              <label className="text-xs font-medium text-gray-500 px-1">URL del LLM</label>
-              <input 
-                type="text" 
-                value={config?.llm_url || ''} 
-                onChange={(e) => {
-                  const nc = { ...config };
-                  nc.llm_url = e.target.value;
-                  setConfig(nc);
-                }}
-                onBlur={() => UpdateConfig(config)}
-                className="w-full bg-black/20 border border-white/5 rounded-xl px-4 py-2 text-sm outline-none focus:border-brand-accent transition-colors"
-              />
+            {/* Configuración Unificada de LLM (Punto 1.9) */}
+            <div className="bg-black/20 p-4 rounded-xl border border-white/5 space-y-3">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-bold text-gray-300">Motor de Lenguaje (LLM)</label>
+                <span className="text-[10px] text-brand-accent uppercase tracking-wider font-semibold">
+                  {config?.llm?.provider || 'Gemini'}
+                </span>
+              </div>
+
+              {/* Selector de Proveedor */}
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-medium text-gray-500">Proveedor / Perfil</label>
+                <select
+                  value={config?.llm?.provider || 'gemini'}
+                  onChange={(e) => {
+                    const prov = e.target.value;
+                    const nc = { ...config };
+                    if (!nc.llm) nc.llm = {};
+                    nc.llm.provider = prov;
+                    
+                    // Aplicar presets
+                    if (prov === 'gemini') {
+                      nc.llm.url = 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions';
+                      nc.llm.model = 'gemini-2.0-flash';
+                    } else if (prov === 'ollama') {
+                      nc.llm.url = 'http://localhost:11434/v1/chat/completions';
+                      nc.llm.model = 'qwen2.5:latest';
+                    } else if (prov === 'groq') {
+                      nc.llm.url = 'https://api.groq.com/openai/v1/chat/completions';
+                      nc.llm.model = 'llama-3.3-70b-versatile';
+                    } else if (prov === 'openai') {
+                      nc.llm.url = 'https://api.openai.com/v1/chat/completions';
+                      nc.llm.model = 'gpt-4o-mini';
+                    }
+                    
+                    setConfig(nc);
+                    UpdateConfig(nc);
+                  }}
+                  className="w-full bg-black/40 border border-white/10 rounded-xl px-3.5 py-2 text-xs text-slate-200 outline-none focus:border-brand-accent transition-colors"
+                >
+                  <option value="gemini" className="bg-slate-900">Google Gemini API (Recomendado / Gratuito)</option>
+                  <option value="ollama" className="bg-slate-900">Ollama Local (100% Offline / localhost:11434)</option>
+                  <option value="groq" className="bg-slate-900">Groq Cloud (Baja Latencia / Llama 3.3)</option>
+                  <option value="openai" className="bg-slate-900">OpenAI API (GPT-4o mini)</option>
+                  <option value="clipboard" className="bg-slate-900">Modo Clipboard (Copiar a Gemini Web / ChatGPT)</option>
+                  <option value="custom" className="bg-slate-900">Servidor Personalizado / Compatible OpenAI</option>
+                </select>
+              </div>
+
+              {config?.llm?.provider !== 'clipboard' && (
+                <>
+                  {/* API Key */}
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <label className="text-[11px] font-medium text-gray-500">
+                        {config?.llm?.provider === 'gemini' ? 'Gemini API Key (Google AI Studio)' : 'API Key'}
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => setShowLLMKey(!showLLMKey)}
+                        className="text-[10px] text-brand-accent hover:underline"
+                      >
+                        {showLLMKey ? 'Ocultar' : 'Mostrar'}
+                      </button>
+                    </div>
+                    <input 
+                      type={showLLMKey ? 'text' : 'password'} 
+                      value={config?.llm?.api_key || ''} 
+                      onChange={(e) => {
+                        const nc = { ...config };
+                        if (!nc.llm) nc.llm = {};
+                        nc.llm.api_key = e.target.value;
+                        setConfig(nc);
+                      }}
+                      onBlur={() => UpdateConfig(config)}
+                      placeholder={config?.llm?.provider === 'ollama' ? '(Opcional para Ollama)' : 'AIzaSy... o gsk_...'}
+                      className="w-full bg-black/40 border border-white/10 rounded-xl px-3.5 py-2 text-xs font-mono outline-none focus:border-brand-accent transition-colors"
+                    />
+                  </div>
+
+                  {/* Modelo y URL */}
+                  <div className="grid grid-cols-2 gap-2.5">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-medium text-gray-500">Modelo</label>
+                      <input 
+                        type="text" 
+                        value={config?.llm?.model || ''} 
+                        onChange={(e) => {
+                          const nc = { ...config };
+                          if (!nc.llm) nc.llm = {};
+                          nc.llm.model = e.target.value;
+                          setConfig(nc);
+                        }}
+                        onBlur={() => UpdateConfig(config)}
+                        placeholder="gemini-2.0-flash"
+                        className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-1.5 text-xs outline-none focus:border-brand-accent transition-colors"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-medium text-gray-500">URL Endpoint</label>
+                      <input 
+                        type="text" 
+                        value={config?.llm?.url || config?.llm_url || ''} 
+                        onChange={(e) => {
+                          const nc = { ...config };
+                          if (!nc.llm) nc.llm = {};
+                          nc.llm.url = e.target.value;
+                          nc.llm_url = e.target.value;
+                          setConfig(nc);
+                        }}
+                        onBlur={() => UpdateConfig(config)}
+                        placeholder="https://..."
+                        className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-1.5 text-xs font-mono outline-none focus:border-brand-accent transition-colors truncate"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Botón Probar Conexión */}
+                  <div className="pt-1">
+                    <button
+                      type="button"
+                      disabled={testingLLM}
+                      onClick={async () => {
+                        setTestingLLM(true);
+                        setLlmTestResult(null);
+                        try {
+                          const res = await TestLLMConnection(config?.llm || {});
+                          setLlmTestResult({ success: true, message: res });
+                        } catch (err) {
+                          setLlmTestResult({ success: false, message: err.toString() });
+                        } finally {
+                          setTestingLLM(false);
+                        }
+                      }}
+                      className="w-full py-1.5 px-3 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 text-[11px] font-medium flex items-center justify-center gap-1.5 border border-white/5 transition-colors disabled:opacity-50"
+                    >
+                      {testingLLM ? <RefreshCw size={12} className="animate-spin" /> : <Sparkles size={12} className="text-amber-400" />}
+                      <span>{testingLLM ? 'Probando conexión...' : 'Probar Conexión LLM'}</span>
+                    </button>
+
+                    {llmTestResult && (
+                      <div className={`mt-2 p-2 rounded-lg text-[10px] ${
+                        llmTestResult.success 
+                          ? 'bg-emerald-950/60 border border-emerald-800/60 text-emerald-300' 
+                          : 'bg-red-950/60 border border-red-800/60 text-red-300'
+                      }`}>
+                        {llmTestResult.message}
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
             </div>
             <div className="space-y-2">
               <label className="text-xs font-medium text-gray-500 px-1">URL de Kokoro (TTS)</label>
@@ -1612,6 +1780,21 @@ function App() {
             editorRef.current.insertText(content);
           }
         }}
+      />
+
+      {/* Multimedia Prompt & Script Studio (Punto 1.9) */}
+      <PromptStudioModal
+        isOpen={showPromptStudioModal}
+        onClose={() => setShowPromptStudioModal(false)}
+        activeFile={activeFile}
+        compendiumMeta={activeCompendium?.meta}
+      />
+
+      {/* Sincronización Git Remota (Punto 1.9) */}
+      <GitSyncModal
+        isOpen={showGitSyncModal}
+        onClose={() => setShowGitSyncModal(false)}
+        onRefreshTree={() => handleRefreshCompendium()}
       />
     </div>
   );

@@ -74,7 +74,7 @@ export default function ModelManagerModal({ isOpen, onClose }) {
   const loadInitialData = async () => {
     try {
       const ver = await GetAppVersion();
-      setCurrentVersion(ver || 'v1.3.0');
+      setCurrentVersion(ver || 'v1.3.1');
       await refreshModels();
     } catch (err) {
       console.error('Error cargando versión o modelos:', err);

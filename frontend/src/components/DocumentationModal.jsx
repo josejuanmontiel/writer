@@ -364,6 +364,32 @@ const SECTIONS = [
         </p>
       </div>
     )
+  },
+  {
+    id: 'multimedia',
+    title: '14. Multimedia Studio & Git Remoto',
+    icon: Sparkles,
+    badge: 'Punto 1.9',
+    content: (
+      <div className="space-y-4 text-sm leading-relaxed text-slate-300">
+        <div className="p-3.5 rounded-xl bg-slate-900/80 border border-slate-800 space-y-2">
+          <h4 className="text-xs font-bold uppercase tracking-wide text-amber-400">🎬 Escaletas de Vídeo y Canva</h4>
+          <p className="text-xs text-slate-300">
+            Transforma cualquier lección en una escaleta con marcas de tiempo (gancho, introducción, desarrollo, diapositivas sugeridas y llamada a la acción).
+          </p>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="p-3 rounded-lg bg-slate-900/60 border border-slate-800 space-y-1">
+            <h5 className="font-semibold text-xs text-emerald-300">📋 Modo Clipboard (Gemini Web)</h5>
+            <p className="text-[11px] text-slate-400">100% gratuito sin API Keys. Copia el prompt preparado, pégalo en Gemini Web y copia de vuelta la respuesta para generar la escaleta interactiva.</p>
+          </div>
+          <div className="p-3 rounded-lg bg-slate-900/60 border border-slate-800 space-y-1">
+            <h5 className="font-semibold text-xs text-blue-300">☁️ Sincronización Remota (Push/Pull)</h5>
+            <p className="text-[11px] text-slate-400">Configura la URL de tu repositorio en GitHub o GitLab y sincroniza tu trabajo en la nube con un solo clic.</p>
+          </div>
+        </div>
+      </div>
+    )
   }
 ];
 

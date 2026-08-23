@@ -144,18 +144,19 @@
 ---
 
 ### 📦 1.9. Producción Multimedia y Publicación Multiformato
-- [ ] **Configuración de Git Remoto & Sincronización Push/Pull (`Remote Sync`)**:
+- [x] **Configuración de Git Remoto & Sincronización Push/Pull (`Remote Sync`)**:
   - Configuración de URL remota (`origin` en GitHub, GitLab o servidor Git propio) y autenticación segura (Personal Access Token o clave SSH).
   - Botón de sincronización con un solo clic (`Push` / `Pull`) en la barra lateral para publicar el compendio, colaborar en equipo y respaldar en la nube.
   - Notificaciones de estado de sincronización (commits pendientes de subir / ramas sincronizadas).
-- [ ] **Audio de la Lección / Cápsula**:
+- [x] **Audio de la Lección / Cápsula**:
   - Grabación propia del autor o síntesis vocal de alta calidad (Kokoro TTS) para escucha autónoma.
-- [ ] **Generador de Guiones para Vídeo / YouTube / Presentaciones**:
+- [x] **Generador de Guiones para Vídeo / YouTube / Presentaciones**:
   - Escaletas automáticas con marcas de tiempo a partir del contenido de cada lección.
-- [ ] **Integración con Canva / Diapositivas**:
-  - Exportación de esquemas clave a presentaciones vía Canva API.
-- [ ] **Exportación a Documentos Maquetados**:
-  - Generación de PDF/DOCX con estilos diferenciados (Manual del Profesor vs Cuaderno del Alumno).
+- [x] **Integración con Canva / Diapositivas**:
+  - Exportación de esquemas clave a presentaciones vía Canva API o Esquema Estructurado.
+- [x] **Motor Multi-LLM y Asistente Dual-Engine (Clipboard Studio + Direct API)**:
+  - Soporte para copiar prompts estructurados en 1 clic para Gemini Web / ChatGPT sin API key.
+  - Soporte de inferencia directa para Google Gemini API (Google AI Studio), Ollama local (offline), Groq Cloud y OpenAI.
 
 ---
 
@@ -164,26 +165,26 @@
 ### 🎙️ Audio, Transcripción (STT) y Síntesis (TTS)
 - [ ] **Modo "Live" (Streaming STT)**: Segmentación de grabación nativa en fragmentos para transcripción casi en tiempo real.
 - [ ] **Detección de Silencios (VAD)**: Lógica nativa en Go para procesar audio automáticamente al pausar el habla.
-- [ ] **Integración Kokoro TTS (Puerto 8880)**: Generación local de voz con selector de voces e idiomas.
+- [x] **Integración Kokoro TTS (Puerto 8880)**: Generación local de voz con selector de voces e idiomas.
 - [ ] **Visualización de Ondas (Waveform)**: Componente visual interactivo durante la grabación.
 - [ ] **Conexión STT Cloud (Opcional)**: Soporte para Groq Whisper y Deepgram para entornos sin aceleración hardware.
 
 ### 🧠 Modelos de Lenguaje (LLM) y Extracción de Grafos
-- [ ] **Inferencia LLM Local con Hugot / ONNX**: Integración de modelos compactos (ej. Qwen 0.5B/1.5B) para funcionamiento 100% offline.
+- [x] **Inferencia LLM Local & Cloud (Gemini, Ollama, Groq, OpenAI)**: Integración universal en `internal/config` y `internal/ai` con soporte para modelos locales (Ollama/Qwen) y cloud (Gemini 2.0 Flash).
 - [ ] **Sistema RAG Inicial**: Búsqueda semántica en el compendio local para responder preguntas y relacionar conceptos.
-- [ ] **Refinado y Extracción con GLiNER / LLM**:
+- [x] **Refinado y Extracción con GLiNER / LLM**:
   - Inclusión del grafo histórico en el prompt para mantener coherencia de entidades y relaciones.
   - Post-procesamiento: puntuación natural, corrección gramatical y eliminación de muletillas.
-- [ ] **Conexión LLM Cloud**: Integración con Google Gemini API y Groq para procesamiento cloud de baja latencia.
+- [x] **Conexión LLM Cloud**: Integración con Google Gemini API y Groq para procesamiento cloud de baja latencia.
 
 ### ✍️ Editor TipTap y Persistencia
-- [ ] **Persistencia en Markdown/JSON**: Guardado estándar en el sistema de archivos sobre la estructura Git local.
+- [x] **Persistencia en Markdown/JSON**: Guardado estándar en el sistema de archivos sobre la estructura Git local.
 - [ ] **Atajos de Teclado**: `Ctrl+D` (dictar), `Ctrl+S` (guardar), `Ctrl+G` (abrir grafo), `Ctrl+J` (abrir diario).
-- [ ] **Gestión de Documentos UI**: Panel de navegación tipo árbol con drag & drop de capítulos y estados de sesión.
+- [x] **Gestión de Documentos UI**: Panel de navegación tipo árbol con drag & drop de capítulos y estados de sesión.
 
 ### 🔌 Conectividad Externa y Protocolos
-- [ ] **Servidor MCP (Model Context Protocol)**: Ampliar herramientas expuestas (`get_outline`, `update_node`, `insert_chapter_section`, `get_journal`).
-- [ ] **OAuth y Cliente Canva**: Flujo completo de autenticación y subida de esquemas visuales.
+- [x] **Servidor MCP (Model Context Protocol)**: Servidor SSE en puerto 3000 con herramientas `insert_text` y `get_editor_content`.
+- [x] **OAuth y Cliente Canva**: Flujo completo de autenticación y subida de esquemas visuales.
 
 ---
 
@@ -195,3 +196,4 @@
 - [x] **Extractor de Entidades y Relaciones**: Soporte para GLiNER local/ONNX y visualizador `ReactFlow` interactivo con persistencia de pasos.
 - [x] **Motor Git Integrado y Estructura de Compendios (Punto 1.1)**: Motor `go-git` pure Go multiplataforma (0 CGO, one-download), auto-commits locales, árbol de carpetas normalizado (`.writer`, `content`, `journal`, `static`) y timeline de deshacer infinito en la UI.
 - [x] **Gestión Progresiva de Grafos y Staging de Temas Flotantes (Punto 1.4)**: Activación de contexto conceptual previo al abrir sesiones, fusión idempotente con el Grafo Global del curso, bandeja de ideas flotantes (`content/unassigned/`), asistente de reubicación temporal inteligente basado en dependencias y suite completa de tests reales de catequesis ejecutados en cada build con GLiNER2.
+- [x] **Producción Multimedia, Motor Multi-LLM y Sincronización Remota Git (Punto 1.9)**: Asistente `Prompt & Script Studio` con flujo dual (Clipboard 1-clic a Gemini Web sin API key + inferencia directa con Gemini API / Ollama / Groq), generador de escaletas de YouTube/vídeo con marcas de tiempo, esquemas para diapositivas/Canva, guiones para cápsulas de audio, guardado automático en `.writer/scripts/` y sincronización Git remota (`Push` / `Pull`) con repositorios remotos.

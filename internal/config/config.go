@@ -15,6 +15,23 @@ type RecentCompendium struct {
 	LastOpenedAt time.Time `json:"last_opened_at"`
 }
 
+// LLMConfig define la configuración para modelos de lenguaje
+type LLMConfig struct {
+	Provider    string  `json:"provider"`    // "clipboard", "gemini", "ollama", "groq", "openai", "custom"
+	URL         string  `json:"url"`         // Endpoint URL (OpenAI-compatible)
+	APIKey      string  `json:"api_key"`     // Clave API opcional (Gemini, Groq, OpenAI)
+	Model       string  `json:"model"`       // Nombre del modelo (ej: "gemini-2.0-flash", "qwen2.5:7b")
+	Temperature float64 `json:"temperature"` // Temperatura de muestreo (0.0 - 1.0)
+}
+
+// GitRemoteConfig define la configuración del repositorio Git remoto
+type GitRemoteConfig struct {
+	RemoteURL string `json:"remote_url"` // ej. "https://github.com/usuario/compendio.git"
+	Branch    string `json:"branch"`     // Rama principal (ej. "main" o "master")
+	Username  string `json:"username"`   // Usuario Git / GitHub / GitLab
+	Token     string `json:"token"`      // Personal Access Token (PAT)
+}
+
 // Config define la estructura del archivo de configuración
 type Config struct {
 	LastCompendiumPath string             `json:"last_compendium_path,omitempty"`
@@ -33,11 +50,13 @@ type Config struct {
 			Model string `json:"model"`
 		} `json:"remote"`
 	} `json:"whisper"`
-	LLMURL          string `json:"llm_url"`
-	KokoroURL       string `json:"kokoro_url"`
-	RecordingDevice string `json:"recording_device"`
-	AudioTempPath   string `json:"audio_temp_path"`
-	OnlyTTT         bool   `json:"only_ttt"`
+	LLMURL          string          `json:"llm_url"`
+	LLM             LLMConfig       `json:"llm"`
+	GitRemote       GitRemoteConfig `json:"git_remote"`
+	KokoroURL       string          `json:"kokoro_url"`
+	RecordingDevice string          `json:"recording_device"`
+	AudioTempPath   string          `json:"audio_temp_path"`
+	OnlyTTT         bool            `json:"only_ttt"`
 	Canva           struct {
 		ClientID     string `json:"client_id"`
 		ClientSecret string `json:"client_secret"`
@@ -89,6 +108,12 @@ func Load() (*Config, error) {
 		c.GLiNER.ModelPath = modelPath
 		c.GLiNER.Threshold = 0.3
 		
+		c.LLM.Provider = "gemini"
+		c.LLM.Model = "gemini-2.0-flash"
+		c.LLM.URL = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions"
+		c.LLM.Temperature = 0.3
+		c.GitRemote.Branch = "main"
+
 		return c, nil
 	}
 
@@ -96,6 +121,23 @@ func Load() (*Config, error) {
 	err = json.Unmarshal(file, &c)
 	if err != nil {
 		return nil, err
+	}
+
+	// Migración/Compatibilidad hacia atrás para LLM
+	if c.LLM.Provider == "" {
+		if c.LLMURL != "" {
+			c.LLM.Provider = "custom"
+			c.LLM.URL = c.LLMURL
+			c.LLM.Model = "default"
+		} else {
+			c.LLM.Provider = "gemini"
+			c.LLM.Model = "gemini-2.0-flash"
+			c.LLM.URL = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions"
+			c.LLM.Temperature = 0.3
+		}
+	}
+	if c.GitRemote.Branch == "" {
+		c.GitRemote.Branch = "main"
 	}
 
 	// Si las rutas de modelo en la configuración son relativas, resolverlas respecto al ejecutable

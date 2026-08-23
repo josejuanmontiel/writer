@@ -378,6 +378,58 @@ export function FormatAsciidocAudio(arg1, arg2) {
   return window['go']['main']['App']['FormatAsciidocAudio'](arg1, arg2);
 }
 
+export function BuildVideoScriptPrompt(arg1, arg2, arg3) {
+  return window['go']['main']['App']['BuildVideoScriptPrompt'](arg1, arg2, arg3);
+}
+
+export function BuildCanvaSlidesPrompt(arg1) {
+  return window['go']['main']['App']['BuildCanvaSlidesPrompt'](arg1);
+}
+
+export function BuildAudioCapsulePrompt(arg1, arg2) {
+  return window['go']['main']['App']['BuildAudioCapsulePrompt'](arg1, arg2);
+}
+
+export function GenerateMultimediaScript(arg1, arg2, arg3, arg4) {
+  return window['go']['main']['App']['GenerateMultimediaScript'](arg1, arg2, arg3, arg4);
+}
+
+export function SaveSessionScript(arg1, arg2) {
+  return window['go']['main']['App']['SaveSessionScript'](arg1, arg2);
+}
+
+export function GetSessionScript(arg1) {
+  return window['go']['main']['App']['GetSessionScript'](arg1);
+}
+
+export function ParseAndImportScript(arg1, arg2) {
+  return window['go']['main']['App']['ParseAndImportScript'](arg1, arg2);
+}
+
+export function ExportScriptToMarkdown(arg1) {
+  return window['go']['main']['App']['ExportScriptToMarkdown'](arg1);
+}
+
+export function SetGitRemote(arg1, arg2) {
+  return window['go']['main']['App']['SetGitRemote'](arg1, arg2);
+}
+
+export function GetGitRemoteInfo() {
+  return window['go']['main']['App']['GetGitRemoteInfo']();
+}
+
+export function PushGitRemote(arg1, arg2) {
+  return window['go']['main']['App']['PushGitRemote'](arg1, arg2);
+}
+
+export function PullGitRemote(arg1, arg2) {
+  return window['go']['main']['App']['PullGitRemote'](arg1, arg2);
+}
+
+export function TestLLMConnection(arg1) {
+  return window['go']['main']['App']['TestLLMConnection'](arg1);
+}
+
 
 
 

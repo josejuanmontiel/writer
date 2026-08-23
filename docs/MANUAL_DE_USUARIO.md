@@ -220,6 +220,48 @@ El motor semántico analiza el discurso y distribuye automáticamente el conteni
 - Cada autoguardado genera un commit silencioso con autor y fecha.
 - El botón **Línea Temporal (Timeline)** permite inspeccionar versiones anteriores y restaurar cualquier estado pasado sin perder datos.
 
+---
+
+## 🎬 13. Producción Multimedia & Prompt Studio (Punto 1.9)
+
+Writer incluye un estudio integrado para transformar cualquier lección escrita en material audiovisual y presentaciones:
+
+### 1. Modos de Producción Soportados
+- **Escaletas de Vídeo / YouTube**: Genera marcas de tiempo correlativas (`00:00`, `01:30`...), gancho inicial de retención de 15-30s, notas para el teleprompter del presentador, sugerencias de cámara y llamadas a la acción (CTA).
+- **Esquemas de Diapositivas / Canva**: Estructura de titulares de diapositivas, viñetas clave y notas de orador listas para diseñar.
+- **Cápsulas de Audio / Podcast**: Guiones de lenguaje fluido conversacional para locución directa o síntesis local con Kokoro TTS.
+
+### 2. Flujo Dual "Clipboard Studio" vs "API Directa"
+- **📋 Modo Clipboard (Universal & 100% Gratis)**: 
+  - Haz clic en *"Copiar Prompt con Contexto"*: Writer inyecta el contenido de la lección y los requisitos de formato exactos.
+  - Abre Gemini Web o ChatGPT con el botón directo y pega el prompt.
+  - Copia la respuesta y pégala en la caja de importación: Writer creará la escaleta interactiva al instante.
+- **⚡ Modo Generación Directa**:
+  - Si tienes configurada una clave de Google Gemini API (gratuita en Google AI Studio) o un servidor Ollama local, genera la escaleta con 1 clic en segundo plano.
+
+### 3. Persistencia y Exportación
+- Las escaletas se guardan automáticamente en `.writer/scripts/<sesion>.json` con versionado en Git.
+- Puedes pulsar el botón **"Teleprompter / MD"** para copiar el guion en formato Markdown listo para el software de grabación o la descripción del vídeo.
+
+---
+
+## ☁️ 14. Sincronización Remota Git (`Push` / `Pull`)
+
+- **Colaboración y Respaldo en la Nube**: Configura la URL de tu repositorio remoto (`origin` en GitHub, GitLab o servidor Git propio) y tu Personal Access Token (PAT).
+- **Subir Cambios (`Push`)**: Publica los commits locales al repositorio remoto con un solo clic.
+- **Descargar Cambios (`Pull`)**: Sincroniza e integra el trabajo de otros colaboradores sin salir de Writer.
+
+---
+
+## 🧠 15. Configuración de Motores IA (Ajustes)
+
+En el panel de **Configuración**, puedes elegir tu perfil de IA preferido:
+- **Google Gemini API**: Modelo `gemini-2.0-flash` (alta velocidad, recomendado).
+- **Ollama Local**: Para privacidad y funcionamiento 100% offline (`localhost:11434`).
+- **Groq Cloud / OpenAI / Custom**: Para baja latencia o servidores propios.
+- **Modo Clipboard**: Si no deseas configurar ninguna API key.
+- **Botón "Probar Conexión LLM"**: Valida la conectividad con el proveedor en tiempo real.
+
 
 
 

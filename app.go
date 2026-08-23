@@ -24,7 +24,7 @@ import (
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
-const AppVersion = "v1.3.0"
+const AppVersion = "v1.3.1"
 
 // App struct
 type App struct {
@@ -1699,6 +1699,227 @@ func (a *App) SaveVoiceStructuredSession(moduleSlug string, sessionSlug string, 
 // FormatAsciidocAudio genera la macro de reproductor de audio AsciiDoc
 func (a *App) FormatAsciidocAudio(audioRelPath string, title string) string {
 	return storage.FormatAsciidocAudio(audioRelPath, title)
+}
+
+// -------------------------------------------------------------
+// Métodos de Producción Multimedia & Publicación Multiformato (Punto 1.9)
+// -------------------------------------------------------------
+
+// BuildVideoScriptPrompt genera el prompt estructurado para escaletas de vídeo/YouTube
+func (a *App) BuildVideoScriptPrompt(sessionRelPath string, durationMinutes int, tone string) (map[string]string, error) {
+	targetDir := a.getActiveCompendiumPath()
+	if targetDir == "" {
+		return nil, fmt.Errorf("no hay ningún compendio abierto")
+	}
+
+	content, err := storage.ReadFile(targetDir, sessionRelPath)
+	if err != nil {
+		return nil, fmt.Errorf("error leyendo sesión: %w", err)
+	}
+
+	title := filepath.Base(sessionRelPath)
+	sys, user := ai.BuildVideoScriptPrompt(title, content, durationMinutes, tone)
+	return map[string]string{
+		"system_prompt": sys,
+		"user_prompt":   user,
+		"full_prompt":   fmt.Sprintf("%s\n\n---\n\n%s", sys, user),
+	}, nil
+}
+
+// BuildCanvaSlidesPrompt genera el prompt para esquemas de diapositivas de Canva
+func (a *App) BuildCanvaSlidesPrompt(sessionRelPath string) (map[string]string, error) {
+	targetDir := a.getActiveCompendiumPath()
+	if targetDir == "" {
+		return nil, fmt.Errorf("no hay ningún compendio abierto")
+	}
+
+	content, err := storage.ReadFile(targetDir, sessionRelPath)
+	if err != nil {
+		return nil, fmt.Errorf("error leyendo sesión: %w", err)
+	}
+
+	title := filepath.Base(sessionRelPath)
+	sys, user := ai.BuildCanvaSlidesPrompt(title, content)
+	return map[string]string{
+		"system_prompt": sys,
+		"user_prompt":   user,
+		"full_prompt":   fmt.Sprintf("%s\n\n---\n\n%s", sys, user),
+	}, nil
+}
+
+// BuildAudioCapsulePrompt genera el prompt para locución de cápsula de audio
+func (a *App) BuildAudioCapsulePrompt(sessionRelPath string, voiceStyle string) (map[string]string, error) {
+	targetDir := a.getActiveCompendiumPath()
+	if targetDir == "" {
+		return nil, fmt.Errorf("no hay ningún compendio abierto")
+	}
+
+	content, err := storage.ReadFile(targetDir, sessionRelPath)
+	if err != nil {
+		return nil, fmt.Errorf("error leyendo sesión: %w", err)
+	}
+
+	title := filepath.Base(sessionRelPath)
+	sys, user := ai.BuildAudioCapsulePrompt(title, content, voiceStyle)
+	return map[string]string{
+		"system_prompt": sys,
+		"user_prompt":   user,
+		"full_prompt":   fmt.Sprintf("%s\n\n---\n\n%s", sys, user),
+	}, nil
+}
+
+// GenerateMultimediaScript ejecuta la inferencia con el proveedor LLM configurado
+func (a *App) GenerateMultimediaScript(sessionRelPath string, scriptType string, durationMinutes int, tone string) (*storage.VideoScriptData, error) {
+	targetDir := a.getActiveCompendiumPath()
+	if targetDir == "" {
+		return nil, fmt.Errorf("no hay ningún compendio abierto")
+	}
+
+	content, err := storage.ReadFile(targetDir, sessionRelPath)
+	if err != nil {
+		return nil, fmt.Errorf("error leyendo sesión: %w", err)
+	}
+
+	title := filepath.Base(sessionRelPath)
+	var sys, user string
+	switch scriptType {
+	case "slides", "canva":
+		sys, user = ai.BuildCanvaSlidesPrompt(title, content)
+	case "audio", "podcast":
+		sys, user = ai.BuildAudioCapsulePrompt(title, content, tone)
+	default: // "video", "youtube"
+		sys, user = ai.BuildVideoScriptPrompt(title, content, durationMinutes, tone)
+	}
+
+	if a.config == nil {
+		return nil, fmt.Errorf("configuración no cargada")
+	}
+
+	rawResponse, err := ai.ExecuteLLM(a.config.LLM, sys, user)
+	if err != nil {
+		return nil, err
+	}
+
+	parsed, err := ai.ParseScriptResponse(rawResponse, title)
+	if err != nil {
+		return nil, err
+	}
+
+	// Guardar automáticamente
+	_ = storage.SaveSessionScript(targetDir, sessionRelPath, *parsed)
+	return parsed, nil
+}
+
+// SaveSessionScript guarda la escaleta en .writer/scripts/
+func (a *App) SaveSessionScript(sessionRelPath string, script storage.VideoScriptData) error {
+	targetDir := a.getActiveCompendiumPath()
+	if targetDir == "" {
+		return fmt.Errorf("no hay ningún compendio abierto")
+	}
+	return storage.SaveSessionScript(targetDir, sessionRelPath, script)
+}
+
+// GetSessionScript obtiene la escaleta guardada de una sesión
+func (a *App) GetSessionScript(sessionRelPath string) (*storage.VideoScriptData, error) {
+	targetDir := a.getActiveCompendiumPath()
+	if targetDir == "" {
+		return nil, fmt.Errorf("no hay ningún compendio abierto")
+	}
+	return storage.GetSessionScript(targetDir, sessionRelPath)
+}
+
+// ParseAndImportScript procesa texto o JSON pegado por el usuario y lo convierte en VideoScriptData
+func (a *App) ParseAndImportScript(sessionRelPath string, rawContent string) (*storage.VideoScriptData, error) {
+	title := filepath.Base(sessionRelPath)
+	return ai.ParseScriptResponse(rawContent, title)
+}
+
+// ExportScriptToMarkdown genera el markdown de la escaleta
+func (a *App) ExportScriptToMarkdown(script storage.VideoScriptData) string {
+	return storage.ExportScriptToMarkdown(script)
+}
+
+// SetGitRemote configura la URL del repositorio Git remoto
+func (a *App) SetGitRemote(remoteURL string, remoteName string) error {
+	targetDir := a.getActiveCompendiumPath()
+	if targetDir == "" {
+		return fmt.Errorf("no hay ningún compendio abierto")
+	}
+
+	err := git.SetRemoteURL(targetDir, remoteName, remoteURL)
+	if err != nil {
+		return err
+	}
+
+	if a.config != nil {
+		a.config.GitRemote.RemoteURL = remoteURL
+		_ = config.Save(a.config)
+	}
+	return nil
+}
+
+// GetGitRemoteInfo obtiene el estado y rama del repositorio remoto
+func (a *App) GetGitRemoteInfo() (*git.RemoteInfo, error) {
+	targetDir := a.getActiveCompendiumPath()
+	if targetDir == "" {
+		return nil, fmt.Errorf("no hay ningún compendio abierto")
+	}
+	return git.GetRemoteInfo(targetDir, "origin")
+}
+
+// PushGitRemote envía los commits locales al repositorio remoto
+func (a *App) PushGitRemote(token string, username string) error {
+	targetDir := a.getActiveCompendiumPath()
+	if targetDir == "" {
+		return fmt.Errorf("no hay ningún compendio abierto")
+	}
+
+	branch := "main"
+	if a.config != nil && a.config.GitRemote.Branch != "" {
+		branch = a.config.GitRemote.Branch
+	}
+	if token == "" && a.config != nil {
+		token = a.config.GitRemote.Token
+	}
+	if username == "" && a.config != nil {
+		username = a.config.GitRemote.Username
+	}
+
+	return git.PushRemote(targetDir, "origin", branch, token, username)
+}
+
+// PullGitRemote descarga y fusiona cambios desde el repositorio remoto
+func (a *App) PullGitRemote(token string, username string) error {
+	targetDir := a.getActiveCompendiumPath()
+	if targetDir == "" {
+		return fmt.Errorf("no hay ningún compendio abierto")
+	}
+
+	branch := "main"
+	if a.config != nil && a.config.GitRemote.Branch != "" {
+		branch = a.config.GitRemote.Branch
+	}
+	if token == "" && a.config != nil {
+		token = a.config.GitRemote.Token
+	}
+	if username == "" && a.config != nil {
+		username = a.config.GitRemote.Username
+	}
+
+	return git.PullRemote(targetDir, "origin", branch, token, username)
+}
+
+// TestLLMConnection verifica la conectividad con el proveedor LLM configurado
+func (a *App) TestLLMConnection(cfg config.LLMConfig) (string, error) {
+	return ai.TestLLMConnection(cfg)
+}
+
+// getActiveCompendiumPath devuelve la ruta del compendio activo
+func (a *App) getActiveCompendiumPath() string {
+	if a.activeCompendium != nil && a.activeCompendium.Path != "" {
+		return a.activeCompendium.Path
+	}
+	return ""
 }
 
 
