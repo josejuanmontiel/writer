@@ -19,7 +19,7 @@ import {
   Undo, Redo, Eraser, Lightbulb, AlertTriangle, 
   Bookmark, GraduationCap, Minus, Table as TableIcon,
   AlignLeft, AlignCenter, AlignRight, AlertOctagon, Info,
-  Scissors, Layers, Split, Users, Wrench, Baby, BookOpen, Clock
+  Scissors, Layers, Split, Users, Wrench, Baby, BookOpen, Clock, ShoppingBag
 } from 'lucide-react';
 
 const MenuBar = ({ editor, onExtractSelection }) => {
@@ -36,6 +36,10 @@ const MenuBar = ({ editor, onExtractSelection }) => {
       <p></p>
     `;
     editor.chain().focus().insertContent(html).run();
+  };
+
+  const insertResourceItem = () => {
+    editor.chain().focus().insertContent('<p>[ ] 1 vela blanca / material necesario</p>').run();
   };
 
   const insertTable = () => {
@@ -334,6 +338,15 @@ const MenuBar = ({ editor, onExtractSelection }) => {
         >
           <Baby size={12} />
           <span>Infantil</span>
+        </button>
+
+        <button
+          onClick={insertResourceItem}
+          className="flex items-center gap-1 px-2 py-1 rounded bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 border border-indigo-500/20 transition-all text-xs font-medium"
+          title="Insertar item de material [ ] para el checklist de compras"
+        >
+          <ShoppingBag size={12} />
+          <span>[ ] Material</span>
         </button>
       </div>
 

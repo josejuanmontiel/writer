@@ -19,7 +19,8 @@ import {
   FileSpreadsheet, 
   GraduationCap, 
   CheckCircle2, 
-  AlertCircle 
+  AlertCircle,
+  Printer
 } from 'lucide-react';
 import { 
   CalculateSessionPacing, 
@@ -28,7 +29,8 @@ import {
   ExtractCompendiumResources, 
   SaveVoiceMemo, 
   GetVoiceMemos, 
-  DeleteVoiceMemo 
+  DeleteVoiceMemo,
+  GetVoiceMemoAudio
 } from '../../wailsjs/go/main/App';
 
 export default function ContentQualityModal({
@@ -184,6 +186,35 @@ export default function ContentQualityModal({
       alert("Error eliminando memo: " + err);
     }
   };
+
+  const handleTogglePlayMemo = async (memo) => {
+    if (playingMemoId === memo.id) {
+      if (audioPlayer) {
+        audioPlayer.pause();
+        setAudioPlayer(null);
+      }
+      setPlayingMemoId(null);
+      return;
+    }
+
+    try {
+      if (audioPlayer) {
+        audioPlayer.pause();
+      }
+      const b64 = await GetVoiceMemoAudio(memo.audio_rel_path);
+      const audio = new Audio(`data:audio/wav;base64,${b64}`);
+      audio.onended = () => {
+        setPlayingMemoId(null);
+        setAudioPlayer(null);
+      };
+      audio.play();
+      setAudioPlayer(audio);
+      setPlayingMemoId(memo.id);
+    } catch (err) {
+      alert("Error reproduciendo memo: " + err);
+    }
+  };
+
 
   if (!isOpen) return null;
 
@@ -470,6 +501,13 @@ export default function ContentQualityModal({
                     {copiedResources ? <Check size={13} className="text-emerald-400" /> : <Copy size={13} />}
                     <span>{copiedResources ? 'Copiado' : 'Copiar Lista'}</span>
                   </button>
+                  <button
+                    onClick={() => window.print()}
+                    className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors"
+                    title="Imprimir / Exportar lista de materiales"
+                  >
+                    <Printer size={13} />
+                  </button>
                 </div>
               </div>
 
@@ -565,6 +603,19 @@ export default function ContentQualityModal({
                       </div>
 
                       <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => handleTogglePlayMemo(memo)}
+                          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-colors ${
+                            playingMemoId === memo.id
+                              ? 'bg-indigo-600 text-white animate-pulse'
+                              : 'bg-slate-800 hover:bg-slate-700 text-slate-200'
+                          }`}
+                          title="Reproducir nota de voz"
+                        >
+                          {playingMemoId === memo.id ? <Pause size={13} /> : <Play size={13} />}
+                          <span>{playingMemoId === memo.id ? 'Pausar' : 'Escuchar'}</span>
+                        </button>
+
                         <button
                           onClick={() => handleDeleteMemo(memo.id)}
                           className="p-1.5 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"

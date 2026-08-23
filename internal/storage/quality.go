@@ -424,6 +424,17 @@ func DeleteVoiceMemo(targetDir, memoID string) error {
 	return os.WriteFile(indexPath, idxBytes, 0644)
 }
 
+// GetVoiceMemoAudio lee el archivo .wav y devuelve el contenido en base64 para reproducir en el navegador
+func GetVoiceMemoAudio(targetDir, audioRelPath string) (string, error) {
+	fullPath := filepath.Join(targetDir, filepath.Clean(audioRelPath))
+	data, err := os.ReadFile(fullPath)
+	if err != nil {
+		return "", err
+	}
+	return base64.StdEncoding.EncodeToString(data), nil
+}
+
+
 func stripTagsAndMarkup(input string) string {
 	// Eliminar etiquetas HTML
 	tagRegex := regexp.MustCompile(`<[^>]*>`)

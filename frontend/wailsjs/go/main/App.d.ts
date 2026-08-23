@@ -177,5 +177,8 @@ export function GetVoiceMemos(arg1:string):Promise<Array<any>>;
 
 export function DeleteVoiceMemo(arg1:string):Promise<void>;
 
+export function GetVoiceMemoAudio(arg1:string):Promise<string>;
+
+
 
 

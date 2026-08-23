@@ -1583,6 +1583,16 @@ func (a *App) DeleteVoiceMemo(memoID string) error {
 	return storage.DeleteVoiceMemo(targetDir, memoID)
 }
 
+// GetVoiceMemoAudio obtiene el audio base64 para reproducir
+func (a *App) GetVoiceMemoAudio(audioRelPath string) (string, error) {
+	if a.compendiumManager == nil {
+		return "", fmt.Errorf("no hay ningún compendio abierto")
+	}
+	targetDir := a.compendiumManager.GetTargetDir()
+	return storage.GetVoiceMemoAudio(targetDir, audioRelPath)
+}
+
+
 
 
 

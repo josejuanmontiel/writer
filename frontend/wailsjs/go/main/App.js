@@ -338,6 +338,11 @@ export function DeleteVoiceMemo(arg1) {
   return window['go']['main']['App']['DeleteVoiceMemo'](arg1);
 }
 
+export function GetVoiceMemoAudio(arg1) {
+  return window['go']['main']['App']['GetVoiceMemoAudio'](arg1);
+}
+
+
 
 
 
