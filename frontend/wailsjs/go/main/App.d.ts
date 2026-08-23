@@ -163,4 +163,19 @@ export function DeriveSimplifiedVersion(arg1:string,arg2:string):Promise<string>
 
 export function SaveDerivedLesson(arg1:string,arg2:string,arg3:string):Promise<string>;
 
+export function CalculateSessionPacing(arg1:string,arg2:number,arg3:number):Promise<any>;
+
+export function ExtractCompendiumGlossary():Promise<any>;
+
+export function GenerateGlossaryAsciidoc():Promise<string>;
+
+export function ExtractCompendiumResources():Promise<any>;
+
+export function SaveVoiceMemo(arg1:string,arg2:string,arg3:string):Promise<any>;
+
+export function GetVoiceMemos(arg1:string):Promise<Array<any>>;
+
+export function DeleteVoiceMemo(arg1:string):Promise<void>;
+
+
 

@@ -121,13 +121,13 @@
 ---
 
 ### 🔍 1.7. Herramientas Avanzadas de Calidad de Contenido
-- [ ] **Glosario de Términos y Verificador de Vocabulario por Nivel**:
+- [x] **Glosario de Términos y Verificador de Vocabulario por Nivel**:
   - Detección automática de términos nuevos y verificación de en qué sesión se definen por primera vez.
-- [ ] **Calculadora de Ritmo de Sesión (`Session Pacing Calculator`)**:
+- [x] **Calculadora de Ritmo de Sesión (`Session Pacing Calculator`)**:
   - Estimación de tiempos de clase (lectura + explicación + dinámicas + audio) para asegurar sesiones de 45-60 min equilibradas.
-- [ ] **Matriz de Recursos y Materiales (Checklist Acumulado)**:
+- [x] **Matriz de Recursos y Materiales (Checklist Acumulado)**:
   - Extracción automática de la "lista de compras/herramientas" necesarias para todo el curso o taller.
-- [ ] **Notas de Voz al Margen (Voice Memos por Sección)**:
+- [x] **Notas de Voz al Margen (Voice Memos por Sección)**:
   - Grabación de audios cortos de consejos prácticos para otros formadores adjuntos a párrafos concretos.
 
 ---

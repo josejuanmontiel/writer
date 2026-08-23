@@ -144,10 +144,35 @@ Pulsando el botón **Asistente de Derivación**:
 
 ---
 
-## 🛠️ 9. Control de Versiones Git y Línea Temporal
+## 🔍 9. Herramientas Avanzadas de Calidad de Contenido
+
+Accesible desde el icono de reloj `⏱️` en la barra superior o en el editor:
+
+### ⏱️ Calculadora de Ritmo de Sesión (`Session Pacing Calculator`)
+- Estima la duración real de clase desglosada por:
+  - **Lectura / Exposición verbal**: Basada en ~130 palabras por minuto.
+  - **Explicación Doctrinal**: ~2.5 minutos adicionales por cada concepto clave extraído.
+  - **Actividades del Alumno**: ~8-10 minutos por bloque `[STUDENT]`.
+  - **Talleres y Dinámicas**: ~15 minutos por bloque `[WORKSHOP]`.
+- Muestra el balance respecto al objetivo fijado (ej. 45 min, 50 min, 60 min) y emite recomendaciones pedagógicas si la clase es muy corta o sobrecargada.
+
+### 📖 Glosario Automático de Términos
+- Escanea todo el curso y compila las definiciones teológicas y técnicas (`Término:: Definición` o en negrita), indicando la sesión donde se define por primera vez.
+- Permite generar el archivo `content/glosario.adoc` con un solo clic.
+
+### 🛒 Matriz de Recursos y Materiales (Shopping List)
+- Agrupa todas las listas de materiales (`[ ] 1 vela`, `[ ] Cartulinas`, `[ ] Proyector`) de todas las sesiones en un checklist centralizado con barra de progreso y botón de copiado.
+
+### 🎙️ Notas de Voz al Margen (`Voice Memos`)
+- Permite a los formadores grabar audios cortos de consejos prácticos para otros catequistas adjuntos a sesiones específicas.
+
+---
+
+## 🛠️ 10. Control de Versiones Git y Línea Temporal
 
 - Cada compendio es un repositorio Git local (`pure Go` con `go-git`, sin necesidad de instalar Git externamente).
 - Cada autoguardado genera un commit silencioso con autor y fecha.
 - El botón **Línea Temporal (Timeline)** permite inspeccionar versiones anteriores y restaurar cualquier estado pasado sin perder datos.
+
 
 

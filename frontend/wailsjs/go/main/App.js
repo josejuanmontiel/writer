@@ -310,5 +310,34 @@ export function SaveDerivedLesson(arg1, arg2, arg3) {
   return window['go']['main']['App']['SaveDerivedLesson'](arg1, arg2, arg3);
 }
 
+export function CalculateSessionPacing(arg1, arg2, arg3) {
+  return window['go']['main']['App']['CalculateSessionPacing'](arg1, arg2, arg3);
+}
+
+export function ExtractCompendiumGlossary() {
+  return window['go']['main']['App']['ExtractCompendiumGlossary']();
+}
+
+export function GenerateGlossaryAsciidoc() {
+  return window['go']['main']['App']['GenerateGlossaryAsciidoc']();
+}
+
+export function ExtractCompendiumResources() {
+  return window['go']['main']['App']['ExtractCompendiumResources']();
+}
+
+export function SaveVoiceMemo(arg1, arg2, arg3) {
+  return window['go']['main']['App']['SaveVoiceMemo'](arg1, arg2, arg3);
+}
+
+export function GetVoiceMemos(arg1) {
+  return window['go']['main']['App']['GetVoiceMemos'](arg1);
+}
+
+export function DeleteVoiceMemo(arg1) {
+  return window['go']['main']['App']['DeleteVoiceMemo'](arg1);
+}
+
+
 
 

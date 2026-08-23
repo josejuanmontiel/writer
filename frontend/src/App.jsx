@@ -70,7 +70,8 @@ import {
 import IdeaGraph from './components/IdeaGraph';
 import DualPaneView from './components/DualPaneView';
 import AudienceDerivationModal from './components/AudienceDerivationModal';
-import { Share2, FileText, ChevronRight, Table, HelpCircle, Scissors, Split } from 'lucide-react';
+import ContentQualityModal from './components/ContentQualityModal';
+import { Share2, FileText, ChevronRight, Table, HelpCircle, Scissors, Split, Clock } from 'lucide-react';
 
 function App() {
   const [mode, setMode] = useState('Ficción');
@@ -113,6 +114,7 @@ function App() {
   const [showDocModal, setShowDocModal] = useState(false);
   const [showMatrixModal, setShowMatrixModal] = useState(false);
   const [showDerivationModal, setShowDerivationModal] = useState(false);
+  const [showQualityModal, setShowQualityModal] = useState(false);
   const [detectedConceptsPill, setDetectedConceptsPill] = useState('');
   const [placementTopicPath, setPlacementTopicPath] = useState('');
   const [previousConcepts, setPreviousConcepts] = useState([]);
@@ -824,6 +826,15 @@ function App() {
             <Table size={17} />
           </button>
 
+          {/* Botón Herramientas de Calidad: Ritmo, Glosario, Materiales y Memos (Punto 1.7) */}
+          <button 
+            className="p-1.5 text-slate-400 hover:text-sky-300 hover:bg-slate-800 rounded-lg transition-colors" 
+            onClick={() => setShowQualityModal(true)}
+            title="Herramientas de Calidad: Ritmo de clase, Glosario, Materiales y Memos de Voz"
+          >
+            <Clock size={17} />
+          </button>
+
           {/* Botón Manual de Usuario & Documentación Interactiva */}
           <button 
             className="p-1.5 text-slate-400 hover:text-amber-300 hover:bg-slate-800 rounded-lg transition-colors" 
@@ -913,6 +924,7 @@ function App() {
                 onExtractSelection={handleExtractSelection}
                 onOpenGraphView={() => setView('Grafo')}
                 onOpenDualView={() => setView('Dual')}
+                onOpenQualityModal={() => setShowQualityModal(true)}
                 isExtractingGraph={isExtractingGraph}
                 extractedNodesCount={chapterGraph?.nodes?.length || 0}
               />
@@ -932,6 +944,7 @@ function App() {
                     onExtractSelection={handleExtractSelection}
                     onOpenGraphView={() => setView('Grafo')}
                     onOpenDualView={() => setView('Dual')}
+                    onOpenQualityModal={() => setShowQualityModal(true)}
                     isExtractingGraph={isExtractingGraph}
                     extractedNodesCount={chapterGraph?.nodes?.length || 0}
                   />
@@ -1515,6 +1528,19 @@ function App() {
         activeFilePath={activeFile}
         onSelectFile={(newPath) => {
           handleSelectFile(newPath);
+          setView('Escritura');
+        }}
+      />
+
+      {/* Herramientas de Calidad: Ritmo, Glosario, Materiales y Memos de Voz */}
+      <ContentQualityModal
+        isOpen={showQualityModal}
+        onClose={() => setShowQualityModal(false)}
+        currentContent={editorContent}
+        activeFile={activeFile}
+        conceptsCount={previousConcepts?.length || chapterGraph?.nodes?.length || 0}
+        onSelectSession={(sessionRelPath) => {
+          handleSelectFile(sessionRelPath);
           setView('Escritura');
         }}
       />

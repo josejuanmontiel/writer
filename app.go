@@ -1512,6 +1512,78 @@ func (a *App) SaveDerivedLesson(relPath string, content string, title string) (s
 	return relPath, nil
 }
 
+// -------------------------------------------------------------
+// Métodos de Herramientas de Calidad de Contenido (Punto 1.7)
+// -------------------------------------------------------------
+
+// CalculateSessionPacing calcula la estimación de tiempos de lectura, teoría y dinámicas de una sesión
+func (a *App) CalculateSessionPacing(content string, conceptsCount int, targetMinutes int) *storage.SessionPacingReport {
+	return storage.CalculateSessionPacing(content, conceptsCount, targetMinutes)
+}
+
+// ExtractCompendiumGlossary extrae el glosario completo del curso
+func (a *App) ExtractCompendiumGlossary() (*storage.CompendiumGlossary, error) {
+	if a.compendiumManager == nil {
+		return nil, fmt.Errorf("no hay ningún compendio abierto")
+	}
+	targetDir := a.compendiumManager.GetTargetDir()
+	return storage.ExtractCompendiumGlossary(targetDir)
+}
+
+// GenerateGlossaryAsciidoc genera el archivo content/glosario.adoc en el compendio
+func (a *App) GenerateGlossaryAsciidoc() (string, error) {
+	if a.compendiumManager == nil {
+		return "", fmt.Errorf("no hay ningún compendio abierto")
+	}
+	targetDir := a.compendiumManager.GetTargetDir()
+	meta := a.compendiumManager.GetMeta()
+
+	relPath, err := storage.GenerateGlossaryAsciidoc(targetDir)
+	if err != nil {
+		return "", err
+	}
+
+	git.CommitFiles(targetDir, []string{relPath}, "Generar glosario del compendio", meta.Author, meta.Email)
+	return relPath, nil
+}
+
+// ExtractCompendiumResources compila el inventario de materiales y recursos necesarios
+func (a *App) ExtractCompendiumResources() (*storage.ResourceMatrix, error) {
+	if a.compendiumManager == nil {
+		return nil, fmt.Errorf("no hay ningún compendio abierto")
+	}
+	targetDir := a.compendiumManager.GetTargetDir()
+	return storage.ExtractCompendiumResources(targetDir)
+}
+
+// SaveVoiceMemo guarda un audio de consejo docente adjunto a una sesión
+func (a *App) SaveVoiceMemo(sessionRelPath string, audioBase64 string, title string) (*storage.VoiceMemo, error) {
+	if a.compendiumManager == nil {
+		return nil, fmt.Errorf("no hay ningún compendio abierto")
+	}
+	targetDir := a.compendiumManager.GetTargetDir()
+	return storage.SaveVoiceMemo(targetDir, sessionRelPath, audioBase64, title)
+}
+
+// GetVoiceMemos obtiene los memos de voz de una sesión o de todo el compendio
+func (a *App) GetVoiceMemos(sessionRelPath string) ([]storage.VoiceMemo, error) {
+	if a.compendiumManager == nil {
+		return []storage.VoiceMemo{}, nil
+	}
+	targetDir := a.compendiumManager.GetTargetDir()
+	return storage.GetVoiceMemos(targetDir, sessionRelPath)
+}
+
+// DeleteVoiceMemo elimina una nota de voz
+func (a *App) DeleteVoiceMemo(memoID string) error {
+	if a.compendiumManager == nil {
+		return fmt.Errorf("no hay ningún compendio abierto")
+	}
+	targetDir := a.compendiumManager.GetTargetDir()
+	return storage.DeleteVoiceMemo(targetDir, memoID)
+}
+
+
 
 
 

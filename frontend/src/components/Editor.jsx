@@ -1,4 +1,4 @@
-import React, { useImperativeHandle, forwardRef } from 'react';
+import React, { useImperativeHandle, forwardRef, useMemo } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
@@ -19,7 +19,7 @@ import {
   Undo, Redo, Eraser, Lightbulb, AlertTriangle, 
   Bookmark, GraduationCap, Minus, Table as TableIcon,
   AlignLeft, AlignCenter, AlignRight, AlertOctagon, Info,
-  Scissors, Layers, Split, Users, Wrench, Baby, BookOpen
+  Scissors, Layers, Split, Users, Wrench, Baby, BookOpen, Clock
 } from 'lucide-react';
 
 const MenuBar = ({ editor, onExtractSelection }) => {
@@ -382,6 +382,7 @@ const Editor = forwardRef(({
   onExtractSelection,
   onOpenGraphView,
   onOpenDualView,
+  onOpenQualityModal,
   isExtractingGraph = false,
   extractedNodesCount = 0
 }, ref) => {
@@ -523,6 +524,17 @@ const Editor = forwardRef(({
             >
               <Split className="w-3.5 h-3.5 text-emerald-400" />
               <span>Vista Dual</span>
+            </button>
+          )}
+
+          {onOpenQualityModal && (
+            <button
+              onClick={onOpenQualityModal}
+              title="Herramientas de Calidad: Ritmo de clase, Glosario, Materiales y Memos de Voz"
+              className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-indigo-950/40 hover:bg-indigo-900/40 text-indigo-300 border border-indigo-500/30 font-medium text-xs transition-all shadow-sm"
+            >
+              <Clock className="w-3.5 h-3.5 text-amber-400" />
+              <span>Calidad & Ritmo</span>
             </button>
           )}
         </div>

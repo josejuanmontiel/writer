@@ -18,7 +18,8 @@ import {
   Zap,
   Bookmark,
   Split,
-  Users
+  Users,
+  Clock
 } from 'lucide-react';
 
 const SECTIONS = [
@@ -263,8 +264,39 @@ const SECTIONS = [
     )
   },
   {
+    id: 'quality',
+    title: '10. Calidad, Ritmo y Logística de Clase',
+    icon: Clock,
+    badge: 'Punto 1.7',
+    content: (
+      <div className="space-y-4 text-sm leading-relaxed text-slate-300">
+        <p>
+          Herramientas diseñadas para planificar y asegurar la calidad didáctica de tus sesiones:
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+          <div className="p-3 rounded-lg bg-slate-900/60 border border-slate-800 space-y-1">
+            <strong className="text-sky-300 block font-semibold">⏱️ Calculadora de Ritmo</strong>
+            <p className="text-slate-400">Estima minutos de lectura, teoría, actividades y dinámicas para no exceder los 45-60 min.</p>
+          </div>
+          <div className="p-3 rounded-lg bg-slate-900/60 border border-slate-800 space-y-1">
+            <strong className="text-amber-300 block font-semibold">📖 Glosario Automático</strong>
+            <p className="text-slate-400">Compila definiciones y genera <code>glosario.adoc</code> en tu compendio con un clic.</p>
+          </div>
+          <div className="p-3 rounded-lg bg-slate-900/60 border border-slate-800 space-y-1">
+            <strong className="text-emerald-300 block font-semibold">🛒 Checklist de Materiales</strong>
+            <p className="text-slate-400">Agrupa todas las listas de recursos para saber qué comprar o preparar antes de clase.</p>
+          </div>
+          <div className="p-3 rounded-lg bg-slate-900/60 border border-slate-800 space-y-1">
+            <strong className="text-purple-300 block font-semibold">🎙️ Memos de Voz Docentes</strong>
+            <p className="text-slate-400">Graba notas de voz con consejos para otros profesores directamente en la sesión.</p>
+          </div>
+        </div>
+      </div>
+    )
+  },
+  {
     id: 'git',
-    title: '10. Control de Versiones Git & Timeline',
+    title: '11. Control de Versiones Git & Timeline',
     icon: GitBranch,
     badge: 'Deshacer Infinito',
     content: (
