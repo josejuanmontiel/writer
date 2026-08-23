@@ -19,7 +19,8 @@ import {
   Bookmark,
   Split,
   Users,
-  Clock
+  Clock,
+  Image as ImageIcon
 } from 'lucide-react';
 
 const SECTIONS = [
@@ -295,8 +296,35 @@ const SECTIONS = [
     )
   },
   {
+    id: 'media',
+    title: '11. Mediateca & Maquetación Editorial de Imágenes',
+    icon: ImageIcon,
+    badge: 'Estilo Libro',
+    content: (
+      <div className="space-y-4 text-sm leading-relaxed text-slate-300">
+        <p>
+          Gestiona todas las imágenes, diagramas y adjuntos directamente en tu proyecto con almacenamiento local en Git y opciones de maquetación para publicaciones impresas o web:
+        </p>
+        <div className="space-y-2 text-xs">
+          <div className="p-3 rounded-lg bg-slate-900/60 border border-slate-800">
+            <strong className="text-sky-300 block mb-1">📖 Flotación con Texto Envolvente</strong>
+            <p className="text-slate-400">Inserta imágenes flotando a la izquierda (<code>role="left thumb"</code>) o a la derecha para que el texto de la lección las rodee de forma natural como en los libros tradicionales.</p>
+          </div>
+          <div className="p-3 rounded-lg bg-slate-900/60 border border-slate-800">
+            <strong className="text-amber-300 block mb-1">🖼️ Figura Central con Pie Numerado</strong>
+            <p className="text-slate-400">Ideal para mapas conceptuales o símbolos principales con numeración automática y ajuste para páginas PDF impresas (<code>pdfwidth=75%</code>).</p>
+          </div>
+          <div className="p-3 rounded-lg bg-slate-900/60 border border-slate-800">
+            <strong className="text-rose-300 block mb-1">⚠️ Limpiador de Imágenes Huérfanas</strong>
+            <p className="text-slate-400">Detecta y elimina automáticamente imágenes guardadas en el disco que ya no se usan en ninguna sesión de clase.</p>
+          </div>
+        </div>
+      </div>
+    )
+  },
+  {
     id: 'git',
-    title: '11. Control de Versiones Git & Timeline',
+    title: '12. Control de Versiones Git & Timeline',
     icon: GitBranch,
     badge: 'Deshacer Infinito',
     content: (

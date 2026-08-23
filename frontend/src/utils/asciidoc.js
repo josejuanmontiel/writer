@@ -236,6 +236,79 @@ export function asciidocToHtml(adocText) {
       }
     };
 
+    // 7.5. Título de figura / imagen (.Título de la Figura)
+    if (line.startsWith('.') && !line.startsWith('..') && i + 1 < lines.length && lines[i + 1].trim().startsWith('image::')) {
+      const figTitle = line.substring(1).trim();
+      const imgLine = lines[i + 1].trim();
+      const imgMatch = imgLine.match(/^image::([^\[]+)\[(.*?)\]$/i);
+      if (imgMatch) {
+        closeList();
+        i++; // Avanzar la línea de imagen
+        const imgPath = imgMatch[1].trim();
+        const attrs = imgMatch[2];
+        const widthMatch = attrs.match(/width=(\d+%?)/i) || attrs.match(/,\s*(\d+)/);
+        const width = widthMatch ? widthMatch[1] : '';
+
+        htmlParts.push(
+          `<div class="figure-center" ${width ? `style="max-width: ${width}px;"` : ''}>` +
+          `<img src="${imgPath}" alt="${figTitle}" />` +
+          `<div class="figure-caption">${figTitle}</div>` +
+          `</div><p></p>`
+        );
+        continue;
+      }
+    }
+
+    // 7.6. Imágenes AsciiDoc (image::path[alt, width=..., role=..., title=...])
+    const imageMatch = line.match(/^image::([^\[]+)\[(.*?)\]$/i);
+    if (imageMatch) {
+      closeList();
+      const imgPath = imageMatch[1].trim();
+      const attrs = imageMatch[2];
+      
+      let alt = 'Ilustración';
+      let width = '';
+      let role = '';
+      let title = '';
+
+      const widthMatch = attrs.match(/width=(\d+%?)/i) || attrs.match(/,\s*(\d+)/);
+      if (widthMatch) width = widthMatch[1];
+
+      const roleMatch = attrs.match(/role="([^"]+)"/i) || attrs.match(/role=([\w-]+)/i);
+      if (roleMatch) role = roleMatch[1];
+
+      const titleMatch = attrs.match(/title="([^"]+)"/i);
+      if (titleMatch) title = titleMatch[1];
+
+      if (role.includes('left')) {
+        htmlParts.push(
+          `<div class="float-left-thumb" ${width ? `style="width: ${width}px;"` : ''}>` +
+          `<img src="${imgPath}" alt="${alt}" ${title ? `title="${title}"` : ''} />` +
+          (title ? `<div class="figure-caption">${title}</div>` : '') +
+          `</div>`
+        );
+      } else if (role.includes('right')) {
+        htmlParts.push(
+          `<div class="float-right-thumb" ${width ? `style="width: ${width}px;"` : ''}>` +
+          `<img src="${imgPath}" alt="${alt}" ${title ? `title="${title}"` : ''} />` +
+          (title ? `<div class="figure-caption">${title}</div>` : '') +
+          `</div>`
+        );
+      } else if (role.includes('banner')) {
+        htmlParts.push(`<img src="${imgPath}" class="banner-full" alt="${alt}" ${title ? `title="${title}"` : ''} /><p></p>`);
+      } else if (attrs.includes('align=center') || title) {
+        htmlParts.push(
+          `<div class="figure-center" ${width ? `style="max-width: ${width}px;"` : ''}>` +
+          `<img src="${imgPath}" alt="${alt}" ${title ? `title="${title}"` : ''} />` +
+          (title ? `<div class="figure-caption">${title}</div>` : '') +
+          `</div><p></p>`
+        );
+      } else {
+        htmlParts.push(`<p><img src="${imgPath}" alt="${alt}" ${width ? `width="${width}"` : ''} /></p>`);
+      }
+      continue;
+    }
+
     // 8. Regla horizontal / Separador (''' o ---)
     if (line === "'''" || line === '---' || line === '***') {
       closeList();
@@ -427,6 +500,40 @@ export function htmlToAsciidoc(html) {
       const type = (node.getAttribute('data-admonition') || 'note').toUpperCase();
       const body = node.querySelector('.admonition-body')?.textContent || node.textContent;
       return `\n[${type}]\n====\n${body.trim()}\n====\n\n`;
+    }
+
+    // 1.2. Imágenes con maquetación editorial (Flotante Izquierda / Derecha / Figura Central)
+    if (node.classList.contains('float-left-thumb')) {
+      const img = node.querySelector('img');
+      const src = img ? img.getAttribute('src') : '';
+      const caption = node.querySelector('.figure-caption')?.textContent || img?.getAttribute('title') || img?.getAttribute('alt') || '';
+      const widthStyle = node.style.width ? parseInt(node.style.width) : '';
+      return `\nimage::${src}[${caption || 'Ilustración'}${widthStyle ? `, width=${widthStyle}` : ''}, role="left thumb"${caption ? `, title="${caption}"` : ''}]\n\n`;
+    }
+
+    if (node.classList.contains('float-right-thumb')) {
+      const img = node.querySelector('img');
+      const src = img ? img.getAttribute('src') : '';
+      const caption = node.querySelector('.figure-caption')?.textContent || img?.getAttribute('title') || img?.getAttribute('alt') || '';
+      const widthStyle = node.style.width ? parseInt(node.style.width) : '';
+      return `\nimage::${src}[${caption || 'Ilustración'}${widthStyle ? `, width=${widthStyle}` : ''}, role="right thumb"${caption ? `, title="${caption}"` : ''}]\n\n`;
+    }
+
+    if (node.classList.contains('figure-center')) {
+      const img = node.querySelector('img');
+      const src = img ? img.getAttribute('src') : '';
+      const caption = node.querySelector('.figure-caption')?.textContent || img?.getAttribute('title') || img?.getAttribute('alt') || '';
+      const widthStyle = node.style.maxWidth ? parseInt(node.style.maxWidth) : '';
+      return `\n.${caption || 'Ilustración'}\nimage::${src}[${caption || 'Ilustración'}${widthStyle ? `, width=${widthStyle}` : ''}, align=center, pdfwidth=75%]\n\n`;
+    }
+
+    if (tagName === 'img') {
+      const src = node.getAttribute('src') || '';
+      const caption = node.getAttribute('title') || node.getAttribute('alt') || '';
+      if (node.classList.contains('banner-full')) {
+        return `\nimage::${src}[${caption}, width=100%, role="banner-full"]\n\n`;
+      }
+      return `\nimage::${src}[${caption}, align=center]\n\n`;
     }
 
     // 2. Tablas

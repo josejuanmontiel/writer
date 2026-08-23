@@ -179,6 +179,17 @@ export function DeleteVoiceMemo(arg1:string):Promise<void>;
 
 export function GetVoiceMemoAudio(arg1:string):Promise<string>;
 
+export function SaveAsset(arg1:string,arg2:string,arg3:string):Promise<any>;
+
+export function ListCompendiumAssets():Promise<any>;
+
+export function DeleteAsset(arg1:string):Promise<void>;
+
+export function GetAssetBase64(arg1:string):Promise<string>;
+
+export function FormatAsciidocImage(arg1:string,arg2:string,arg3:string,arg4:number):Promise<string>;
+
+
 
 
 

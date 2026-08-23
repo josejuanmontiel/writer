@@ -168,11 +168,33 @@ Accesible desde el icono de reloj `⏱️` en la barra superior o en el editor:
 
 ---
 
-## 🛠️ 10. Control de Versiones Git y Línea Temporal
+---
+
+## 🖼️ 10. Mediateca y Maquetación Editorial de Imágenes
+
+Antigravity Writer incorpora una mediateca local completa y soporte para **maquetación editorial tipo libro** compatible con AsciiDoc y exportación a PDF/A4:
+
+### 🗂️ Almacenamiento Local-First en Git
+- Todos los archivos se guardan en la carpeta `assets/images/` y `assets/attachments/` del compendio, versionados automáticamente en Git.
+- **Trazabilidad y Referencias Cruzadas**: El panel te indica exactamente en qué lecciones se está utilizando cada imagen.
+- **Limpieza de Huérfanas**: Identifica imágenes guardadas que ya no se usan en ningún documento `.adoc` para eliminarlas en un clic.
+
+### 📖 Presets de Maquetación Editorial
+Al insertar una imagen desde el portapapeles (`Ctrl+V`), arrastrando o desde la Mediateca, puedes elegir entre:
+1. **Flotante a la Izquierda (`role="left thumb"`)**: El texto del párrafo fluye suavemente alrededor de la foto por la derecha (diseño clásico de enciclopedia/libro).
+2. **Flotante a la Derecha (`role="right thumb"`)**: El texto fluye a la izquierda.
+3. **Figura Central con Numeración Formal (`.Título`)**: Ideal para diagramas teológicos o mapas doctrinales, con pie de foto y ajuste proporcional para PDF.
+4. **Banner Ancho Completo (`role="banner-full"`, `width=100%`)**: Para portadas de tema o separadores de módulo.
+5. **Icono en Línea (`role="inline"`)**: Para incrustar símbolos litúrgicos dentro del texto.
+
+---
+
+## 🛠️ 11. Control de Versiones Git y Línea Temporal
 
 - Cada compendio es un repositorio Git local (`pure Go` con `go-git`, sin necesidad de instalar Git externamente).
 - Cada autoguardado genera un commit silencioso con autor y fecha.
 - El botón **Línea Temporal (Timeline)** permite inspeccionar versiones anteriores y restaurar cualquier estado pasado sin perder datos.
+
 
 
 

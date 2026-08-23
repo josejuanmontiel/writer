@@ -342,6 +342,27 @@ export function GetVoiceMemoAudio(arg1) {
   return window['go']['main']['App']['GetVoiceMemoAudio'](arg1);
 }
 
+export function SaveAsset(arg1, arg2, arg3) {
+  return window['go']['main']['App']['SaveAsset'](arg1, arg2, arg3);
+}
+
+export function ListCompendiumAssets() {
+  return window['go']['main']['App']['ListCompendiumAssets']();
+}
+
+export function DeleteAsset(arg1) {
+  return window['go']['main']['App']['DeleteAsset'](arg1);
+}
+
+export function GetAssetBase64(arg1) {
+  return window['go']['main']['App']['GetAssetBase64'](arg1);
+}
+
+export function FormatAsciidocImage(arg1, arg2, arg3, arg4) {
+  return window['go']['main']['App']['FormatAsciidocImage'](arg1, arg2, arg3, arg4);
+}
+
+
 
 
 

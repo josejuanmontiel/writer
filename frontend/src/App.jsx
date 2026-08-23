@@ -71,7 +71,8 @@ import IdeaGraph from './components/IdeaGraph';
 import DualPaneView from './components/DualPaneView';
 import AudienceDerivationModal from './components/AudienceDerivationModal';
 import ContentQualityModal from './components/ContentQualityModal';
-import { Share2, FileText, ChevronRight, Table, HelpCircle, Scissors, Split, Clock } from 'lucide-react';
+import MediaGalleryModal from './components/MediaGalleryModal';
+import { Share2, FileText, ChevronRight, Table, HelpCircle, Scissors, Split, Clock, Image as ImageIcon } from 'lucide-react';
 
 function App() {
   const [mode, setMode] = useState('Ficción');
@@ -115,6 +116,7 @@ function App() {
   const [showMatrixModal, setShowMatrixModal] = useState(false);
   const [showDerivationModal, setShowDerivationModal] = useState(false);
   const [showQualityModal, setShowQualityModal] = useState(false);
+  const [showMediaModal, setShowMediaModal] = useState(false);
   const [detectedConceptsPill, setDetectedConceptsPill] = useState('');
   const [placementTopicPath, setPlacementTopicPath] = useState('');
   const [previousConcepts, setPreviousConcepts] = useState([]);
@@ -124,6 +126,28 @@ function App() {
   const [audioLevel, setAudioLevel] = useState(0);
   const [availableUpdate, setAvailableUpdate] = useState(null);
   const [initialDraftToConvert, setInitialDraftToConvert] = useState('');
+
+  const handleInsertImageFromGallery = ({ asset, caption, layoutPreset, imageWidth, asciidoc, previewB64 }) => {
+    const imgSrc = previewB64 ? `data:${asset.mime_type};base64,${previewB64}` : asset.relative_path;
+    let html = '';
+
+    if (layoutPreset === 'left') {
+      html = `<div class="float-left-thumb" style="width: ${imageWidth}px;"><img src="${imgSrc}" alt="${caption}" title="${caption}" />${caption ? `<div class="figure-caption">${caption}</div>` : ''}</div><p></p>`;
+    } else if (layoutPreset === 'right') {
+      html = `<div class="float-right-thumb" style="width: ${imageWidth}px;"><img src="${imgSrc}" alt="${caption}" title="${caption}" />${caption ? `<div class="figure-caption">${caption}</div>` : ''}</div><p></p>`;
+    } else if (layoutPreset === 'banner') {
+      html = `<img src="${imgSrc}" class="banner-full" alt="${caption}" title="${caption}" /><p></p>`;
+    } else if (layoutPreset === 'inline') {
+      html = `<img src="${imgSrc}" class="img-inline" alt="${caption}" style="width: ${imageWidth}px;" /> `;
+    } else {
+      // center
+      html = `<div class="figure-center" style="max-width: ${imageWidth}px;"><img src="${imgSrc}" alt="${caption}" title="${caption}" />${caption ? `<div class="figure-caption">${caption}</div>` : ''}</div><p></p>`;
+    }
+
+    if (editorRef.current?.insertImage) {
+      editorRef.current.insertImage({ html, asciidoc });
+    }
+  };
   const [lastSavedTime, setLastSavedTime] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
   
@@ -826,9 +850,18 @@ function App() {
             <Table size={17} />
           </button>
 
-          {/* Botón Herramientas de Calidad: Ritmo, Glosario, Materiales y Memos (Punto 1.7) */}
+          {/* Botón Mediateca & Galería de Recursos (Imágenes y Maquetación de Libro) */}
           <button 
             className="p-1.5 text-slate-400 hover:text-sky-300 hover:bg-slate-800 rounded-lg transition-colors" 
+            onClick={() => setShowMediaModal(true)}
+            title="Mediateca & Galería de Recursos (Imágenes, Diagramas y Maquetación de Libro)"
+          >
+            <ImageIcon size={17} />
+          </button>
+
+          {/* Botón Herramientas de Calidad: Ritmo, Glosario, Materiales y Memos (Punto 1.7) */}
+          <button 
+            className="p-1.5 text-slate-400 hover:text-indigo-300 hover:bg-slate-800 rounded-lg transition-colors" 
             onClick={() => setShowQualityModal(true)}
             title="Herramientas de Calidad: Ritmo de clase, Glosario, Materiales y Memos de Voz"
           >
@@ -925,6 +958,7 @@ function App() {
                 onOpenGraphView={() => setView('Grafo')}
                 onOpenDualView={() => setView('Dual')}
                 onOpenQualityModal={() => setShowQualityModal(true)}
+                onOpenMediaGallery={() => setShowMediaModal(true)}
                 isExtractingGraph={isExtractingGraph}
                 extractedNodesCount={chapterGraph?.nodes?.length || 0}
               />
@@ -945,6 +979,7 @@ function App() {
                     onOpenGraphView={() => setView('Grafo')}
                     onOpenDualView={() => setView('Dual')}
                     onOpenQualityModal={() => setShowQualityModal(true)}
+                    onOpenMediaGallery={() => setShowMediaModal(true)}
                     isExtractingGraph={isExtractingGraph}
                     extractedNodesCount={chapterGraph?.nodes?.length || 0}
                   />
@@ -1543,6 +1578,13 @@ function App() {
           handleSelectFile(sessionRelPath);
           setView('Escritura');
         }}
+      />
+
+      {/* Mediateca & Galería de Recursos con Maquetación Editorial */}
+      <MediaGalleryModal
+        isOpen={showMediaModal}
+        onClose={() => setShowMediaModal(false)}
+        onInsertImage={handleInsertImageFromGallery}
       />
     </div>
   );

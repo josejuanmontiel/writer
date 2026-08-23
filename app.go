@@ -1592,6 +1592,68 @@ func (a *App) GetVoiceMemoAudio(audioRelPath string) (string, error) {
 	return storage.GetVoiceMemoAudio(targetDir, audioRelPath)
 }
 
+// -------------------------------------------------------------
+// Métodos de Mediateca y Gestión de Activos (Assets & Layout)
+// -------------------------------------------------------------
+
+// SaveAsset guarda una imagen o archivo en assets/ y hace commit silencioso en Git
+func (a *App) SaveAsset(subFolder string, filename string, base64Data string) (*storage.AssetInfo, error) {
+	if a.compendiumManager == nil {
+		return nil, fmt.Errorf("no hay ningún compendio abierto")
+	}
+	targetDir := a.compendiumManager.GetTargetDir()
+	meta := a.compendiumManager.GetMeta()
+
+	asset, err := storage.SaveAsset(targetDir, subFolder, filename, base64Data)
+	if err != nil {
+		return nil, err
+	}
+
+	git.CommitFiles(targetDir, []string{asset.RelativePath}, fmt.Sprintf("Guardar archivo multimedia: %s", asset.Name), meta.Author, meta.Email)
+	return asset, nil
+}
+
+// ListCompendiumAssets obtiene la mediateca completa con referencias cruzadas e imágenes huérfanas
+func (a *App) ListCompendiumAssets() (*storage.AssetGallery, error) {
+	if a.compendiumManager == nil {
+		return nil, fmt.Errorf("no hay ningún compendio abierto")
+	}
+	targetDir := a.compendiumManager.GetTargetDir()
+	return storage.ListCompendiumAssets(targetDir)
+}
+
+// DeleteAsset elimina un archivo de assets/
+func (a *App) DeleteAsset(relativePath string) error {
+	if a.compendiumManager == nil {
+		return fmt.Errorf("no hay ningún compendio abierto")
+	}
+	targetDir := a.compendiumManager.GetTargetDir()
+	meta := a.compendiumManager.GetMeta()
+
+	if err := storage.DeleteAsset(targetDir, relativePath); err != nil {
+		return err
+	}
+
+	git.CommitFiles(targetDir, []string{relativePath}, fmt.Sprintf("Eliminar archivo multimedia: %s", relativePath), meta.Author, meta.Email)
+	return nil
+}
+
+// GetAssetBase64 obtiene el contenido en base64 de un archivo multimedia para previsualizarlo
+func (a *App) GetAssetBase64(relativePath string) (string, error) {
+	if a.compendiumManager == nil {
+		return "", fmt.Errorf("no hay ningún compendio abierto")
+	}
+	targetDir := a.compendiumManager.GetTargetDir()
+	b64, _, err := storage.GetAssetBase64(targetDir, relativePath)
+	return b64, err
+}
+
+// FormatAsciidocImage formatea la llamada image:: con presets de maquetación editorial
+func (a *App) FormatAsciidocImage(imageRelPath string, caption string, layout string, width int) string {
+	return storage.FormatAsciidocImage(imageRelPath, caption, layout, width)
+}
+
+
 
 
 

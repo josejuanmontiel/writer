@@ -350,4 +350,78 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   cursor: pointer;
 }
 
+/* -------------------------------------------------------------
+ * Maquetación Editorial de Imágenes (Estilo Libro / AsciiDoc)
+ * ------------------------------------------------------------- */
+
+.tiptap img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+/* 1. Flotante Izquierda con Texto Envolvente */
+.tiptap .float-left-thumb {
+  float: left;
+  margin: 0.35rem 1.25rem 1rem 0;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 0.6rem;
+  padding: 4px;
+  background: rgba(15, 23, 42, 0.7);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* 2. Flotante Derecha con Texto Envolvente */
+.tiptap .float-right-thumb {
+  float: right;
+  margin: 0.35rem 0 1rem 1.25rem;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 0.6rem;
+  padding: 4px;
+  background: rgba(15, 23, 42, 0.7);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* 3. Figura Centrada con Pie Formal */
+.tiptap .figure-center {
+  display: block;
+  margin: 1.5rem auto;
+  text-align: center;
+  clear: both;
+}
+
+.tiptap .figure-center img {
+  margin: 0 auto;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+}
+
+.tiptap .figure-caption {
+  font-size: 0.8rem;
+  font-style: italic;
+  color: #94a3b8;
+  margin-top: 0.5rem;
+  text-align: center;
+}
+
+/* 4. Banner a Sangrado Completo */
+.tiptap .banner-full {
+  width: 100%;
+  border-radius: 0.75rem;
+  margin: 1.5rem 0;
+  clear: both;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+/* 5. Icono / Símbolo en Línea */
+.tiptap img.img-inline {
+  display: inline-block;
+  vertical-align: middle;
+  margin: 0 0.25rem;
+  border-radius: 0.2rem;
+}
+
+
 

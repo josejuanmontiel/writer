@@ -11,6 +11,7 @@ import { TableHeader } from '@tiptap/extension-table-header';
 import { TaskList } from '@tiptap/extension-task-list';
 import { TaskItem } from '@tiptap/extension-task-item';
 import TextAlign from '@tiptap/extension-text-align';
+import Image from '@tiptap/extension-image';
 
 import { 
   Bold, Italic, Underline as UnderlineIcon, Strikethrough, Highlighter, Code,
@@ -19,10 +20,11 @@ import {
   Undo, Redo, Eraser, Lightbulb, AlertTriangle, 
   Bookmark, GraduationCap, Minus, Table as TableIcon,
   AlignLeft, AlignCenter, AlignRight, AlertOctagon, Info,
-  Scissors, Layers, Split, Users, Wrench, Baby, BookOpen, Clock, ShoppingBag
+  Scissors, Layers, Split, Users, Wrench, Baby, BookOpen, Clock, ShoppingBag,
+  Image as ImageIcon
 } from 'lucide-react';
 
-const MenuBar = ({ editor, onExtractSelection }) => {
+const MenuBar = ({ editor, onExtractSelection, onOpenMediaGallery }) => {
   if (!editor) {
     return null;
   }
@@ -256,6 +258,15 @@ const MenuBar = ({ editor, onExtractSelection }) => {
         >
           <TableIcon size={14} />
         </button>
+        {onOpenMediaGallery && (
+          <button
+            onClick={onOpenMediaGallery}
+            className="p-1.5 text-slate-400 hover:text-sky-300 hover:bg-slate-800 rounded transition-colors"
+            title="Insertar Imagen desde Mediateca o Subir Archivo"
+          >
+            <ImageIcon size={14} />
+          </button>
+        )}
         <button
           onClick={() => editor.chain().focus().setHorizontalRule().run()}
           className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded transition-colors"
@@ -396,6 +407,7 @@ const Editor = forwardRef(({
   onOpenGraphView,
   onOpenDualView,
   onOpenQualityModal,
+  onOpenMediaGallery,
   isExtractingGraph = false,
   extractedNodesCount = 0
 }, ref) => {
@@ -426,6 +438,10 @@ const Editor = forwardRef(({
       TextAlign.configure({
         types: ['heading', 'paragraph'],
       }),
+      Image.configure({
+        inline: true,
+        allowBase64: true,
+      }),
     ],
     content: initialContent,
     onUpdate: ({ editor }) => {
@@ -444,6 +460,11 @@ const Editor = forwardRef(({
     insertText: (text) => {
       if (editor) {
         editor.commands.insertContent(text + ' ');
+      }
+    },
+    insertImage: ({ html, asciidoc }) => {
+      if (editor) {
+        editor.commands.insertContent(html);
       }
     },
     setContent: (content) => {
@@ -467,7 +488,11 @@ const Editor = forwardRef(({
 
   return (
     <div className="flex-1 w-full overflow-y-auto flex flex-col relative group bg-slate-950/40">
-      <MenuBar editor={editor} onExtractSelection={onExtractSelection} />
+      <MenuBar 
+        editor={editor} 
+        onExtractSelection={onExtractSelection} 
+        onOpenMediaGallery={onOpenMediaGallery} 
+      />
       
       {/* Barra de Sugerencias de Contexto y Extracción de Grafo (Punto 1.4) */}
       <div className="bg-slate-900/90 border-b border-slate-800/80 px-4 py-2 flex flex-wrap items-center justify-between gap-2 text-xs">
@@ -537,6 +562,17 @@ const Editor = forwardRef(({
             >
               <Split className="w-3.5 h-3.5 text-emerald-400" />
               <span>Vista Dual</span>
+            </button>
+          )}
+
+          {onOpenMediaGallery && (
+            <button
+              onClick={onOpenMediaGallery}
+              title="Mediateca: Galería de imágenes, diagramas y maquetación de libro"
+              className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-sky-950/40 hover:bg-sky-900/40 text-sky-300 border border-sky-500/30 font-medium text-xs transition-all shadow-sm"
+            >
+              <ImageIcon className="w-3.5 h-3.5 text-sky-400" />
+              <span>Mediateca</span>
             </button>
           )}
 
