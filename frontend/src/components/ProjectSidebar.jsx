@@ -20,7 +20,8 @@ import {
   Pencil,
   Trash2,
   PanelLeftClose,
-  PanelLeftOpen
+  PanelLeftOpen,
+  Mic
 } from 'lucide-react';
 
 export default function ProjectSidebar({
