@@ -472,6 +472,34 @@ const Editor = forwardRef(({
         editor.commands.setContent(content || '');
       }
     },
+    scrollToText: (targetText) => {
+      if (!editor || !targetText) return;
+      const cleanTarget = targetText.trim().toLowerCase();
+      setTimeout(() => {
+        const proseEl = document.querySelector('.ProseMirror');
+        if (!proseEl) return;
+        const walker = document.createTreeWalker(proseEl, NodeFilter.SHOW_ELEMENT);
+        let foundEl = null;
+        while (walker.nextNode()) {
+          const el = walker.currentNode;
+          if (['P', 'H1', 'H2', 'H3', 'H4', 'LI', 'STRONG', 'EM', 'DIV', 'BLOCKQUOTE', 'TD', 'TH'].includes(el.tagName)) {
+            if (el.textContent && el.textContent.toLowerCase().includes(cleanTarget)) {
+              foundEl = el;
+              if (el.tagName === 'STRONG' || el.tagName.startsWith('H')) {
+                break;
+              }
+            }
+          }
+        }
+        if (foundEl) {
+          foundEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          foundEl.classList.add('ring-2', 'ring-amber-400', 'bg-amber-500/20', 'rounded-md', 'transition-all', 'duration-500');
+          setTimeout(() => {
+            foundEl.classList.remove('ring-2', 'ring-amber-400', 'bg-amber-500/20', 'rounded-md');
+          }, 3000);
+        }
+      }, 150);
+    },
     getContent: () => editor?.getHTML() || '',
     getText: () => editor?.getText() || '',
   }));

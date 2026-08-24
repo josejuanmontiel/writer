@@ -2,15 +2,16 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import ReactFlow, { 
   Background, 
   Controls, 
-  MiniMap,
+  MiniMap, 
   useNodesState, 
-  useEdgesState,
-  MarkerType,
-  addEdge,
-  Handle,
-  Position
+  useEdgesState, 
+  MarkerType, 
+  addEdge, 
+  Handle, 
+  Position 
 } from 'reactflow';
 import 'reactflow/dist/style.css';
+import { forceSimulation, forceManyBody, forceLink, forceCenter, forceCollide } from 'd3-force';
 import { 
   Layers, 
   AlertTriangle, 
@@ -27,21 +28,60 @@ import {
   HelpCircle, 
   Filter, 
   Grid, 
-  ExternalLink,
-  Plus,
-  Trash2,
-  Save,
-  Check
+  ExternalLink, 
+  Plus, 
+  Trash2, 
+  Save, 
+  Check,
+  Orbit
 } from 'lucide-react';
 import { 
   GetGlobalGraph, 
   GetCurriculumLintReport, 
-  SaveGlobalGraphPositions,
-  SaveGlobalGraphManualEdge,
-  DeleteGlobalGraphEdge,
-  GetCompendiumModules,
-  RebuildAllCompendiumGraphs
+  SaveGlobalGraphPositions, 
+  SaveGlobalGraphManualEdge, 
+  DeleteGlobalGraphEdge, 
+  GetCompendiumModules, 
+  RebuildAllCompendiumGraphs 
 } from '../../wailsjs/go/main/App';
+
+// Calcula posiciones orgánicas mediante simulación física de fuerzas
+const computeForceLayout = (nodes, edges, width = 1400, height = 900) => {
+  if (!nodes || nodes.length === 0) return [];
+
+  const simNodes = nodes.map((n, i) => ({
+    id: n.id,
+    x: n.x && n.x !== 0 ? n.x : (width / 2 + (Math.cos(i * 0.5) * 350) + (Math.random() - 0.5) * 100),
+    y: n.y && n.y !== 0 ? n.y : (height / 2 + (Math.sin(i * 0.5) * 350) + (Math.random() - 0.5) * 100),
+    raw: n
+  }));
+
+  const nodeMap = new Map(simNodes.map(n => [n.id, n]));
+
+  const simLinks = edges
+    .filter(e => nodeMap.has(e.source) && nodeMap.has(e.target))
+    .map(e => ({
+      source: e.source,
+      target: e.target
+    }));
+
+  const simulation = forceSimulation(simNodes)
+    .force('charge', forceManyBody().strength(-1600)) // Repulsión fuerte entre conceptos
+    .force('link', forceLink(simLinks).id(d => d.id).distance(240).strength(0.85)) // Atracción entre conceptos relacionados
+    .force('collide', forceCollide().radius(150).iterations(3)) // Evitar solapamiento de cajas
+    .force('center', forceCenter(width / 2, height / 2).strength(0.06))
+    .stop();
+
+  for (let i = 0; i < 300; ++i) {
+    simulation.tick();
+  }
+
+  return simNodes.map(sn => ({
+    ...sn.raw,
+    x: Math.round(sn.x),
+    y: Math.round(sn.y)
+  }));
+};
 
 // Nodo personalizado para entidades ontológicas
 const ConceptCustomNode = ({ data, selected }) => {
@@ -226,19 +266,15 @@ export default function IdeaGraph({ onSelectSession, activeSessionRelPath }) {
 
     const validNodeIDs = new Set(filteredNodes.map(n => n.id));
 
-    // Posicionamiento inteligente en grid / círculos si no tienen x, y guardadas
-    const flowNodes = filteredNodes.map((n, idx) => {
+    // Si los nodos no tienen coordenadas personalizadas, aplicar distribución de fuerzas d3-force
+    const hasCustomCoords = filteredNodes.some(n => n.x && n.y && (n.x !== 0 || n.y !== 0));
+    const layoutedNodes = hasCustomCoords ? filteredNodes : computeForceLayout(filteredNodes, rawGraph.edges || []);
+
+    const flowNodes = layoutedNodes.map((n, idx) => {
       const issueData = issuesMap.get(n.id) || { errors: 0, warnings: 0, items: [] };
       
-      let x = n.x;
-      let y = n.y;
-      if (!x && !y) {
-        const cols = 5;
-        const col = idx % cols;
-        const row = Math.floor(idx / cols);
-        x = col * 260 + 50;
-        y = row * 160 + 50;
-      }
+      let x = n.x !== undefined ? n.x : (idx % 5) * 260 + 50;
+      let y = n.y !== undefined ? n.y : Math.floor(idx / 5) * 160 + 50;
 
       return {
         id: n.id,
@@ -271,39 +307,67 @@ export default function IdeaGraph({ onSelectSession, activeSessionRelPath }) {
           id: e.id || `e-${e.source}-${e.target}`,
           source: e.source,
           target: e.target,
-          label: e.label || 'relación',
+          label: e.label || '',
           type: 'smoothstep',
           animated: isPrereq,
           style: {
             stroke: isPrereq ? '#f59e0b' : isDeepen ? '#a855f7' : '#38bdf8',
-            strokeWidth: isPrereq ? 2.5 : 1.8,
+            strokeWidth: 2,
             strokeDasharray: isDeepen ? '4,4' : undefined,
           },
           markerEnd: {
             type: MarkerType.ArrowClosed,
             color: isPrereq ? '#f59e0b' : isDeepen ? '#a855f7' : '#38bdf8',
+            width: 16,
+            height: 16,
+          },
+          labelStyle: {
+            fill: '#cbd5e1',
+            fontSize: 10,
+            fontFamily: 'monospace',
+          },
+          labelBgStyle: {
+            fill: '#0f172a',
+            fillOpacity: 0.85,
           },
         };
       });
 
     setNodes(flowNodes);
     setEdges(flowEdges);
-  }, [rawGraph, lintReport, searchQuery, selectedModuleFilter, statusFilter, setNodes, setEdges]);
+  }, [rawGraph, lintReport, searchQuery, selectedModuleFilter, statusFilter]);
+
+  // Aplicar simulación de física de fuerzas interactiva
+  const handleApplyForceLayout = () => {
+    if (!rawGraph?.nodes || rawGraph.nodes.length === 0) return;
+    const positioned = computeForceLayout(rawGraph.nodes, rawGraph.edges || []);
+    setRawGraph(prev => ({
+      ...prev,
+      nodes: positioned
+    }));
+  };
 
   // Selección de nodo para inspección
   const onNodeClick = useCallback((event, node) => {
     setSelectedNode(node.data);
   }, []);
 
-  // Guardar nuevas posiciones
+  const onPaneClick = useCallback(() => {
+    setSelectedNode(null);
+  }, []);
+
+  // Guardar distribución visual en el backend
   const handleSavePositions = async () => {
     setIsSavingPositions(true);
-    const positionsMap = {};
-    nodes.forEach(n => {
-      positionsMap[n.id] = { x: n.position.x, y: n.position.y };
-    });
-
     try {
+      const positionsMap = {};
+      nodes.forEach(n => {
+        positionsMap[n.id] = {
+          x: Math.round(n.position.x),
+          y: Math.round(n.position.y)
+        };
+      });
+
       await SaveGlobalGraphPositions(positionsMap);
       setSavedSuccess(true);
       setTimeout(() => setSavedSuccess(false), 2500);
@@ -346,31 +410,28 @@ export default function IdeaGraph({ onSelectSession, activeSessionRelPath }) {
     <div className="flex-1 w-full h-full flex flex-col relative bg-slate-950 text-slate-100 overflow-hidden select-none">
       
       {/* Top Toolbar de IdeaGraph 2.0 */}
-      <div className="h-14 px-4 bg-slate-900/90 backdrop-blur-md border-b border-slate-800 flex items-center justify-between gap-3 shrink-0 z-20">
+      <div className="h-12 px-3 bg-slate-900/90 backdrop-blur-md border-b border-slate-800 flex items-center justify-between gap-2 shrink-0 z-20 overflow-x-auto">
         
         {/* Left: Título y Filtros */}
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-amber-500 to-indigo-600 flex items-center justify-center text-white shadow-md">
-              <Layers size={16} />
+        <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-1.5">
+            <div className="w-6 h-6 rounded-lg bg-gradient-to-tr from-amber-500 to-indigo-600 flex items-center justify-center text-white shadow-xs">
+              <Layers size={13} />
             </div>
-            <div>
-              <span className="font-bold text-xs text-white block">IdeaGraph 2.0</span>
-              <span className="text-[10px] text-slate-400 font-mono">Grafo Ontológico & Dependencias</span>
-            </div>
+            <span className="font-bold text-xs text-white hidden md:inline">Grafo</span>
           </div>
 
-          <div className="h-6 w-px bg-slate-800 mx-1"></div>
+          <div className="h-4 w-px bg-slate-800 mx-0.5"></div>
 
           {/* Search */}
-          <div className="relative w-48">
-            <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-500" />
+          <div className="relative w-32 md:w-44">
+            <Search size={12} className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-500" />
             <input
               type="text"
               placeholder="Buscar concepto..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 rounded-lg pl-7 pr-2.5 py-1 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-colors"
+              className="w-full bg-slate-950 border border-slate-800 rounded-lg pl-6 pr-2 py-1 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-colors"
             />
           </div>
 
@@ -378,7 +439,7 @@ export default function IdeaGraph({ onSelectSession, activeSessionRelPath }) {
           <select
             value={selectedModuleFilter}
             onChange={(e) => setSelectedModuleFilter(e.target.value)}
-            className="bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1 text-xs text-slate-300 focus:outline-none focus:border-indigo-500"
+            className="bg-slate-950 border border-slate-800 rounded-lg px-2 py-1 text-xs text-slate-300 focus:outline-none focus:border-indigo-500 max-w-[130px] truncate"
           >
             <option value="all">Todos los Módulos</option>
             {modules.map(m => (
@@ -390,21 +451,21 @@ export default function IdeaGraph({ onSelectSession, activeSessionRelPath }) {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1 text-xs text-slate-300 focus:outline-none focus:border-indigo-500"
+            className="bg-slate-950 border border-slate-800 rounded-lg px-2 py-1 text-xs text-slate-300 focus:outline-none focus:border-indigo-500 max-w-[130px] truncate"
           >
-            <option value="all">Todas las Entidades ({rawGraph?.nodes?.length || 0})</option>
-            <option value="assigned">Solo Asignadas al Temario</option>
-            <option value="unassigned">Solo Ideas Flotantes</option>
-            <option value="issues">Solo con Avisos / Alertas</option>
+            <option value="all">Todas ({rawGraph?.nodes?.length || 0})</option>
+            <option value="assigned">Asignadas</option>
+            <option value="unassigned">Flotantes</option>
+            <option value="issues">Con Alertas</option>
           </select>
         </div>
 
-        {/* Right: Health Score, Linter Drawer Toggle & Save */}
-        <div className="flex items-center gap-2.5">
+        {/* Right: Acciones y Distribución */}
+        <div className="flex items-center gap-1.5 shrink-0">
           {/* Health Score Pill */}
           <button
             onClick={() => setShowLinterDrawer(!showLinterDrawer)}
-            className={`flex items-center gap-2 px-3 py-1 rounded-full border text-xs font-semibold transition-all ${
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs font-semibold transition-all ${
               totalErrors > 0
                 ? 'bg-rose-500/15 border-rose-500/40 text-rose-300 hover:bg-rose-500/25'
                 : totalWarnings > 0
@@ -412,42 +473,50 @@ export default function IdeaGraph({ onSelectSession, activeSessionRelPath }) {
                   : 'bg-emerald-500/15 border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/25'
             }`}
           >
-            <ShieldAlert size={14} />
-            <span>Salud Curricular: {healthScore}%</span>
-            {(totalErrors > 0 || totalWarnings > 0) && (
-              <span className="px-1.5 py-0.2 rounded-full bg-slate-900 text-[10px]">
-                {totalErrors + totalWarnings}
-              </span>
-            )}
+            <ShieldAlert size={13} />
+            <span className="hidden sm:inline">Salud:</span>
+            <span>{healthScore}%</span>
           </button>
 
+          {/* Botón Distribuir por Fuerzas */}
+          <button
+            onClick={handleApplyForceLayout}
+            className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-sky-300 hover:text-white border border-sky-500/30 text-xs font-medium transition-colors shadow-xs"
+            title="Organizar conceptos orgánicamente mediante física de fuerzas (d3-force)"
+          >
+            <Orbit size={13} className="text-sky-400" />
+            <span className="hidden md:inline">Fuerzas</span>
+          </button>
+
+          {/* Botón Escanear Compendio */}
           <button
             onClick={handleAutoScan}
             disabled={isLoading}
-            className="flex items-center gap-1 px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-indigo-300 hover:text-white border border-indigo-500/30 text-xs font-medium transition-colors shadow-xs disabled:opacity-50"
-            title="Escanear todas las lecciones del compendio y generar nodos ontológicos automáticamente"
+            className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-indigo-300 hover:text-white border border-indigo-500/30 text-xs font-medium transition-colors shadow-xs disabled:opacity-50"
+            title="Escanear todas las lecciones del compendio y actualizar nodos ontológicos"
           >
             <Sparkles size={13} className={isLoading ? 'animate-spin text-amber-400' : 'text-indigo-400'} />
-            <span>{isLoading ? 'Escaneando...' : 'Escanear Compendio'}</span>
+            <span className="hidden md:inline">{isLoading ? 'Escaneando...' : 'Escanear'}</span>
           </button>
 
+          {/* Guardar Layout */}
           <button
             onClick={handleSavePositions}
             disabled={isSavingPositions}
-            className="flex items-center gap-1 px-3 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium transition-colors shadow-xs disabled:opacity-50"
-            title="Guardar distribución visual de nodos"
+            className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium transition-colors shadow-xs disabled:opacity-50"
+            title="Guardar distribución visual actual"
           >
             {savedSuccess ? <Check size={13} /> : <Save size={13} />}
-            <span>{savedSuccess ? 'Guardado' : 'Guardar Layout'}</span>
+            <span className="hidden sm:inline">{savedSuccess ? 'Guardado' : 'Guardar'}</span>
           </button>
 
           <button
             onClick={loadGraphData}
             disabled={isLoading}
-            className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors"
+            className="p-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors"
             title="Recargar grafo"
           >
-            <RefreshCw size={14} className={isLoading ? 'animate-spin' : ''} />
+            <RefreshCw size={13} className={isLoading ? 'animate-spin' : ''} />
           </button>
         </div>
       </div>
@@ -462,51 +531,57 @@ export default function IdeaGraph({ onSelectSession, activeSessionRelPath }) {
           onConnect={onConnect}
           onEdgesDelete={onEdgesDelete}
           onNodeClick={onNodeClick}
+          onPaneClick={onPaneClick}
           nodeTypes={nodeTypes}
           fitView
           attributionPosition="bottom-left"
           className="bg-slate-950"
         >
-          <Background color="#334155" gap={20} size={1} />
+          <Background color="#1e293b" gap={20} size={1} />
           <Controls className="!bg-slate-900 !border-slate-800 !text-slate-300" />
           <MiniMap 
-            nodeColor={(n) => n.data.is_unassigned ? '#f59e0b' : '#6366f1'} 
-            className="!bg-slate-900/90 !border-slate-800 !rounded-xl" 
+            nodeColor={(n) => {
+              if (n.data?.is_unassigned) return '#f59e0b';
+              if (n.data?.errors_count > 0) return '#f43f5e';
+              return '#6366f1';
+            }}
+            maskColor="rgba(15, 23, 42, 0.85)"
+            className="!bg-slate-900 !border-slate-800" 
           />
         </ReactFlow>
 
-        {/* Legend Overlay */}
-        <div className="absolute bottom-4 left-4 bg-slate-900/90 backdrop-blur-md border border-slate-800 rounded-xl p-2.5 text-[11px] text-slate-300 space-y-1.5 pointer-events-none shadow-xl">
-          <div className="font-semibold text-white text-[10px] uppercase tracking-wider mb-1">Leyenda de Relaciones</div>
+        {/* Leyenda de relaciones */}
+        <div className="absolute bottom-6 left-6 bg-slate-900/90 backdrop-blur-md p-3 rounded-xl border border-slate-800 text-[11px] space-y-1.5 shadow-xl z-10">
+          <div className="font-bold text-slate-400 uppercase tracking-wider text-[9px] mb-1">Leyenda de Relaciones</div>
           <div className="flex items-center gap-2">
-            <span className="w-4 h-0.5 bg-amber-500 inline-block"></span>
-            <span>prerrequisito_de (requisito previo)</span>
+            <span className="w-3 h-0.5 bg-amber-500"></span>
+            <span className="text-slate-300">prerrequisito_de (requisito previo)</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="w-4 h-0.5 border-t-2 border-dashed border-purple-400 inline-block"></span>
-            <span>profundiza_en (ampliación de tema)</span>
+            <span className="w-3 h-0.5 bg-purple-500 border-b border-dashed border-purple-400"></span>
+            <span className="text-slate-300">profundiza_en (ampliación de tema)</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="w-4 h-0.5 bg-sky-400 inline-block"></span>
-            <span>asociado_con (asociación doctrinal)</span>
+            <span className="w-3 h-0.5 bg-sky-400"></span>
+            <span className="text-slate-300">asociado_con (asociación doctrinal)</span>
           </div>
         </div>
 
-        {/* Slide-Over Panel: Inspector del Nodo Seleccionado */}
+        {/* Panel Flotante de Detalles del Nodo Seleccionado */}
         {selectedNode && (
-          <div className="absolute top-4 right-4 w-80 max-h-[calc(100%-2rem)] bg-slate-900/95 backdrop-blur-xl border border-slate-700/90 rounded-2xl shadow-2xl p-4 flex flex-col z-30 animate-in slide-in-from-right-4 fade-in duration-200">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
-                  {selectedNode.type || 'Concepto'}
+          <div className="absolute top-4 right-4 w-80 max-h-[calc(100%-2rem)] bg-slate-900/98 backdrop-blur-xl border border-slate-800 rounded-2xl shadow-2xl p-4 flex flex-col z-30 animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+              <div className="flex items-center gap-1.5">
+                <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                  {selectedNode.type}
                 </span>
-                <span className="text-xs font-mono text-slate-400">
+                <span className="text-xs text-slate-400">
                   {selectedNode.occurrences} menciones
                 </span>
               </div>
               <button 
                 onClick={() => setSelectedNode(null)}
-                className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800"
+                className="p-1 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition-colors"
               >
                 <X size={15} />
               </button>
@@ -529,8 +604,9 @@ export default function IdeaGraph({ onSelectSession, activeSessionRelPath }) {
                     {selectedNode.source_files.map((file) => (
                       <button
                         key={file}
-                        onClick={() => onSelectSession && onSelectSession(file)}
+                        onClick={() => onSelectSession && onSelectSession(file, selectedNode.label)}
                         className="w-full text-left px-2.5 py-1.5 rounded-lg bg-slate-800/80 hover:bg-indigo-600/30 border border-slate-700/60 hover:border-indigo-500/40 text-xs text-slate-200 flex items-center justify-between group transition-all"
+                        title={`Abrir ${file} y resaltar "${selectedNode.label}"`}
                       >
                         <span className="truncate">{file.split('/').pop()}</span>
                         <ExternalLink size={12} className="text-slate-400 group-hover:text-indigo-300 shrink-0 ml-1" />

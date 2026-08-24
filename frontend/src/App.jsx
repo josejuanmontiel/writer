@@ -206,7 +206,7 @@ function App() {
     }
   };
 
-  const handleSelectFile = async (relPath) => {
+  const handleSelectFile = async (relPath, targetConceptText) => {
     if (!relPath) return;
     try {
       const rawContent = await ReadCompendiumFile(relPath);
@@ -217,6 +217,9 @@ function App() {
       setEditorContent(htmlContent);
       if (editorRef.current) {
         editorRef.current.setContent(htmlContent);
+        if (targetConceptText) {
+          editorRef.current.scrollToText(targetConceptText);
+        }
       }
 
       // Punto 1.4: Cargar sugerencias de contexto y subgrafo local del capítulo
@@ -1089,9 +1092,9 @@ function App() {
             ) : (
               <IdeaGraph 
                 activeSessionRelPath={activeFile}
-                onSelectSession={(sessionRelPath) => {
+                onSelectSession={(sessionRelPath, conceptLabel) => {
                   setView('Escritura');
-                  handleSelectFile(sessionRelPath);
+                  handleSelectFile(sessionRelPath, conceptLabel);
                 }}
               />
             )}
