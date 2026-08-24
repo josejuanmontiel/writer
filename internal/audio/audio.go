@@ -253,9 +253,13 @@ func (r *Recorder) StopMonitor() error {
 }
 
 func SaveWav(path string, buffer []byte) error {
+	if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil {
+		return fmt.Errorf("error creando directorio para audio (%s): %w", filepath.Dir(path), err)
+	}
+
 	f, err := os.Create(path)
 	if err != nil {
-		return err
+		return fmt.Errorf("error creando archivo WAV (%s): %w", path, err)
 	}
 	defer f.Close()
 
@@ -276,10 +280,14 @@ func SaveWav(path string, buffer []byte) error {
 	}
 
 	if err := encoder.Write(buf); err != nil {
-		return err
+		return fmt.Errorf("error escribiendo samples WAV: %w", err)
 	}
 
-	return encoder.Close()
+	if err := encoder.Close(); err != nil {
+		return fmt.Errorf("error cerrando encoder WAV: %w", err)
+	}
+
+	return nil
 }
 
 func (r *Recorder) Shutdown() {
