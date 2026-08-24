@@ -10,8 +10,10 @@ if [ -f "./scripts/setup_libs.sh" ]; then
     ./scripts/setup_libs.sh
 fi
 
-# 2. Configurar entorno de ejecución (librerías compartidas)
+# 2. Configurar entorno de ejecución (librerías compartidas y compatibilidad gráfica WebKit)
 export LD_LIBRARY_PATH="$DIR/lib/onnxruntime/lib:$DIR/lib/tokenizers:$LD_LIBRARY_PATH"
+export WEBKIT_DISABLE_COMPOSITING_MODE=1
+export WEBKIT_DISABLE_DMABUF_RENDERER=1
 
 WHISPER_DIR="$DIR/lib/whisper.cpp"
 WHISPER_BUILD_DIR="$WHISPER_DIR/build-linux"
