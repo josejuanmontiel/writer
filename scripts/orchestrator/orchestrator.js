@@ -111,6 +111,10 @@ async function processChapter(chapterNum, options = {}) {
   const audioDir = path.join(outputDir, 'audio_clips');
   const rawVideoDir = path.join(outputDir, 'raw_video');
 
+  // Limpiar directorios previos para garantizar que no haya archivos residuales de ejecuciones antiguas
+  if (fs.existsSync(rawVideoDir)) {
+    fs.rmSync(rawVideoDir, { recursive: true, force: true });
+  }
   fs.mkdirSync(audioDir, { recursive: true });
   fs.mkdirSync(rawVideoDir, { recursive: true });
 
@@ -130,7 +134,7 @@ async function processChapter(chapterNum, options = {}) {
     const audioPath = path.join(audioDir, `scene_${String(i + 1).padStart(2, '0')}.mp3`);
 
     console.log(`   [Escena ${i + 1}/${chapterData.scenes.length}] "${scene.title}"`);
-    const audioResult = await generateSpeechForScene(scene.narration, audioPath);
+    const audioResult = await generateSpeechForScene(scene.narration, audioPath, options.voice || 'em_alex');
     console.log(`   └─ Audio generado (${audioResult.engine}): ${(audioResult.durationMs / 1000).toFixed(2)}s`);
 
     audioFiles.push(audioResult.outputPath);
@@ -171,13 +175,14 @@ async function processChapter(chapterNum, options = {}) {
   });
 
   const page = await context.newPage();
+  const video = page.video();
   await injectWailsMocks(page);
 
   console.log(`   🌐 Abriendo aplicación en ${appUrl}...`);
   await page.goto(appUrl, { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(1000);
 
-  // Ejecutar coreografía escena por escena
+  // Ejecutar coreografía escena por escena en orden estricto
   for (let i = 0; i < chapterData.scenes.length; i++) {
     const scene = chapterData.scenes[i];
     const sceneTimeline = timeline[i];
@@ -186,17 +191,16 @@ async function processChapter(chapterNum, options = {}) {
     await scene.action(page, sceneTimeline.durationMs, mcp);
   }
 
+  // Pequeña pausa final antes de cerrar
+  await page.waitForTimeout(1000);
+
   // Cerrar página y contexto para que Playwright finalice el archivo de vídeo .webm
   await page.close();
   await context.close();
   await browser.close();
 
-  // Encontrar el archivo .webm generado
-  const videoFiles = fs.readdirSync(rawVideoDir).filter(f => f.endsWith('.webm'));
-  if (videoFiles.length === 0) {
-    throw new Error('No se encontró el archivo de vídeo grabado por Playwright.');
-  }
-  const rawVideoPath = path.join(rawVideoDir, videoFiles[0]);
+  // Obtener la ruta exacta del vídeo generado en esta sesión
+  const rawVideoPath = await video.path();
   console.log(`   ✅ Vídeo crudo grabado: ${rawVideoPath}`);
 
   // 3. MUXING FINAL CON FFMPEG + GENERACIÓN SRT
@@ -214,7 +218,7 @@ async function processChapter(chapterNum, options = {}) {
 
   console.log(`\n======================================================`);
   console.log(`🎉 CAPÍTULO ${chapterNum} COMPLETADO CON ÉXITO!`);
-  console.log(`📹 Vídeo Final: ${muxResult.videoOutput}`);
+  console.log(`📹 Vídeo Final: ${muxResult.videoOutput} (${muxResult.durationSeconds.toFixed(2)}s)`);
   console.log(`🎵 Audio Master: ${muxResult.audioOutput}`);
   console.log(`💬 Subtítulos: ${muxResult.srtOutput}`);
   console.log(`======================================================\n`);
