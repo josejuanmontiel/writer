@@ -33,7 +33,7 @@ export function generateSrtFile(timeline, outputSrtPath) {
 /**
  * Muxea el vídeo crudo grabado por Playwright con las pistas de audio generadas y subtítulos
  */
-export function muxVideoAndAudio({ rawVideoPath, audioFiles, timeline, outputPath, srtPath }) {
+export function muxVideoAndAudio({ rawVideoPath, audioFiles, timeline, outputPath, srtPath, startOffsetSec = 0 }) {
   const tempDir = path.dirname(outputPath);
   const concatListPath = path.join(tempDir, 'audio_concat_list.txt');
   const masterAudioPath = path.join(tempDir, 'master_audio.wav');
@@ -44,8 +44,8 @@ export function muxVideoAndAudio({ rawVideoPath, audioFiles, timeline, outputPat
     .join('\n');
   fs.writeFileSync(concatListPath, concatContent, 'utf8');
 
-  // 2. Concatenar audios convirtiendo a PCM s16le estéreo para evitar desincronizaciones de sample rate
-  execSync(`ffmpeg -y -f concat -safe 0 -i "${concatListPath}" -ar 44100 -ac 2 -c:a pcm_s16le "${masterAudioPath}"`, { stdio: 'pipe' });
+  // 2. Concatenar audios aplicando aumento de volumen y normalización broadcast (-14 LUFS)
+  execSync(`ffmpeg -y -f concat -safe 0 -i "${concatListPath}" -ar 44100 -ac 2 -filter:a "volume=1.8,loudnorm=I=-14:LRA=11:TP=-1.5" -c:a pcm_s16le "${masterAudioPath}"`, { stdio: 'pipe' });
 
   // 3. Generar SRT con marcas de tiempo precisas
   const finalSrtPath = srtPath || path.join(tempDir, 'subtitles.srt');
@@ -56,9 +56,10 @@ export function muxVideoAndAudio({ rawVideoPath, audioFiles, timeline, outputPat
   const audioDurationSec = parseFloat(durationOutput);
 
   // 5. Muxing final con FFmpeg:
-  // - tpad clona el último fotograma si el vídeo terminase milisegundos antes que el audio
-  // - -t ${audioDurationSec} asegura que el MP4 final dure exactamente lo mismo que la locución completa
-  const cmd = `ffmpeg -y -i "${rawVideoPath}" -i "${masterAudioPath}" -filter_complex "[0:v]tpad=stop_mode=clone:stop_duration=10,fps=30[v]" -map "[v]" -map 1:a -c:v libx264 -preset fast -crf 20 -pix_fmt yuv420p -c:a aac -b:a 192k -t ${audioDurationSec} "${outputPath}"`;
+  // -ss ${startOffsetSec} recorta la carga inicial del navegador
+  // -t ${audioDurationSec} fija la duración exacta al audio de Kokoro
+  const ssFlag = startOffsetSec > 0 ? `-ss ${startOffsetSec.toFixed(3)}` : '';
+  const cmd = `ffmpeg -y ${ssFlag} -i "${rawVideoPath}" -i "${masterAudioPath}" -filter_complex "[0:v]tpad=stop_mode=clone:stop_duration=5,fps=30[v]" -map "[v]" -map 1:a -c:v libx264 -preset fast -crf 20 -pix_fmt yuv420p -c:a aac -b:a 192k -t ${audioDurationSec} "${outputPath}"`;
   
   execSync(cmd, { stdio: 'pipe' });
 

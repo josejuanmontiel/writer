@@ -20,7 +20,7 @@ flowchart LR
 | Cap. | Título y Enfoque | Material Didáctico | Vídeo Demo | Prompts & Guías IA | Salida Final |
 | :---: | :--- | :---: | :---: | :---: | :---: |
 | **01** | **Introducción y Paradigma: «Escribir sin miedo al orden»**<br>*(Interfaz Dual: Editor AsciiDoc + Árbol del Compendio + Git)* | [📖 Material](./tutorials/capitulo_1/material_didactico.md) | [🎥 Ver Vídeo (WebP)](./tutorials/capitulo_1/navegacion_capitulo_1.webp) | [🤖 Prompt Gemini](./tutorials/capitulo_1/prompt_gemini.md)<br>[📓 Guía NotebookLM](./tutorials/capitulo_1/guia_notebooklm.md) | **✅ Generado**<br>• [🎬 Vídeo MP4 (Kokoro Sync)](./tutorials/capitulo_1/output/capitulo_1_masterclass.mp4)<br>• [💬 Subtítulos SRT](./tutorials/capitulo_1/output/capitulo_1_subtitulos.srt)<br>• [🎵 Audio Master WAV](./tutorials/capitulo_1/output/master_audio.wav) |
-| **02** | **Motor de Voz Local & Dictado con Whisper**<br>*(VU Meter en tiempo real, modelos GGML y modo TTT)* | [📖 Material](./tutorials/capitulo_2/material_didactico.md) | *Pendiente* | [🤖 Prompt Gemini](./tutorials/capitulo_2/prompt_gemini.md)<br>[📓 Guía NotebookLM](./tutorials/capitulo_2/guia_notebooklm.md) | *Pendiente* |
+| **02** | **Motor de Voz Local & Dictado con Whisper**<br>*(VU Meter en tiempo real, modelos GGML y modo TTT)* | [📖 Material](./tutorials/capitulo_2/material_didactico.md) | *Sincronizado* | [🤖 Prompt Gemini](./tutorials/capitulo_2/prompt_gemini.md)<br>[📓 Guía NotebookLM](./tutorials/capitulo_2/guia_notebooklm.md) | **✅ Generado**<br>• [🎬 Vídeo MP4 (Kokoro Sync)](./tutorials/capitulo_2/output/capitulo_2_masterclass.mp4)<br>• [💬 Subtítulos SRT](./tutorials/capitulo_2/output/capitulo_2_subtitulos.srt)<br>• [🎵 Audio Master WAV](./tutorials/capitulo_2/output/master_audio.wav) |
 | **03** | **Extracción Semántica & Grafos con GLiNER2**<br>*(Entidades ontológicas, relaciones y sincronización local/global)* | [📖 Material](./tutorials/capitulo_3/material_didactico.md) | *Pendiente* | [🤖 Prompt Gemini](./tutorials/capitulo_3/prompt_gemini.md)<br>[📓 Guía NotebookLM](./tutorials/capitulo_3/guia_notebooklm.md) | *Pendiente* |
 | **04** | **Bandeja de Ideas Flotantes & Semáforos de Madurez**<br>*(Buffer sin asignar, Readiness Badges y notas efímeras)* | [📖 Material](./tutorials/capitulo_4/material_didactico.md) | *Pendiente* | [🤖 Prompt Gemini](./tutorials/capitulo_4/prompt_gemini.md)<br>[📓 Guía NotebookLM](./tutorials/capitulo_4/guia_notebooklm.md) | *Pendiente* |
 | **05** | **Selección a Idea Flotante (*Selection-to-Floating-Idea*)**<br>*(Podar lecciones sobrecargadas con enlaces xref AsciiDoc)* | [📖 Material](./tutorials/capitulo_5/material_didactico.md) | *Pendiente* | [🤖 Prompt Gemini](./tutorials/capitulo_5/prompt_gemini.md)<br>[📓 Guía NotebookLM](./tutorials/capitulo_5/guia_notebooklm.md) | *Pendiente* |
@@ -48,6 +48,10 @@ flowchart LR
 - [📖 Material Didáctico](./tutorials/capitulo_2/material_didactico.md)
 - [🤖 Prompt para Gemini](./tutorials/capitulo_2/prompt_gemini.md)
 - [📓 Guía para Google NotebookLM](./tutorials/capitulo_2/guia_notebooklm.md)
+- **Entregables Finales Generados por el Orquestador**:
+  - [x] [🎬 `capitulo_2_masterclass.mp4`](./tutorials/capitulo_2/output/capitulo_2_masterclass.mp4) *(Vídeo final 1080p con locución en español generada por Kokoro TTS)*
+  - [x] [💬 `capitulo_2_subtitulos.srt`](./tutorials/capitulo_2/output/capitulo_2_subtitulos.srt) *(Pista de subtítulos sincronizada)*
+  - [x] [🎵 `master_audio.wav`](./tutorials/capitulo_2/output/master_audio.wav) *(Pista completa de audio)*
 
 ### Capítulo 3: Extracción Semántica & Grafos con GLiNER2
 - [📖 Material Didáctico](./tutorials/capitulo_3/material_didactico.md)

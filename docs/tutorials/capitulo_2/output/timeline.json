@@ -1,0 +1,56 @@
+[
+  {
+    "id": "escena_01_apertura",
+    "index": 1,
+    "title": "Hablar a la velocidad del pensamiento",
+    "narration": "¿Cuántas veces has tenido una explicación brillante en mente y al sentarte a escribirla en el teclado has perdido la frescura de la idea? La voz es nuestro canal de comunicación más natural. En este capítulo veremos cómo Antigravity Writer utiliza inteligencia artificial local para transformar tu voz en texto estructurado sin depender de internet ni enviar tus datos a la nube.",
+    "startMs": 0,
+    "endMs": 22584,
+    "durationMs": 22584
+  },
+  {
+    "id": "escena_02_configuracion_modelos",
+    "index": 2,
+    "title": "Configuración del Dispositivo y Modelos Whisper",
+    "narration": "Desde el panel de configuración, podemos seleccionar qué modelo de Whisper utilizar según la potencia de nuestro equipo. El modelo 'Tiny' ofrece respuesta instantánea para equipos modestos, mientras que 'Base' y 'Small' proporcionan una precisión extraordinaria en terminología técnica y pedagógica. La descarga se gestiona en un solo clic.",
+    "startMs": 22584,
+    "endMs": 41904,
+    "durationMs": 19320
+  },
+  {
+    "id": "escena_03_vu_meter",
+    "index": 3,
+    "title": "El VU Meter en Acción — Cero Grabaciones Fallidas",
+    "narration": "Uno de los problemas más frustrantes al dictar es hablar durante minutos y descubrir que el micrófono estaba silenciado. Antigravity Writer incluye un medidor de volumen o VU Meter en tiempo real. Al pulsar sobre el test, puedes verificar visualmente la señal antes de empezar a grabar.",
+    "startMs": 41904,
+    "endMs": 59712,
+    "durationMs": 17808
+  },
+  {
+    "id": "escena_04_dictado_en_vivo",
+    "index": 4,
+    "title": "Dictado en Vivo sobre el Editor",
+    "narration": "Hacemos clic en el micrófono y comenzamos a hablar libremente. No hace falta dictar signos de puntuación como en los sistemas antiguos; el motor local interpreta las pausas e inserta mayúsculas, comas y puntos de forma natural. Al finalizar, el texto aparece en el lienzo de redacción listo para ser enriquecido.",
+    "startMs": 59712,
+    "endMs": 78384,
+    "durationMs": 18672
+  },
+  {
+    "id": "escena_05_modo_ttt",
+    "index": 5,
+    "title": "Modo TTT (Text-to-Text) — Para entornos silenciosos",
+    "narration": "¿Estás en una biblioteca o prefieres no hablar? El modo TTT o Text-to-Text te permite usar los mismos flujos de captura rápida mediante texto directo, manteniendo la misma agilidad.",
+    "startMs": 78384,
+    "endMs": 89280,
+    "durationMs": 10896
+  },
+  {
+    "id": "escena_06_cierre",
+    "index": 6,
+    "title": "Cierre y Transición al Capítulo 3",
+    "narration": "Ya tenemos nuestras palabras en pantalla. Pero, ¿cómo sabe la aplicación qué conceptos hemos enseñado y cómo se relacionan entre sí? En el Capítulo 3 descubriremos el Motor Semántico Local GLiNER2 y la extracción automática de grafos de conocimiento. ¡Continuemos!",
+    "startMs": 89280,
+    "endMs": 106416,
+    "durationMs": 17136
+  }
+]

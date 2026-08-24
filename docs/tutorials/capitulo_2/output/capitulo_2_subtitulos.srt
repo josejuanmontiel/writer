@@ -1,0 +1,23 @@
+1
+00:00:00,000 --> 00:00:22,584
+¿Cuántas veces has tenido una explicación brillante en mente y al sentarte a escribirla en el teclado has perdido la frescura de la idea? La voz es nuestro canal de comunicación más natural. En este capítulo veremos cómo Antigravity Writer utiliza inteligencia artificial local para transformar tu voz en texto estructurado sin depender de internet ni enviar tus datos a la nube.
+
+2
+00:00:22,584 --> 00:00:41,904
+Desde el panel de configuración, podemos seleccionar qué modelo de Whisper utilizar según la potencia de nuestro equipo. El modelo 'Tiny' ofrece respuesta instantánea para equipos modestos, mientras que 'Base' y 'Small' proporcionan una precisión extraordinaria en terminología técnica y pedagógica. La descarga se gestiona en un solo clic.
+
+3
+00:00:41,904 --> 00:00:59,712
+Uno de los problemas más frustrantes al dictar es hablar durante minutos y descubrir que el micrófono estaba silenciado. Antigravity Writer incluye un medidor de volumen o VU Meter en tiempo real. Al pulsar sobre el test, puedes verificar visualmente la señal antes de empezar a grabar.
+
+4
+00:00:59,712 --> 00:01:18,384
+Hacemos clic en el micrófono y comenzamos a hablar libremente. No hace falta dictar signos de puntuación como en los sistemas antiguos; el motor local interpreta las pausas e inserta mayúsculas, comas y puntos de forma natural. Al finalizar, el texto aparece en el lienzo de redacción listo para ser enriquecido.
+
+5
+00:01:18,384 --> 00:01:29,280
+¿Estás en una biblioteca o prefieres no hablar? El modo TTT o Text-to-Text te permite usar los mismos flujos de captura rápida mediante texto directo, manteniendo la misma agilidad.
+
+6
+00:01:29,280 --> 00:01:46,416
+Ya tenemos nuestras palabras en pantalla. Pero, ¿cómo sabe la aplicación qué conceptos hemos enseñado y cómo se relacionan entre sí? En el Capítulo 3 descubriremos el Motor Semántico Local GLiNER2 y la extracción automática de grafos de conocimiento. ¡Continuemos!
