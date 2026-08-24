@@ -171,6 +171,20 @@ function App() {
     }
   };
 
+  const findFirstFileInTree = (nodes) => {
+    if (!nodes) return null;
+    for (const node of nodes) {
+      if (!node.is_dir && node.relative_path && (node.relative_path.endsWith('.adoc') || node.relative_path.endsWith('.md'))) {
+        return node.relative_path;
+      }
+      if (node.is_dir && node.children && node.children.length > 0) {
+        const found = findFirstFileInTree(node.children);
+        if (found) return found;
+      }
+    }
+    return null;
+  };
+
   const refreshTree = async () => {
     try {
       const tree = await GetCompendiumTree();
@@ -179,12 +193,15 @@ function App() {
       setActiveCompendium(comp);
       const recents = await GetRecentCompendiums();
       setRecentCompendiums(recents || []);
+      return tree || [];
     } catch (e) {
       console.error("Error refreshing compendium tree:", e);
+      return [];
     }
   };
 
   const handleSelectFile = async (relPath) => {
+    if (!relPath) return;
     try {
       const rawContent = await ReadCompendiumFile(relPath);
       setActiveFile(relPath);
@@ -208,7 +225,7 @@ function App() {
         console.warn("Aviso cargando contexto pedagógico:", graphErr);
       }
     } catch (err) {
-      alert("Error abriendo archivo: " + err);
+      console.warn("Aviso abriendo archivo " + relPath + ":", err);
     }
   };
 
@@ -297,9 +314,9 @@ function App() {
       if (dir) {
         const info = await OpenCompendium(dir);
         setActiveCompendium(info);
-        await refreshTree();
-        const defaultSession = "content/modulo-1/sesion-01.adoc";
-        handleSelectFile(defaultSession);
+        const tree = await refreshTree();
+        const firstFile = findFirstFileInTree(tree) || "content/_index.adoc";
+        handleSelectFile(firstFile);
       }
     } catch (err) {
       alert("Error abriendo compendio: " + err);
@@ -310,9 +327,9 @@ function App() {
     try {
       const info = await OpenCompendium(path);
       setActiveCompendium(info);
-      await refreshTree();
-      const defaultSession = "content/modulo-1/sesion-01.adoc";
-      handleSelectFile(defaultSession);
+      const tree = await refreshTree();
+      const firstFile = findFirstFileInTree(tree) || "content/_index.adoc";
+      handleSelectFile(firstFile);
     } catch (err) {
       alert("Error abriendo compendio reciente: " + err);
     }
