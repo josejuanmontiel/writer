@@ -1,6 +1,6 @@
 # 🎥 Videotutoriales, Guiones de Producción y Masterclass
 
-Bienvenido al centro de recursos audiovisuales y guiones pedagógicos de **Antigravity Writer**. Aquí se recopilan los materiales didácticos, las grabaciones de navegación en alta definición de cada prueba y los flujos para procesar el contenido con **Gemini Multimodal** o **Google NotebookLM**.
+Bienvenido al centro de recursos audiovisuales y guiones pedagógicos de **Antigravity Writer**. Aquí se recopilan los materiales didácticos, las grabaciones de navegación en alta definición y los recursos listos para procesar con **Gemini Multimodal** o **Google NotebookLM**.
 
 ---
 
@@ -15,31 +15,72 @@ flowchart LR
 
 ---
 
-## 📚 Índice de Capítulos del Curso
+## 📚 Índice de los 10 Capítulos de la Masterclass
 
-| Cap. | Título y Enfoque | Material Didáctico | Grabación / Vídeo Demo | Prompts & Guías IA | Salida Final |
+| Cap. | Título y Enfoque | Material Didáctico | Vídeo Demo | Prompts & Guías IA | Salida Final |
 | :---: | :--- | :---: | :---: | :---: | :---: |
-| **01** | **Introducción y Paradigma: «Escribir sin miedo al orden»**<br>*(Interfaz Dual: Editor AsciiDoc + Árbol del Compendio + Git)* | [📖 Material](./tutorials/capitulo_1/material_didactico.md) | [🎥 Ver Vídeo (WebP)](./tutorials/capitulo_1/navegacion_capitulo_1.webp) | [🤖 Prompt Gemini](./tutorials/capitulo_1/prompt_gemini.md)<br>[📓 Guía NotebookLM](./tutorials/capitulo_1/guia_notebooklm.md) | *Pendiente* |
-| **02** | **Motor de Voz Local & Dictado con Whisper**<br>*(VU Meter, captura rápida por voz y modo TTT)* | *En desarrollo* | *En desarrollo* | *En desarrollo* | *—* |
-| **03** | **Extracción Semántica & Grafos con GLiNER2**<br>*(Detección de entidades, relaciones y sincronización local/global)* | *En desarrollo* | *En desarrollo* | *En desarrollo* | *—* |
-| **04** | **Bandeja de Ideas Flotantes & Semáforos de Madurez**<br>*(Buffer sin asignar, Readiness Badges y notas efímeras)* | *En desarrollo* | *En desarrollo* | *En desarrollo* | *—* |
-| **05** | **Selección a Idea Flotante (*Selection-to-Floating-Idea*)**<br>*(Podar y modularizar lecciones con enlaces xref AsciiDoc)* | *En desarrollo* | *En desarrollo* | *En desarrollo* | *—* |
-| **06** | **Asistente de Reubicación por Dependencias (Icono 🧭)**<br>*(Motor bayesiano de ordenación y opción Nueva Sesión vs Incrustar)* | *En desarrollo* | *En desarrollo* | *En desarrollo* | *—* |
-| **07** | **Matriz de Coherencia Curricular (Heatmap)**<br>*(Validación de prerrequisitos, refuerzo y alertas de uso prematuro)* | *En desarrollo* | *En desarrollo* | *En desarrollo* | *—* |
-| **08** | **IdeaGraph 2.0 & Validador Curricular**<br>*(Inspección visual del grafo, detección de ciclos y nodos huérfanos)* | *En desarrollo* | *En desarrollo* | *En desarrollo* | *—* |
-| **09** | **Derivación de Audiencias & Calidad de Contenido**<br>*(Adaptación para niños/jóvenes y métricas de legibilidad)* | *En desarrollo* | *En desarrollo* | *En desarrollo* | *—* |
-| **10** | **Compendium Wizard, Prompt Studio y Git Sync**<br>*(Creación estructurada plurianual y flujo colaborativo)* | *En desarrollo* | *En desarrollo* | *En desarrollo* | *—* |
+| **01** | **Introducción y Paradigma: «Escribir sin miedo al orden»**<br>*(Interfaz Dual: Editor AsciiDoc + Árbol del Compendio + Git)* | [📖 Material](./tutorials/capitulo_1/material_didactico.md) | [🎥 Ver Vídeo](./tutorials/capitulo_1/navegacion_capitulo_1.webp) | [🤖 Prompt Gemini](./tutorials/capitulo_1/prompt_gemini.md)<br>[📓 Guía NotebookLM](./tutorials/capitulo_1/guia_notebooklm.md) | *Pendiente* |
+| **02** | **Motor de Voz Local & Dictado con Whisper**<br>*(VU Meter en tiempo real, modelos GGML y modo TTT)* | [📖 Material](./tutorials/capitulo_2/material_didactico.md) | *Pendiente* | [🤖 Prompt Gemini](./tutorials/capitulo_2/prompt_gemini.md)<br>[📓 Guía NotebookLM](./tutorials/capitulo_2/guia_notebooklm.md) | *Pendiente* |
+| **03** | **Extracción Semántica & Grafos con GLiNER2**<br>*(Entidades ontológicas, relaciones y sincronización local/global)* | [📖 Material](./tutorials/capitulo_3/material_didactico.md) | *Pendiente* | [🤖 Prompt Gemini](./tutorials/capitulo_3/prompt_gemini.md)<br>[📓 Guía NotebookLM](./tutorials/capitulo_3/guia_notebooklm.md) | *Pendiente* |
+| **04** | **Bandeja de Ideas Flotantes & Semáforos de Madurez**<br>*(Buffer sin asignar, Readiness Badges y notas efímeras)* | [📖 Material](./tutorials/capitulo_4/material_didactico.md) | *Pendiente* | [🤖 Prompt Gemini](./tutorials/capitulo_4/prompt_gemini.md)<br>[📓 Guía NotebookLM](./tutorials/capitulo_4/guia_notebooklm.md) | *Pendiente* |
+| **05** | **Selección a Idea Flotante (*Selection-to-Floating-Idea*)**<br>*(Podar lecciones sobrecargadas con enlaces xref AsciiDoc)* | [📖 Material](./tutorials/capitulo_5/material_didactico.md) | *Pendiente* | [🤖 Prompt Gemini](./tutorials/capitulo_5/prompt_gemini.md)<br>[📓 Guía NotebookLM](./tutorials/capitulo_5/guia_notebooklm.md) | *Pendiente* |
+| **06** | **Asistente de Reubicación por Dependencias (Icono 🧭)**<br>*(Motor pedagógico de ordenación y opción Nueva Sesión vs Incrustar)* | [📖 Material](./tutorials/capitulo_6/material_didactico.md) | *Pendiente* | [🤖 Prompt Gemini](./tutorials/capitulo_6/prompt_gemini.md)<br>[📓 Guía NotebookLM](./tutorials/capitulo_6/guia_notebooklm.md) | *Pendiente* |
+| **07** | **Matriz de Coherencia Curricular (Heatmap)**<br>*(Validación de prerrequisitos, refuerzo y alertas de uso prematuro)* | [📖 Material](./tutorials/capitulo_7/material_didactico.md) | *Pendiente* | [🤖 Prompt Gemini](./tutorials/capitulo_7/prompt_gemini.md)<br>[📓 Guía NotebookLM](./tutorials/capitulo_7/guia_notebooklm.md) | *Pendiente* |
+| **08** | **IdeaGraph 2.0 & Validador Curricular**<br>*(Lienzo interactivo 2D, detección de ciclos y nodos huérfanos)* | [📖 Material](./tutorials/capitulo_8/material_didactico.md) | *Pendiente* | [🤖 Prompt Gemini](./tutorials/capitulo_8/prompt_gemini.md)<br>[📓 Guía NotebookLM](./tutorials/capitulo_8/guia_notebooklm.md) | *Pendiente* |
+| **09** | **Derivación de Audiencias & Calidad de Contenido**<br>*(Single-Source Authoring, vista dual y calculadora de ritmo de clase)* | [📖 Material](./tutorials/capitulo_9/material_didactico.md) | *Pendiente* | [🤖 Prompt Gemini](./tutorials/capitulo_9/prompt_gemini.md)<br>[📓 Guía NotebookLM](./tutorials/capitulo_9/guia_notebooklm.md) | *Pendiente* |
+| **10** | **Compendium Wizard, Prompt Studio y Git Sync**<br>*(Esqueletos plurianuales de 60 semanas, Canva, vídeos y Git remoto)* | [📖 Material](./tutorials/capitulo_10/material_didactico.md) | *Pendiente* | [🤖 Prompt Gemini](./tutorials/capitulo_10/prompt_gemini.md)<br>[📓 Guía NotebookLM](./tutorials/capitulo_10/guia_notebooklm.md) | *Pendiente* |
 
 ---
 
-## 🎬 Detalle de Recursos del Capítulo 1
+## 🎬 Detalle de Recursos por Capítulo
 
-- **Material Base**: [docs/tutorials/capitulo_1/material_didactico.md](./tutorials/capitulo_1/material_didactico.md) *(Contenido puro sin prompts mezclados)*
-- **Vídeo de Navegación UI**: [docs/tutorials/capitulo_1/navegacion_capitulo_1.webp](./tutorials/capitulo_1/navegacion_capitulo_1.webp)
-- **Instrucciones para IA**:
-  - [🤖 Prompt para Gemini (AI Studio / Web)](./tutorials/capitulo_1/prompt_gemini.md)
-  - [📓 Guía para Google NotebookLM (Audio Overview & Study Guide)](./tutorials/capitulo_1/guia_notebooklm.md)
-- **Entregables Finales (Espacio reservado)**:
-  - [ ] `docs/tutorials/capitulo_1/capitulo_didactico.md` *(Lección escrita final)*
-  - [ ] `docs/tutorials/capitulo_1/subtitulos.srt` *(Pista de subtítulos)*
-  - [ ] *(Enlace al Audio Podcast generado por NotebookLM / Vídeo final)*
+### Capítulo 1: Introducción y Paradigma — «Escribir sin miedo al orden»
+- [📖 Material Didáctico](./tutorials/capitulo_1/material_didactico.md)
+- [🎥 Clip de Navegación UI (WebP)](./tutorials/capitulo_1/navegacion_capitulo_1.webp)
+- [🤖 Prompt para Gemini](./tutorials/capitulo_1/prompt_gemini.md)
+- [📓 Guía para Google NotebookLM](./tutorials/capitulo_1/guia_notebooklm.md)
+
+### Capítulo 2: Motor de Voz Local & Dictado con Whisper
+- [📖 Material Didáctico](./tutorials/capitulo_2/material_didactico.md)
+- [🤖 Prompt para Gemini](./tutorials/capitulo_2/prompt_gemini.md)
+- [📓 Guía para Google NotebookLM](./tutorials/capitulo_2/guia_notebooklm.md)
+
+### Capítulo 3: Extracción Semántica & Grafos con GLiNER2
+- [📖 Material Didáctico](./tutorials/capitulo_3/material_didactico.md)
+- [🤖 Prompt para Gemini](./tutorials/capitulo_3/prompt_gemini.md)
+- [📓 Guía para Google NotebookLM](./tutorials/capitulo_3/guia_notebooklm.md)
+
+### Capítulo 4: Bandeja de Ideas Flotantes & Semáforos de Madurez
+- [📖 Material Didáctico](./tutorials/capitulo_4/material_didactico.md)
+- [🤖 Prompt para Gemini](./tutorials/capitulo_4/prompt_gemini.md)
+- [📓 Guía para Google NotebookLM](./tutorials/capitulo_4/guia_notebooklm.md)
+
+### Capítulo 5: Extracción de Selección a Idea Flotante
+- [📖 Material Didáctico](./tutorials/capitulo_5/material_didactico.md)
+- [🤖 Prompt para Gemini](./tutorials/capitulo_5/prompt_gemini.md)
+- [📓 Guía para Google NotebookLM](./tutorials/capitulo_5/guia_notebooklm.md)
+
+### Capítulo 6: Asistente de Reubicación por Dependencias (Icono 🧭)
+- [📖 Material Didáctico](./tutorials/capitulo_6/material_didactico.md)
+- [🤖 Prompt para Gemini](./tutorials/capitulo_6/prompt_gemini.md)
+- [📓 Guía para Google NotebookLM](./tutorials/capitulo_6/guia_notebooklm.md)
+
+### Capítulo 7: Matriz de Coherencia Curricular (Heatmap)
+- [📖 Material Didáctico](./tutorials/capitulo_7/material_didactico.md)
+- [🤖 Prompt para Gemini](./tutorials/capitulo_7/prompt_gemini.md)
+- [📓 Guía para Google NotebookLM](./tutorials/capitulo_7/guia_notebooklm.md)
+
+### Capítulo 8: IdeaGraph 2.0 & Validador Curricular
+- [📖 Material Didáctico](./tutorials/capitulo_8/material_didactico.md)
+- [🤖 Prompt para Gemini](./tutorials/capitulo_8/prompt_gemini.md)
+- [📓 Guía para Google NotebookLM](./tutorials/capitulo_8/guia_notebooklm.md)
+
+### Capítulo 9: Derivación de Audiencias & Calidad de Contenido
+- [📖 Material Didáctico](./tutorials/capitulo_9/material_didactico.md)
+- [🤖 Prompt para Gemini](./tutorials/capitulo_9/prompt_gemini.md)
+- [📓 Guía para Google NotebookLM](./tutorials/capitulo_9/guia_notebooklm.md)
+
+### Capítulo 10: Compendium Wizard, Prompt Studio y Git Sync
+- [📖 Material Didáctico](./tutorials/capitulo_10/material_didactico.md)
+- [🤖 Prompt para Gemini](./tutorials/capitulo_10/prompt_gemini.md)
+- [📓 Guía para Google NotebookLM](./tutorials/capitulo_10/guia_notebooklm.md)
