@@ -562,12 +562,12 @@ Texto a analizar:
 %s`, contextHistory, text)
 
 	fmt.Printf("📡 Enviando prompt al LLM (%d bytes)...\n", len(prompt))
-	respText, err := ai.SimpleLLMCall(a.config.LLMURL, prompt)
+	respText, err := ai.ExecuteLLM(a.config.LLM, "", prompt)
 	duration := time.Since(startTime)
 	
 	if err != nil {
 		fmt.Printf("❌ Error llamando al LLM: %v\n", err)
-		return "", err
+		return "", fmt.Errorf("error llamando al LLM (%s): %w. Puedes configurar tu API Key o activar GLiNER2 local en Ajustes (icono ⚙️)", a.config.LLM.Provider, err)
 	}
 
 	fmt.Printf("⏱️ Respuesta del LLM recibida en %.2fs. Longitud: %d caracteres.\n", duration.Seconds(), len(respText))
