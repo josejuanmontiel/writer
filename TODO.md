@@ -160,6 +160,18 @@
 
 ---
 
+### 🎬 1.10. Masterclass Audiovisual y Producción Multimodal
+- [x] **Guiones de Producción Paso a Paso por Capítulos**:
+  - Escaletas completas de doble columna (Screencast Cue + Locución / Voz en off profesional) para cada módulo pedagógico y funcional.
+- [x] **Grabaciones Automatizadas de Navegación UI (Playwright / Subagente)**:
+  - Capturas de vídeo de alta fidelidad (`.webp` / `.mp4`) de cada flujo de usuario en `docs/tutorials/capitulo_X/`.
+- [x] **Índice Maestro de Recursos Audiovisuales**:
+  - Catálogo centralizado en `docs/VIDEOTUTORIALES_Y_MASTERCLASS.md` con enlaces directos a guiones, vídeos de prueba y artefactos generados por Gemini Multimodal.
+- [ ] **Procesamiento y Renderizado con Gemini Multimodal**:
+  - Generación de subtítulos `.srt`, instrucciones de edición y lecciones escritas a partir del material audiovisual.
+
+---
+
 ## ⚙️ 2. BLOQUE TÉCNICO: Infraestructura y Motores
 
 ### 🎙️ Audio, Transcripción (STT) y Síntesis (TTS)

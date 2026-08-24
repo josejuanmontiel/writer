@@ -1,9 +1,15 @@
 {
-  "last_compendium_path": "",
-  "last_opened_file": "",
-  "recent_compendiums": [],
+  "last_compendium_path": "/home/jose/Documentos/compendio-catequesis-ejemplo",
+  "last_opened_file": "journal/2026-08-24-diseno-pedagogico.adoc",
+  "recent_compendiums": [
+    {
+      "path": "/home/jose/Documentos/compendio-catequesis-ejemplo",
+      "name": "Compendio de Iniciación Cristiana y Sacramentos",
+      "last_opened_at": "2026-08-24T11:28:19.512742695+02:00"
+    }
+  ],
   "whisper": {
-    "use_local": false,
+    "use_local": true,
     "language": "",
     "local": {
       "model": "",
@@ -15,9 +21,22 @@
     }
   },
   "llm_url": "",
+  "llm": {
+    "provider": "gemini",
+    "url": "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
+    "api_key": "",
+    "model": "gemini-2.0-flash",
+    "temperature": 0.3
+  },
+  "git_remote": {
+    "remote_url": "",
+    "branch": "main",
+    "username": "",
+    "token": ""
+  },
   "kokoro_url": "",
   "recording_device": "",
-  "audio_temp_path": "",
+  "audio_temp_path": "/tmp/antigravity_dictation.wav",
   "only_ttt": false,
   "canva": {
     "client_id": "",
@@ -26,8 +45,8 @@
     "refresh_token": ""
   },
   "gliner": {
-    "use_local": false,
-    "model_path": "",
+    "use_local": true,
+    "model_path": "/home/jose/workspace/sandbox/gemini/writer/build/bin",
     "threshold": 0
   }
 }

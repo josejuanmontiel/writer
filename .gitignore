@@ -3,6 +3,10 @@ build/bin/
 frontend/dist/
 frontend/node_modules/
 wails.log
+writer.log
+*.log
+scratch/*.log
+job_linux.log
 
 # Go
 bin/

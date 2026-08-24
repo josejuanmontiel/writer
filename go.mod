@@ -11,6 +11,7 @@ require (
 	github.com/modelcontextprotocol/go-sdk v1.0.0
 	github.com/wailsapp/wails/v2 v2.12.0
 	github.com/yalue/onnxruntime_go v1.30.0
+	golang.org/x/text v0.39.0
 	hugot-gliner2 v0.0.0-00010101000000-000000000000
 )
 
@@ -64,7 +65,6 @@ require (
 	golang.org/x/crypto v0.53.0 // indirect
 	golang.org/x/net v0.56.0 // indirect
 	golang.org/x/sys v0.46.0 // indirect
-	golang.org/x/text v0.39.0 // indirect
 	gonum.org/v1/gonum v0.17.0 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 )
