@@ -1708,6 +1708,28 @@ function App() {
                   Habla por el micrófono. Si la barra reacciona, el micrófono está capturando audio correctamente.
                 </p>
               </div>
+
+              {/* Ruta del Archivo Temporal WAV */}
+              <div className="pt-2 border-t border-white/5 space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <label className="text-[11px] font-medium text-gray-300">Ruta de Audio Temporal (WAV)</label>
+                  <span className="text-[10px] text-gray-500">(Opcional / Automático)</span>
+                </div>
+                <input 
+                  type="text" 
+                  value={config?.audio_temp_path || ''} 
+                  onChange={(e) => {
+                    const nc = { ...config, audio_temp_path: e.target.value };
+                    setConfig(nc);
+                  }}
+                  onBlur={() => UpdateConfig(config)}
+                  placeholder="Por defecto: Carpeta temporal del sistema (%TEMP%)"
+                  className="w-full bg-black/40 border border-white/10 rounded-xl px-3.5 py-2 text-xs font-mono text-slate-200 outline-none focus:border-brand-accent transition-colors"
+                />
+                <p className="text-[10px] text-slate-500 leading-tight">
+                  Si se deja vacío, el sistema genera automáticamente el archivo en la carpeta temporal de Windows/Linux/macOS sin necesidad de configuración manual.
+                </p>
+              </div>
             </div>
           </section>
         </div>

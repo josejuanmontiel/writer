@@ -297,11 +297,31 @@ func (a *App) StopRecording(mode string, isAiMode bool) (string, error) {
 	fmt.Printf("📝 Texto transcrito: %s\n", text)
 
 	if isAiMode {
-		fmt.Printf("🧠 Enviando texto a la IA (%s)...\n", a.config.LLMURL)
-		go ai.ProcessWithLLM(a.config.LLMURL, text, func(newText string) {
-			fmt.Printf("✨ Respuesta de la IA recibida: %s\n", newText)
-			a.EmitEvent("mcp:insert_text", newText)
-		})
+		fmt.Printf("🧠 Modo Cerebro activo. Procesando con LLM...\n")
+		go func() {
+			if a.config == nil {
+				a.EmitEvent("mcp:insert_text", text)
+				return
+			}
+			prov := strings.ToLower(a.config.LLM.Provider)
+			if prov == "" {
+				prov = "gemini"
+			}
+			if (prov == "gemini" || prov == "openai" || prov == "groq") && a.config.LLM.APIKey == "" {
+				fmt.Printf("⚠️ Modo Cerebro: Proveedor '%s' seleccionado pero falta la API Key.\n", prov)
+				a.EmitEvent("mcp:insert_text", fmt.Sprintf("%s\n\n[⚠️ Modo Cerebro: No has configurado tu API Key para %s en Ajustes (icono ⚙️ > Servicios IA > Motor de Lenguaje). Se ha insertado la transcripción directa].", text, strings.ToUpper(prov)))
+				return
+			}
+			sysPrompt := "Eres un asistente de redacción experto para autores de libros y compendios formativos/catequéticos. Procesa la instrucción o texto del usuario y genera una respuesta clara, bien redactada en español, lista para ser insertada en el documento."
+			resp, err := ai.ExecuteLLM(a.config.LLM, sysPrompt, text)
+			if err != nil {
+				fmt.Printf("❌ Error procesando con LLM (%s): %v\n", prov, err)
+				a.EmitEvent("mcp:insert_text", fmt.Sprintf("%s\n\n[⚠️ Error de IA (%s): %v]", text, prov, err))
+				return
+			}
+			fmt.Printf("✨ Respuesta de la IA recibida con éxito (%d caracteres)\n", len(resp))
+			a.EmitEvent("mcp:insert_text", resp)
+		}()
 	}
 
 	return text, nil
@@ -335,9 +355,27 @@ func (a *App) TranscribeAudioFile(path string) (string, error) {
 
 func (a *App) ProcessText(text string, isAi bool) {
 	if isAi {
-		go ai.ProcessWithLLM(a.config.LLMURL, text, func(newText string) {
-			a.EmitEvent("mcp:insert_text", newText)
-		})
+		go func() {
+			if a.config == nil {
+				a.EmitEvent("mcp:insert_text", text)
+				return
+			}
+			prov := strings.ToLower(a.config.LLM.Provider)
+			if prov == "" {
+				prov = "gemini"
+			}
+			if (prov == "gemini" || prov == "openai" || prov == "groq") && a.config.LLM.APIKey == "" {
+				a.EmitEvent("mcp:insert_text", fmt.Sprintf("%s\n\n[⚠️ Modo Cerebro: Falta configurar la API Key de %s en Ajustes (icono ⚙️ > Servicios IA)].", text, strings.ToUpper(prov)))
+				return
+			}
+			sysPrompt := "Eres un asistente de redacción experto para autores de libros y compendios formativos/catequéticos. Procesa la instrucción o texto del usuario y genera una respuesta clara, bien redactada en español, lista para ser insertada en el documento."
+			resp, err := ai.ExecuteLLM(a.config.LLM, sysPrompt, text)
+			if err != nil {
+				a.EmitEvent("mcp:insert_text", fmt.Sprintf("%s\n\n[⚠️ Error de IA (%s): %v]", text, prov, err))
+				return
+			}
+			a.EmitEvent("mcp:insert_text", resp)
+		}()
 	} else {
 		a.EmitEvent("mcp:insert_text", text)
 	}
