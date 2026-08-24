@@ -40,6 +40,7 @@ export default function ProjectSidebar({
   onDeleteFile,
   onNewJournalEntry,
   onNewUnassignedTopic,
+  onQuickVoiceCapture,
   onOpenPlacementAssistant,
   onOpenTimeline,
   lastSaved
