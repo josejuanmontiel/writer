@@ -663,15 +663,14 @@ function App() {
       <div className="fixed bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-amber-500/5 blur-[140px] rounded-full pointer-events-none z-0" />
 
       {/* Header Fijo y Limpio (Sin solapamientos ni auto-hide invasivo) */}
-      <header className="w-full h-14 bg-slate-950/95 border-b border-slate-800/80 flex items-center justify-between px-4 z-40 shrink-0 shadow-md backdrop-blur-md relative">
+      <header className="w-full h-14 bg-slate-950/95 border-b border-slate-800/80 flex items-center justify-between px-3 gap-2 z-40 shrink-0 shadow-md backdrop-blur-md">
         
         {/* Zona 1: Contexto y Navegación (Izquierda) */}
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 bg-brand-accent rounded-lg flex items-center justify-center font-bold font-outfit shadow-md shadow-brand-accent/30 text-sm">
+        <div className="flex items-center gap-2.5 shrink-0">
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 bg-brand-accent rounded-lg flex items-center justify-center font-bold font-outfit shadow-md shadow-brand-accent/30 text-sm shrink-0">
               <span>A</span>
             </div>
-            <h1 className="text-sm font-semibold tracking-tight font-outfit hidden xl:block">Antigravity Writer</h1>
             
             {/* Workspace Selector Dropdown */}
             <WorkspaceSelector
@@ -693,10 +692,10 @@ function App() {
           </div>
 
           {/* Selector de Vista (Escritura / Vista Dual / Grafo 2.0) */}
-          <div className="flex bg-slate-900/80 p-0.5 rounded-lg border border-slate-800">
+          <div className="flex bg-slate-900/80 p-0.5 rounded-lg border border-slate-800 shrink-0">
             <button
               onClick={() => setView('Escritura')}
-              className={`flex items-center gap-1.5 px-3 py-1 rounded-md transition-all text-xs font-medium ${
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md transition-all text-xs font-medium ${
                 view === 'Escritura' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400 hover:text-white'
               }`}
             >
@@ -705,7 +704,7 @@ function App() {
             </button>
             <button
               onClick={() => setView('Dual')}
-              className={`flex items-center gap-1.5 px-3 py-1 rounded-md transition-all text-xs font-medium ${
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md transition-all text-xs font-medium ${
                 view === 'Dual' ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-400 hover:text-white'
               }`}
               title="Vista dual sincronizada maestro / alumno"
@@ -715,9 +714,10 @@ function App() {
             </button>
             <button
               onClick={() => setView('Grafo')}
-              className={`flex items-center gap-1.5 px-3 py-1 rounded-md transition-all text-xs font-medium ${
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md transition-all text-xs font-medium ${
                 view === 'Grafo' || view === 'Diagrama' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400 hover:text-white'
               }`}
+              title="Grafo ontológico curricular interactivo"
             >
               <Layers size={13} />
               <span>Grafo 2.0</span>
@@ -726,7 +726,7 @@ function App() {
         </div>
 
         {/* Zona 2: Cápsula Central de Captura e IA (Centro) */}
-        <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2 bg-slate-900/90 px-2 py-1 rounded-xl border border-slate-800 shadow-md">
+        <div className="flex items-center gap-1.5 bg-slate-900/90 px-2 py-1 rounded-xl border border-slate-800 shadow-md shrink-0">
           {/* Dictar / Mic */}
           <button
             onClick={() => {

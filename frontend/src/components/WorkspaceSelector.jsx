@@ -42,12 +42,12 @@ export default function WorkspaceSelector({
       {/* Trigger Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-black/40 hover:bg-black/60 border border-white/10 text-xs text-slate-200 transition-all shadow-sm max-w-[280px]"
+        className="flex items-center gap-2 px-2.5 py-1 rounded-lg bg-black/40 hover:bg-black/60 border border-white/10 text-xs text-slate-200 transition-all shadow-sm max-w-[210px]"
       >
-        <div className={`p-1 rounded-md ${activeCompendium ? 'bg-indigo-500/20 text-indigo-400' : 'bg-amber-500/20 text-amber-400'}`}>
+        <div className={`p-1 rounded-md shrink-0 ${activeCompendium ? 'bg-indigo-500/20 text-indigo-400' : 'bg-amber-500/20 text-amber-400'}`}>
           {activeCompendium ? <Compass className="w-3.5 h-3.5" /> : <Edit3 className="w-3.5 h-3.5" />}
         </div>
-        <div className="flex flex-col text-left truncate">
+        <div className="flex flex-col text-left truncate min-w-0">
           <span className="text-[10px] text-slate-500 font-medium uppercase tracking-wider leading-none mb-0.5">
             {activeCompendium ? 'Workspace' : 'Modo Libre'}
           </span>
