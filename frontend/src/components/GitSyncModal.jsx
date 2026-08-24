@@ -2,38 +2,49 @@ import React, { useState, useEffect } from 'react';
 import { 
   X, 
   GitBranch, 
+  GitPullRequest,
+  Plus,
   UploadCloud, 
   DownloadCloud, 
   RefreshCw, 
   Check, 
   AlertCircle, 
-  Key, 
   Globe, 
-  User, 
-  ArrowUpRight,
   ShieldCheck,
-  HardDrive
+  ExternalLink,
+  GitFork,
+  CheckCircle2
 } from 'lucide-react';
 import { 
   GetGitRemoteInfo, 
   SetGitRemote, 
   PushGitRemote, 
   PullGitRemote, 
+  GetGitBranches,
+  CreateGitBranch,
+  CheckoutGitBranch,
+  GetGitPullRequestURL,
   GetConfig, 
   UpdateConfig 
 } from '../../wailsjs/go/main/App';
+import { BrowserOpenURL } from '../../wailsjs/runtime/runtime';
 
 export default function GitSyncModal({ isOpen, onClose, onRefreshTree }) {
   const [remoteInfo, setRemoteInfo] = useState(null);
+  const [branches, setBranches] = useState([]);
+  const [currentBranch, setCurrentBranch] = useState('main');
   const [loading, setLoading] = useState(false);
   const [syncing, setSyncing] = useState(false);
-  const [syncType, setSyncType] = useState(null); // 'push' | 'pull'
+  const [syncType, setSyncType] = useState(null); // 'push' | 'pull' | 'branch'
   const [errorMsg, setErrorMsg] = useState(null);
   const [successMsg, setSuccessMsg] = useState(null);
 
+  // New Branch UI state
+  const [showNewBranchForm, setShowNewBranchForm] = useState(false);
+  const [newBranchName, setNewBranchName] = useState('');
+
   // Configuration form state
   const [remoteUrl, setRemoteUrl] = useState('');
-  const [branch, setBranch] = useState('main');
   const [username, setUsername] = useState('');
   const [token, setToken] = useState('');
   const [showToken, setShowToken] = useState(false);
@@ -51,7 +62,6 @@ export default function GitSyncModal({ isOpen, onClose, onRefreshTree }) {
       const cfg = await GetConfig();
       if (cfg && cfg.git_remote) {
         setRemoteUrl(cfg.git_remote.remote_url || '');
-        setBranch(cfg.git_remote.branch || 'main');
         setUsername(cfg.git_remote.username || '');
         setToken(cfg.git_remote.token || '');
       }
@@ -63,11 +73,19 @@ export default function GitSyncModal({ isOpen, onClose, onRefreshTree }) {
           setRemoteUrl(info.url);
         }
         if (info.current_branch) {
-          setBranch(info.current_branch);
+          setCurrentBranch(info.current_branch);
+        }
+      }
+
+      const branchData = await GetGitBranches();
+      if (branchData) {
+        setBranches(branchData.branches || []);
+        if (branchData.current_branch) {
+          setCurrentBranch(branchData.current_branch);
         }
       }
     } catch (err) {
-      console.error('Error cargando información remota de Git:', err);
+      console.error('Error cargando información de Git:', err);
       setErrorMsg(err.toString());
     } finally {
       setLoading(false);
@@ -89,7 +107,7 @@ export default function GitSyncModal({ isOpen, onClose, onRefreshTree }) {
         ...currentCfg,
         git_remote: {
           remote_url: remoteUrl.trim(),
-          branch: branch.trim() || 'main',
+          branch: currentBranch || 'main',
           username: username.trim(),
           token: token.trim()
         }
@@ -112,7 +130,7 @@ export default function GitSyncModal({ isOpen, onClose, onRefreshTree }) {
     setErrorMsg(null);
     try {
       await PushGitRemote(token, username);
-      setSuccessMsg('¡Sincronización PUSH completada! Tus cambios están en el remoto.');
+      setSuccessMsg(`¡Sincronización PUSH completada en rama [${currentBranch}]! Tus cambios están en el remoto.`);
       await loadData();
       if (onRefreshTree) onRefreshTree();
       setTimeout(() => setSuccessMsg(null), 4000);
@@ -130,7 +148,7 @@ export default function GitSyncModal({ isOpen, onClose, onRefreshTree }) {
     setErrorMsg(null);
     try {
       await PullGitRemote(token, username);
-      setSuccessMsg('¡Sincronización PULL completada! Cambios remotos integrados.');
+      setSuccessMsg(`¡Sincronización PULL completada en rama [${currentBranch}]! Cambios integrados.`);
       await loadData();
       if (onRefreshTree) onRefreshTree();
       setTimeout(() => setSuccessMsg(null), 4000);
@@ -139,6 +157,62 @@ export default function GitSyncModal({ isOpen, onClose, onRefreshTree }) {
     } finally {
       setSyncing(false);
       setSyncType(null);
+    }
+  };
+
+  const handleSwitchBranch = async (branchName) => {
+    if (branchName === currentBranch) return;
+    setSyncing(true);
+    setSyncType('branch');
+    setErrorMsg(null);
+    try {
+      await CheckoutGitBranch(branchName);
+      setSuccessMsg(`Cambiado exitosamente a la rama "${branchName}".`);
+      await loadData();
+      if (onRefreshTree) onRefreshTree();
+      setTimeout(() => setSuccessMsg(null), 3000);
+    } catch (err) {
+      setErrorMsg('Error cambiando de rama: ' + err.toString());
+    } finally {
+      setSyncing(false);
+      setSyncType(null);
+    }
+  };
+
+  const handleCreateBranch = async (e) => {
+    e.preventDefault();
+    const cleanName = newBranchName.trim().replace(/\s+/g, '-');
+    if (!cleanName) {
+      setErrorMsg('El nombre de la rama no puede estar vacío');
+      return;
+    }
+    setSyncing(true);
+    setErrorMsg(null);
+    try {
+      await CreateGitBranch(cleanName, true);
+      setSuccessMsg(`Rama "${cleanName}" creada y activada.`);
+      setNewBranchName('');
+      setShowNewBranchForm(false);
+      await loadData();
+      if (onRefreshTree) onRefreshTree();
+      setTimeout(() => setSuccessMsg(null), 3000);
+    } catch (err) {
+      setErrorMsg('Error creando rama: ' + err.toString());
+    } finally {
+      setSyncing(false);
+    }
+  };
+
+  const handleOpenPullRequest = async () => {
+    try {
+      const prUrl = await GetGitPullRequestURL('main');
+      if (prUrl) {
+        BrowserOpenURL(prUrl);
+      } else {
+        setErrorMsg('No se pudo generar la URL de Pull Request. Verifica que tengas remoto configurado.');
+      }
+    } catch (err) {
+      setErrorMsg('Error abriendo Pull Request: ' + err.toString());
     }
   };
 
@@ -156,13 +230,13 @@ export default function GitSyncModal({ isOpen, onClose, onRefreshTree }) {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-base font-bold text-white tracking-wide">Sincronización Git Remota</h2>
+                <h2 className="text-base font-bold text-white tracking-wide">Git-Flow & Sincronización</h2>
                 <span className="px-2 py-0.5 text-[10px] font-semibold bg-blue-500/20 text-blue-300 border border-blue-500/30 rounded-full">
-                  Push / Pull
+                  Ramas & PRs
                 </span>
               </div>
               <p className="text-xs text-slate-400">
-                Respalda tu compendio en GitHub, GitLab o servidor privado y colabora en equipo
+                Trabajo colaborativo en paralelo, gestión de ramas y sincronización remota
               </p>
             </div>
           </div>
@@ -191,7 +265,85 @@ export default function GitSyncModal({ isOpen, onClose, onRefreshTree }) {
 
         <div className="p-6 space-y-6 overflow-y-auto max-h-[75vh]">
 
-          {/* Estado Actual */}
+          {/* Sección 1: Gestión de Ramas y Trabajo en Paralelo */}
+          <div className="p-4 bg-slate-950/70 border border-slate-800 rounded-xl space-y-3.5">
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-slate-300 font-semibold flex items-center gap-1.5">
+                <GitFork size={15} className="text-indigo-400" />
+                <span>Ramas Locales (Trabajo en Paralelo)</span>
+              </span>
+              <button
+                onClick={() => setShowNewBranchForm(!showNewBranchForm)}
+                className="px-2.5 py-1 rounded-lg bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 text-[11px] font-medium flex items-center gap-1 transition-colors"
+              >
+                <Plus size={13} />
+                <span>{showNewBranchForm ? 'Cancelar' : 'Nueva Rama'}</span>
+              </button>
+            </div>
+
+            {/* Formulario Nueva Rama */}
+            {showNewBranchForm && (
+              <form onSubmit={handleCreateBranch} className="p-3 bg-slate-900 border border-indigo-500/30 rounded-xl space-y-2">
+                <label className="text-[11px] text-slate-300 font-medium block">Nombre de la nueva rama:</label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={newBranchName}
+                    onChange={(e) => setNewBranchName(e.target.value)}
+                    placeholder="autor/pedro-tema-sacramentos"
+                    className="flex-1 bg-slate-950 border border-slate-700 focus:border-indigo-500 rounded-lg px-3 py-1.5 text-xs text-white font-mono outline-none"
+                    autoFocus
+                  />
+                  <button
+                    type="submit"
+                    disabled={!newBranchName.trim() || syncing}
+                    className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-medium disabled:opacity-50 transition-colors"
+                  >
+                    Crear y Activar
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {/* Lista de ramas */}
+            <div className="flex flex-wrap gap-2 pt-1">
+              {branches.map((b) => (
+                <button
+                  key={b}
+                  onClick={() => handleSwitchBranch(b)}
+                  disabled={syncing}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-mono flex items-center gap-1.5 transition-all ${
+                    b === currentBranch
+                      ? 'bg-blue-600 text-white font-bold shadow-md shadow-blue-900/30 border border-blue-400/40'
+                      : 'bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800'
+                  }`}
+                >
+                  <GitBranch size={13} />
+                  <span>{b}</span>
+                  {b === currentBranch && <CheckCircle2 size={13} className="text-blue-200 ml-0.5" />}
+                </button>
+              ))}
+            </div>
+
+            {/* Botón de Pull Request (si estamos en rama secundaria y hay remoto) */}
+            {remoteInfo?.has_remote && currentBranch !== 'main' && currentBranch !== 'master' && (
+              <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between">
+                <span className="text-[11px] text-slate-400">
+                  ¿Listo para fusionar cambios con <strong>main</strong>?
+                </span>
+                <button
+                  onClick={handleOpenPullRequest}
+                  className="px-3 py-1.5 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/40 text-xs font-medium flex items-center gap-1.5 transition-colors"
+                >
+                  <GitPullRequest size={14} />
+                  <span>Crear Pull Request</span>
+                  <ExternalLink size={12} className="opacity-70" />
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Sección 2: Estado Remoto y Acciones Push / Pull */}
           <div className="p-4 bg-slate-950/60 border border-slate-800 rounded-xl space-y-3">
             <div className="flex items-center justify-between text-xs">
               <span className="text-slate-400 flex items-center gap-1.5 font-medium">
@@ -213,46 +365,39 @@ export default function GitSyncModal({ isOpen, onClose, onRefreshTree }) {
               </div>
             )}
 
-            {remoteInfo?.current_branch && (
-              <div className="flex items-center justify-between text-xs text-slate-400 pt-1">
-                <span>Rama Activa:</span>
-                <span className="font-mono font-semibold text-slate-200">🌿 {remoteInfo.current_branch}</span>
+            {/* Acciones de Sincronización */}
+            {remoteInfo?.has_remote && (
+              <div className="grid grid-cols-2 gap-3 pt-1">
+                <button
+                  onClick={handlePush}
+                  disabled={syncing}
+                  className="py-2.5 px-4 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-medium text-xs flex items-center justify-center gap-2 shadow-lg shadow-blue-950/40 transition-all disabled:opacity-50"
+                >
+                  {syncing && syncType === 'push' ? (
+                    <RefreshCw size={15} className="animate-spin" />
+                  ) : (
+                    <UploadCloud size={16} />
+                  )}
+                  <span>Subir ({currentBranch})</span>
+                </button>
+
+                <button
+                  onClick={handlePull}
+                  disabled={syncing}
+                  className="py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-100 border border-slate-700 font-medium text-xs flex items-center justify-center gap-2 transition-all disabled:opacity-50"
+                >
+                  {syncing && syncType === 'pull' ? (
+                    <RefreshCw size={15} className="animate-spin" />
+                  ) : (
+                    <DownloadCloud size={16} />
+                  )}
+                  <span>Descargar ({currentBranch})</span>
+                </button>
               </div>
             )}
           </div>
 
-          {/* Acciones de Sincronización */}
-          {remoteInfo?.has_remote && (
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                onClick={handlePush}
-                disabled={syncing}
-                className="py-3 px-4 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-medium text-xs flex items-center justify-center gap-2 shadow-lg shadow-blue-950/40 transition-all disabled:opacity-50"
-              >
-                {syncing && syncType === 'push' ? (
-                  <RefreshCw size={15} className="animate-spin" />
-                ) : (
-                  <UploadCloud size={16} />
-                )}
-                <span>Subir Cambios (Push)</span>
-              </button>
-
-              <button
-                onClick={handlePull}
-                disabled={syncing}
-                className="py-3 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-100 border border-slate-700 font-medium text-xs flex items-center justify-center gap-2 transition-all disabled:opacity-50"
-              >
-                {syncing && syncType === 'pull' ? (
-                  <RefreshCw size={15} className="animate-spin" />
-                ) : (
-                  <DownloadCloud size={16} />
-                )}
-                <span>Descargar Cambios (Pull)</span>
-              </button>
-            </div>
-          )}
-
-          {/* Formulario de Configuración Remota */}
+          {/* Sección 3: Formulario de Configuración Remota */}
           <div className="space-y-4 pt-2 border-t border-slate-800">
             <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400">
               Configuración de Conexión Remota
@@ -269,28 +414,15 @@ export default function GitSyncModal({ isOpen, onClose, onRefreshTree }) {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium text-slate-300">Rama Remota</label>
-                <input
-                  type="text"
-                  value={branch}
-                  onChange={(e) => setBranch(e.target.value)}
-                  placeholder="main"
-                  className="w-full bg-slate-950/80 border border-slate-800 focus:border-blue-500 rounded-xl px-3.5 py-2 text-xs font-mono text-slate-200 outline-none transition-colors"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium text-slate-300">Usuario (Opcional)</label>
-                <input
-                  type="text"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  placeholder="oauth2 / tu-usuario"
-                  className="w-full bg-slate-950/80 border border-slate-800 focus:border-blue-500 rounded-xl px-3.5 py-2 text-xs text-slate-200 outline-none transition-colors"
-                />
-              </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-slate-300">Usuario (Opcional)</label>
+              <input
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="oauth2 / tu-usuario"
+                className="w-full bg-slate-950/80 border border-slate-800 focus:border-blue-500 rounded-xl px-3.5 py-2 text-xs text-slate-200 outline-none transition-colors"
+              />
             </div>
 
             <div className="space-y-1.5">

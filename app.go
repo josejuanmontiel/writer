@@ -24,7 +24,7 @@ import (
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
-const AppVersion = "v1.3.1"
+const AppVersion = "v1.3.2"
 
 // App struct
 type App struct {
@@ -258,33 +258,39 @@ func (a *App) StopRecording(mode string, isAiMode bool) (string, error) {
 
 	fmt.Printf("📊 Audio capturado: %d bytes (~%.2f segundos)\n", len(buffer), float64(len(buffer))/(16000*2))
 
-	fmt.Printf("💾 Guardando audio temporal en: %s\n", a.config.AudioTempPath)
-	err = audio.SaveWav(a.config.AudioTempPath, buffer)
+	tempPath := a.config.AudioTempPath
+	if tempPath == "" {
+		tempPath = filepath.Join(os.TempDir(), "antigravity_dictation.wav")
+	}
+
+	fmt.Printf("💾 Guardando audio temporal en: %s\n", tempPath)
+	err = audio.SaveWav(tempPath, buffer)
 	if err != nil {
+		fmt.Printf("❌ Error guardando audio temporal en %s: %v\n", tempPath, err)
 		return "", err
 	}
 
 	var text string
 	if a.config.Whisper.UseLocal {
-		fmt.Printf("🤖 Transcribiendo localmente (modelo: %s, hilos: %d)...\n", a.config.Whisper.Local.Model, a.config.Whisper.Local.Threads)
+		fmt.Printf("🤖 Transcribiendo localmente con Whisper (modelo: %s, hilos: %d)...\n", a.config.Whisper.Local.Model, a.config.Whisper.Local.Threads)
 		text, err = a.aiProcessor.ModelManager.TranscribeLocal(
-			a.config.AudioTempPath, 
+			tempPath, 
 			a.config.Whisper.Local.Model, 
 			a.config.Whisper.Language, 
 			a.config.Whisper.Local.Threads,
 		)
 	} else {
-		fmt.Printf("🌐 Transcribiendo remotamente (URL: %s)...\n", a.config.Whisper.Remote.URL)
+		fmt.Printf("🌐 Transcribiendo remotamente con Whisper (URL: %s)...\n", a.config.Whisper.Remote.URL)
 		text, err = ai.ProcessAudioRemote(
 			a.config.Whisper.Remote.URL, 
 			a.config.Whisper.Remote.Model, 
 			a.config.Whisper.Language, 
-			a.config.AudioTempPath,
+			tempPath,
 		)
 	}
 
 	if err != nil {
-		fmt.Printf("❌ Error en la transcripción: %v\n", err)
+		fmt.Printf("❌ Error en la transcripción Whisper: %v\n", err)
 		return "", err
 	}
 
@@ -304,6 +310,9 @@ func (a *App) StopRecording(mode string, isAiMode bool) (string, error) {
 func (a *App) TranscribeAudioFile(path string) (string, error) {
 	if path == "" {
 		path = a.config.AudioTempPath
+		if path == "" {
+			path = filepath.Join(os.TempDir(), "antigravity_dictation.wav")
+		}
 	}
 	if a.aiProcessor == nil || a.aiProcessor.ModelManager == nil {
 		return "", fmt.Errorf("AI Processor no inicializado")
@@ -1378,11 +1387,11 @@ func (a *App) DeleteModel(modelID string) error {
 
 // ExtractSelectionToUnassigned extrae un fragmento de texto seleccionado y crea un tema flotante independiente
 func (a *App) ExtractSelectionToUnassigned(sourceRelPath string, selectionText string, title string) (map[string]string, error) {
-	if a.compendiumManager == nil {
+	if a.activeCompendium == nil {
 		return nil, fmt.Errorf("no hay ningún compendio abierto")
 	}
-	targetDir := a.compendiumManager.GetTargetDir()
-	meta := a.compendiumManager.GetMeta()
+	targetDir := a.activeCompendium.Path
+	meta := a.activeCompendium.Meta
 
 	unassignedRel, modifiedSource, err := storage.ExtractSelectionToUnassigned(targetDir, sourceRelPath, selectionText, title, meta.Author, meta.Email)
 	if err != nil {
@@ -1391,19 +1400,7 @@ func (a *App) ExtractSelectionToUnassigned(sourceRelPath string, selectionText s
 
 	// Extraer subgrafo automáticamente para la nueva idea en background
 	go func() {
-		cleanContent := a.cleanHtmlForExtraction(selectionText)
-		if cleanContent != "" && a.glinerExtractor != nil {
-			chGraph, extErr := a.glinerExtractor.ExtractChapterGraph(cleanContent, unassignedRel, title)
-			if extErr == nil {
-				for i := range chGraph.Nodes {
-					chGraph.Nodes[i].IsUnassigned = true
-				}
-				storage.SaveChapterGraph(targetDir, chGraph)
-				globalGraph, _ := storage.LoadGlobalGraph(targetDir)
-				globalGraph = storage.MergeChapterGraph(globalGraph, chGraph)
-				storage.SaveGlobalGraph(targetDir, globalGraph)
-			}
-		}
+		_, _ = a.ExtractAndMergeChapterGraph(unassignedRel, selectionText)
 	}()
 
 	return map[string]string{
@@ -1414,21 +1411,21 @@ func (a *App) ExtractSelectionToUnassigned(sourceRelPath string, selectionText s
 
 // EmbedUnassignedTopicIntoSession incrusta una nota o lección flotante dentro de una sesión ya existente
 func (a *App) EmbedUnassignedTopicIntoSession(unassignedRelPath string, targetSessionRelPath string, embedMode string) error {
-	if a.compendiumManager == nil {
+	if a.activeCompendium == nil {
 		return fmt.Errorf("no hay ningún compendio abierto")
 	}
-	targetDir := a.compendiumManager.GetTargetDir()
-	meta := a.compendiumManager.GetMeta()
+	targetDir := a.activeCompendium.Path
+	meta := a.activeCompendium.Meta
 
 	return storage.EmbedUnassignedTopicIntoSession(targetDir, unassignedRelPath, targetSessionRelPath, embedMode, meta.Author, meta.Email)
 }
 
 // GetCurriculumCoherenceMatrix genera la matriz de cobertura y mapa de calor de conceptos vs sesiones ordenadas
 func (a *App) GetCurriculumCoherenceMatrix() (*storage.CurriculumMatrix, error) {
-	if a.compendiumManager == nil {
+	if a.activeCompendium == nil {
 		return nil, fmt.Errorf("no hay ningún compendio abierto")
 	}
-	targetDir := a.compendiumManager.GetTargetDir()
+	targetDir := a.activeCompendium.Path
 	return storage.GetCurriculumCoherenceMatrix(targetDir)
 }
 
@@ -1438,37 +1435,37 @@ func (a *App) GetCurriculumCoherenceMatrix() (*storage.CurriculumMatrix, error) 
 
 // GetCurriculumLintReport genera el informe de inconsistencias y salud ontológica del compendio
 func (a *App) GetCurriculumLintReport() (*storage.CurriculumLintReport, error) {
-	if a.compendiumManager == nil {
+	if a.activeCompendium == nil {
 		return nil, fmt.Errorf("no hay ningún compendio abierto")
 	}
-	targetDir := a.compendiumManager.GetTargetDir()
+	targetDir := a.activeCompendium.Path
 	return storage.GetCurriculumLintReport(targetDir)
 }
 
 // SaveGlobalGraphPositions persiste las coordenadas de los nodos arrastrados en el visualizador
 func (a *App) SaveGlobalGraphPositions(positions map[string]storage.NodePosition) error {
-	if a.compendiumManager == nil {
+	if a.activeCompendium == nil {
 		return fmt.Errorf("no hay ningún compendio abierto")
 	}
-	targetDir := a.compendiumManager.GetTargetDir()
+	targetDir := a.activeCompendium.Path
 	return storage.SaveGlobalGraphPositions(targetDir, positions)
 }
 
 // SaveGlobalGraphManualEdge añade o actualiza una relación conceptual manual
 func (a *App) SaveGlobalGraphManualEdge(source string, target string, label string) error {
-	if a.compendiumManager == nil {
+	if a.activeCompendium == nil {
 		return fmt.Errorf("no hay ningún compendio abierto")
 	}
-	targetDir := a.compendiumManager.GetTargetDir()
+	targetDir := a.activeCompendium.Path
 	return storage.SaveGlobalGraphManualEdge(targetDir, source, target, label)
 }
 
 // DeleteGlobalGraphEdge elimina una arista entre dos nodos en el grafo global
 func (a *App) DeleteGlobalGraphEdge(source string, target string) error {
-	if a.compendiumManager == nil {
+	if a.activeCompendium == nil {
 		return fmt.Errorf("no hay ningún compendio abierto")
 	}
-	targetDir := a.compendiumManager.GetTargetDir()
+	targetDir := a.activeCompendium.Path
 	return storage.DeleteGlobalGraphEdge(targetDir, source, target)
 }
 
@@ -1493,11 +1490,11 @@ func (a *App) DeriveSimplifiedVersion(masterContent string, lessonTitle string) 
 
 // SaveDerivedLesson guarda una lección derivada en el compendio
 func (a *App) SaveDerivedLesson(relPath string, content string, title string) (string, error) {
-	if a.compendiumManager == nil {
+	if a.activeCompendium == nil {
 		return "", fmt.Errorf("no hay ningún compendio abierto")
 	}
-	targetDir := a.compendiumManager.GetTargetDir()
-	meta := a.compendiumManager.GetMeta()
+	targetDir := a.activeCompendium.Path
+	meta := a.activeCompendium.Meta
 
 	fullPath := filepath.Join(targetDir, filepath.Clean(relPath))
 	if err := os.MkdirAll(filepath.Dir(fullPath), 0755); err != nil {
@@ -1523,20 +1520,20 @@ func (a *App) CalculateSessionPacing(content string, conceptsCount int, targetMi
 
 // ExtractCompendiumGlossary extrae el glosario completo del curso
 func (a *App) ExtractCompendiumGlossary() (*storage.CompendiumGlossary, error) {
-	if a.compendiumManager == nil {
+	if a.activeCompendium == nil {
 		return nil, fmt.Errorf("no hay ningún compendio abierto")
 	}
-	targetDir := a.compendiumManager.GetTargetDir()
+	targetDir := a.activeCompendium.Path
 	return storage.ExtractCompendiumGlossary(targetDir)
 }
 
 // GenerateGlossaryAsciidoc genera el archivo content/glosario.adoc en el compendio
 func (a *App) GenerateGlossaryAsciidoc() (string, error) {
-	if a.compendiumManager == nil {
+	if a.activeCompendium == nil {
 		return "", fmt.Errorf("no hay ningún compendio abierto")
 	}
-	targetDir := a.compendiumManager.GetTargetDir()
-	meta := a.compendiumManager.GetMeta()
+	targetDir := a.activeCompendium.Path
+	meta := a.activeCompendium.Meta
 
 	relPath, err := storage.GenerateGlossaryAsciidoc(targetDir)
 	if err != nil {
@@ -1549,46 +1546,46 @@ func (a *App) GenerateGlossaryAsciidoc() (string, error) {
 
 // ExtractCompendiumResources compila el inventario de materiales y recursos necesarios
 func (a *App) ExtractCompendiumResources() (*storage.ResourceMatrix, error) {
-	if a.compendiumManager == nil {
+	if a.activeCompendium == nil {
 		return nil, fmt.Errorf("no hay ningún compendio abierto")
 	}
-	targetDir := a.compendiumManager.GetTargetDir()
+	targetDir := a.activeCompendium.Path
 	return storage.ExtractCompendiumResources(targetDir)
 }
 
 // SaveVoiceMemo guarda un audio de consejo docente adjunto a una sesión
 func (a *App) SaveVoiceMemo(sessionRelPath string, audioBase64 string, title string) (*storage.VoiceMemo, error) {
-	if a.compendiumManager == nil {
+	if a.activeCompendium == nil {
 		return nil, fmt.Errorf("no hay ningún compendio abierto")
 	}
-	targetDir := a.compendiumManager.GetTargetDir()
+	targetDir := a.activeCompendium.Path
 	return storage.SaveVoiceMemo(targetDir, sessionRelPath, audioBase64, title)
 }
 
 // GetVoiceMemos obtiene los memos de voz de una sesión o de todo el compendio
 func (a *App) GetVoiceMemos(sessionRelPath string) ([]storage.VoiceMemo, error) {
-	if a.compendiumManager == nil {
+	if a.activeCompendium == nil {
 		return []storage.VoiceMemo{}, nil
 	}
-	targetDir := a.compendiumManager.GetTargetDir()
+	targetDir := a.activeCompendium.Path
 	return storage.GetVoiceMemos(targetDir, sessionRelPath)
 }
 
 // DeleteVoiceMemo elimina una nota de voz
 func (a *App) DeleteVoiceMemo(memoID string) error {
-	if a.compendiumManager == nil {
+	if a.activeCompendium == nil {
 		return fmt.Errorf("no hay ningún compendio abierto")
 	}
-	targetDir := a.compendiumManager.GetTargetDir()
+	targetDir := a.activeCompendium.Path
 	return storage.DeleteVoiceMemo(targetDir, memoID)
 }
 
 // GetVoiceMemoAudio obtiene el audio base64 para reproducir
 func (a *App) GetVoiceMemoAudio(audioRelPath string) (string, error) {
-	if a.compendiumManager == nil {
+	if a.activeCompendium == nil {
 		return "", fmt.Errorf("no hay ningún compendio abierto")
 	}
-	targetDir := a.compendiumManager.GetTargetDir()
+	targetDir := a.activeCompendium.Path
 	return storage.GetVoiceMemoAudio(targetDir, audioRelPath)
 }
 
@@ -1598,11 +1595,11 @@ func (a *App) GetVoiceMemoAudio(audioRelPath string) (string, error) {
 
 // SaveAsset guarda una imagen o archivo en assets/ y hace commit silencioso en Git
 func (a *App) SaveAsset(subFolder string, filename string, base64Data string) (*storage.AssetInfo, error) {
-	if a.compendiumManager == nil {
+	if a.activeCompendium == nil {
 		return nil, fmt.Errorf("no hay ningún compendio abierto")
 	}
-	targetDir := a.compendiumManager.GetTargetDir()
-	meta := a.compendiumManager.GetMeta()
+	targetDir := a.activeCompendium.Path
+	meta := a.activeCompendium.Meta
 
 	asset, err := storage.SaveAsset(targetDir, subFolder, filename, base64Data)
 	if err != nil {
@@ -1615,20 +1612,20 @@ func (a *App) SaveAsset(subFolder string, filename string, base64Data string) (*
 
 // ListCompendiumAssets obtiene la mediateca completa con referencias cruzadas e imágenes huérfanas
 func (a *App) ListCompendiumAssets() (*storage.AssetGallery, error) {
-	if a.compendiumManager == nil {
+	if a.activeCompendium == nil {
 		return nil, fmt.Errorf("no hay ningún compendio abierto")
 	}
-	targetDir := a.compendiumManager.GetTargetDir()
+	targetDir := a.activeCompendium.Path
 	return storage.ListCompendiumAssets(targetDir)
 }
 
 // DeleteAsset elimina un archivo de assets/
 func (a *App) DeleteAsset(relativePath string) error {
-	if a.compendiumManager == nil {
+	if a.activeCompendium == nil {
 		return fmt.Errorf("no hay ningún compendio abierto")
 	}
-	targetDir := a.compendiumManager.GetTargetDir()
-	meta := a.compendiumManager.GetMeta()
+	targetDir := a.activeCompendium.Path
+	meta := a.activeCompendium.Meta
 
 	if err := storage.DeleteAsset(targetDir, relativePath); err != nil {
 		return err
@@ -1640,10 +1637,10 @@ func (a *App) DeleteAsset(relativePath string) error {
 
 // GetAssetBase64 obtiene el contenido en base64 de un archivo multimedia para previsualizarlo
 func (a *App) GetAssetBase64(relativePath string) (string, error) {
-	if a.compendiumManager == nil {
+	if a.activeCompendium == nil {
 		return "", fmt.Errorf("no hay ningún compendio abierto")
 	}
-	targetDir := a.compendiumManager.GetTargetDir()
+	targetDir := a.activeCompendium.Path
 	b64, _, err := storage.GetAssetBase64(targetDir, relativePath)
 	return b64, err
 }
@@ -1664,11 +1661,11 @@ func (a *App) StructureTranscription(rawTranscript string, sessionTitle string, 
 
 // SaveSessionAudioResource guarda una grabación de sesión completa en assets/audio/
 func (a *App) SaveSessionAudioResource(sessionSlug string, filename string, audioBase64 string) (*storage.AssetInfo, error) {
-	if a.compendiumManager == nil {
+	if a.activeCompendium == nil {
 		return nil, fmt.Errorf("no hay ningún compendio abierto")
 	}
-	targetDir := a.compendiumManager.GetTargetDir()
-	meta := a.compendiumManager.GetMeta()
+	targetDir := a.activeCompendium.Path
+	meta := a.activeCompendium.Meta
 
 	asset, err := storage.SaveSessionAudioResource(targetDir, sessionSlug, filename, audioBase64)
 	if err != nil {
@@ -1681,11 +1678,11 @@ func (a *App) SaveSessionAudioResource(sessionSlug string, filename string, audi
 
 // SaveVoiceStructuredSession persiste la nueva lección generada y su audio en el compendio
 func (a *App) SaveVoiceStructuredSession(moduleSlug string, sessionSlug string, title string, content string, audioRelPath string) (string, error) {
-	if a.compendiumManager == nil {
+	if a.activeCompendium == nil {
 		return "", fmt.Errorf("no hay ningún compendio abierto")
 	}
-	targetDir := a.compendiumManager.GetTargetDir()
-	meta := a.compendiumManager.GetMeta()
+	targetDir := a.activeCompendium.Path
+	meta := a.activeCompendium.Meta
 
 	relPath, err := storage.SaveVoiceStructuredSession(targetDir, moduleSlug, sessionSlug, title, content, audioRelPath)
 	if err != nil {
@@ -1921,6 +1918,88 @@ func (a *App) getActiveCompendiumPath() string {
 	}
 	return ""
 }
+
+// GetGitBranches obtiene la lista de ramas locales y la rama activa
+func (a *App) GetGitBranches() (map[string]interface{}, error) {
+	targetDir := a.getActiveCompendiumPath()
+	if targetDir == "" {
+		return nil, fmt.Errorf("no hay ningún compendio abierto")
+	}
+
+	branches, current, err := git.ListBranches(targetDir)
+	if err != nil {
+		return nil, err
+	}
+
+	return map[string]interface{}{
+		"branches":       branches,
+		"current_branch": current,
+	}, nil
+}
+
+// CreateGitBranch crea una nueva rama y opcionalmente cambia a ella
+func (a *App) CreateGitBranch(branchName string, checkout bool) error {
+	targetDir := a.getActiveCompendiumPath()
+	if targetDir == "" {
+		return fmt.Errorf("no hay ningún compendio abierto")
+	}
+
+	err := git.CreateBranch(targetDir, branchName, checkout)
+	if err != nil {
+		return err
+	}
+
+	if checkout && a.config != nil {
+		a.config.GitRemote.Branch = branchName
+		_ = config.Save(a.config)
+	}
+
+	return nil
+}
+
+// CheckoutGitBranch cambia la rama activa del compendio
+func (a *App) CheckoutGitBranch(branchName string) error {
+	targetDir := a.getActiveCompendiumPath()
+	if targetDir == "" {
+		return fmt.Errorf("no hay ningún compendio abierto")
+	}
+
+	err := git.CheckoutBranch(targetDir, branchName)
+	if err != nil {
+		return err
+	}
+
+	if a.config != nil {
+		a.config.GitRemote.Branch = branchName
+		_ = config.Save(a.config)
+	}
+
+	return nil
+}
+
+// GetGitPullRequestURL genera el enlace directo para crear una PR en GitHub / GitLab
+func (a *App) GetGitPullRequestURL(targetBranch string) (string, error) {
+	targetDir := a.getActiveCompendiumPath()
+	if targetDir == "" {
+		return "", fmt.Errorf("no hay ningún compendio abierto")
+	}
+
+	info, err := git.GetRemoteInfo(targetDir, "origin")
+	if err != nil {
+		return "", err
+	}
+
+	if !info.HasRemote || info.URL == "" {
+		return "", fmt.Errorf("el compendio no tiene configurado un repositorio remoto")
+	}
+
+	if targetBranch == "" {
+		targetBranch = "main"
+	}
+
+	return git.GetPullRequestURL(info.URL, info.CurrentBranch, targetBranch), nil
+}
+
 
 
 

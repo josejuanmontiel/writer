@@ -430,6 +430,23 @@ export function TestLLMConnection(arg1) {
   return window['go']['main']['App']['TestLLMConnection'](arg1);
 }
 
+export function GetGitBranches() {
+  return window['go']['main']['App']['GetGitBranches']();
+}
+
+export function CreateGitBranch(arg1, arg2) {
+  return window['go']['main']['App']['CreateGitBranch'](arg1, arg2);
+}
+
+export function CheckoutGitBranch(arg1) {
+  return window['go']['main']['App']['CheckoutGitBranch'](arg1);
+}
+
+export function GetGitPullRequestURL(arg1) {
+  return window['go']['main']['App']['GetGitPullRequestURL'](arg1);
+}
+
+
 
 
 

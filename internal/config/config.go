@@ -95,7 +95,7 @@ func Load() (*Config, error) {
 			LLMURL:          "http://localhost:8000/v3/chat/completions",
 			KokoroURL:       "http://localhost:8880/v1/audio/speech",
 			RecordingDevice: "virtmic",
-			AudioTempPath:   "/tmp/antigravity_dictation.wav",
+			AudioTempPath:   filepath.Join(os.TempDir(), "antigravity_dictation.wav"),
 		}
 		c.Whisper.UseLocal = true
 		c.Whisper.Language = "es"
@@ -121,6 +121,11 @@ func Load() (*Config, error) {
 	err = json.Unmarshal(file, &c)
 	if err != nil {
 		return nil, err
+	}
+
+	// Fallback para AudioTempPath si viene vacío
+	if c.AudioTempPath == "" {
+		c.AudioTempPath = filepath.Join(os.TempDir(), "antigravity_dictation.wav")
 	}
 
 	// Migración/Compatibilidad hacia atrás para LLM

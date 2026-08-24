@@ -168,3 +168,117 @@ func PullRemote(repoPath string, remoteName string, branchName string, token str
 
 	return nil
 }
+
+// ListBranches lista todas las ramas locales y devuelve la rama activa
+func ListBranches(repoPath string) ([]string, string, error) {
+	repo, err := OpenRepo(repoPath)
+	if err != nil {
+		return nil, "", err
+	}
+
+	currentBranch := "main"
+	head, err := repo.Head()
+	if err == nil {
+		currentBranch = head.Name().Short()
+	}
+
+	branchesIter, err := repo.Branches()
+	if err != nil {
+		return []string{currentBranch}, currentBranch, nil
+	}
+
+	var branches []string
+	_ = branchesIter.ForEach(func(ref *plumbing.Reference) error {
+		branches = append(branches, ref.Name().Short())
+		return nil
+	})
+
+	if len(branches) == 0 {
+		branches = append(branches, currentBranch)
+	}
+
+	return branches, currentBranch, nil
+}
+
+// CreateBranch crea una nueva rama y opcionalmente hace checkout
+func CreateBranch(repoPath string, branchName string, checkout bool) error {
+	repo, err := OpenRepo(repoPath)
+	if err != nil {
+		return err
+	}
+
+	branchName = strings.TrimSpace(branchName)
+	if branchName == "" {
+		return fmt.Errorf("el nombre de la rama no puede estar vacío")
+	}
+
+	head, err := repo.Head()
+	if err != nil {
+		return fmt.Errorf("no se pudo obtener el commit actual (HEAD): %w", err)
+	}
+
+	branchRefName := plumbing.NewBranchReferenceName(branchName)
+	ref := plumbing.NewHashReference(branchRefName, head.Hash())
+	if err := repo.Storer.SetReference(ref); err != nil {
+		return fmt.Errorf("error creando rama %s: %w", branchName, err)
+	}
+
+	if checkout {
+		return CheckoutBranch(repoPath, branchName)
+	}
+	return nil
+}
+
+// CheckoutBranch cambia el árbol de trabajo a la rama indicada
+func CheckoutBranch(repoPath string, branchName string) error {
+	repo, err := OpenRepo(repoPath)
+	if err != nil {
+		return err
+	}
+
+	branchName = strings.TrimSpace(branchName)
+	wt, err := repo.Worktree()
+	if err != nil {
+		return fmt.Errorf("error accediendo al árbol de trabajo: %w", err)
+	}
+
+	err = wt.Checkout(&git.CheckoutOptions{
+		Branch: plumbing.NewBranchReferenceName(branchName),
+	})
+	if err != nil {
+		return fmt.Errorf("error al cambiar a la rama %s: %w", branchName, err)
+	}
+
+	return nil
+}
+
+// GetPullRequestURL construye la URL web para crear una Pull Request / Merge Request directa
+func GetPullRequestURL(remoteURL string, sourceBranch string, targetBranch string) string {
+	remoteURL = strings.TrimSpace(remoteURL)
+	if remoteURL == "" || sourceBranch == "" {
+		return ""
+	}
+	if targetBranch == "" {
+		targetBranch = "main"
+	}
+
+	// Normalizar URLs SSH (git@github.com:usuario/repo.git -> https://github.com/usuario/repo)
+	cleanURL := remoteURL
+	if strings.HasPrefix(cleanURL, "git@") {
+		cleanURL = strings.TrimPrefix(cleanURL, "git@")
+		cleanURL = strings.Replace(cleanURL, ":", "/", 1)
+		cleanURL = "https://" + cleanURL
+	}
+	cleanURL = strings.TrimSuffix(cleanURL, ".git")
+
+	if strings.Contains(cleanURL, "github.com") {
+		return fmt.Sprintf("%s/compare/%s...%s?expand=1", cleanURL, targetBranch, sourceBranch)
+	} else if strings.Contains(cleanURL, "gitlab.com") || strings.Contains(cleanURL, "gitlab") {
+		return fmt.Sprintf("%s/-/merge_requests/new?merge_request[source_branch]=%s&merge_request[target_branch]=%s", cleanURL, sourceBranch, targetBranch)
+	} else if strings.Contains(cleanURL, "bitbucket.org") {
+		return fmt.Sprintf("%s/pull-requests/new?source=%s&dest=%s", cleanURL, sourceBranch, targetBranch)
+	}
+
+	return fmt.Sprintf("%s/compare/%s...%s", cleanURL, targetBranch, sourceBranch)
+}
+

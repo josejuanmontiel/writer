@@ -223,6 +223,15 @@ export function PullGitRemote(arg1:string,arg2:string):Promise<void>;
 
 export function TestLLMConnection(arg1:any):Promise<string>;
 
+export function GetGitBranches():Promise<any>;
+
+export function CreateGitBranch(arg1:string,arg2:boolean):Promise<void>;
+
+export function CheckoutGitBranch(arg1:string):Promise<void>;
+
+export function GetGitPullRequestURL(arg1:string):Promise<string>;
+
+
 
 
 
