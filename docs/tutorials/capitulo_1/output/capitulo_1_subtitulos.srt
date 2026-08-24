@@ -1,0 +1,31 @@
+1
+00:00:00,000 --> 00:00:23,520
+¿Alguna vez te has sentado a preparar un curso o una serie de lecciones y te has quedado bloqueado decidiendo en qué carpeta guardarlo o en qué semana encajará mejor? Los educadores solemos pensar de forma orgánica, no lineal. Antigravity Writer nació con una premisa revolucionaria: permitirte escribir primero y organizar después, sin perder jamás la coherencia conceptual de tu temario.
+
+2
+00:00:23,520 --> 00:00:43,344
+Al abrir la aplicación, nos recibe el Gestor de Espacios de Trabajo. Aquí puedes saltar instantáneamente entre diferentes cursos, compendios de catequesis o manuales técnicos. Todos tus proyectos son carpetas estándar en tu disco duro con archivos de texto plano legibles y universales. Tu conocimiento te pertenece al cien por cien.
+
+3
+00:00:43,344 --> 00:01:04,776
+Vamos a crear un nuevo compendio. Pulsamos en 'Nuevo Rápido', introducimos el título del curso, autor y descripción. Al pulsar 'Crear', la aplicación no solo genera la estructura de carpetas, sino que inicializa automáticamente un repositorio Git interno. A partir de este segundo, cada párrafo que escribas tendrá control de versiones automático e invisible.
+
+4
+00:01:04,776 --> 00:01:25,056
+Esta es la cabina de mandos. A la izquierda tenemos el Árbol del Compendio, con sus módulos, sesiones ordenadas y la Bandeja de Ideas Flotantes. En el centro, el Lienzo de Escritura Fluida, compatible con AsciiDoc. En la barra superior disponemos de herramientas de dictado por voz local con Whisper, grafos en tiempo real y matriz curricular.
+
+5
+00:01:25,056 --> 00:01:39,144
+Crear y reestructurar es inmediato. Añadimos un segundo módulo temático para profundizar en la materia y creamos una nueva sesión dentro de él. El árbol se actualiza en tiempo real reflejando la jerarquía pedagógica sin esperas.
+
+6
+00:01:39,144 --> 00:01:59,424
+Al redactar material didáctico, la claridad visual es clave. Antigravity Writer incorpora bloques semánticos nativos de AsciiDoc. Con un solo clic podemos insertar una caja de Consejo Pedagógico, escribir la recomendación y guardar. El documento se sincroniza inmediatamente con el disco local generando un commit atómico.
+
+7
+00:01:59,424 --> 00:02:13,944
+Detrás de escena, nunca perderás un cambio. La aplicación rastrea cada guardado con un mensaje descriptivo automático. Si cometes un error o quieres recuperar una versión anterior de una sesión, puedes viajar en el tiempo con total tranquilidad.
+
+8
+00:02:13,944 --> 00:02:32,880
+Ahora que conocemos el lienzo dual de trabajo, ¿qué pasa cuando la inspiración llega más rápido de lo que podemos teclear? En el próximo capítulo veremos el Motor de Voz Local con Whisper: dictado continuo, medidor de señal en tiempo real y captura rápida de pensamientos sin tocar el teclado. ¡Nos vemos en el Capítulo 2!

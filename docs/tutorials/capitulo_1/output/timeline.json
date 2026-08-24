@@ -1,0 +1,74 @@
+[
+  {
+    "id": "escena_01_apertura",
+    "index": 1,
+    "title": "Apertura & El dilema del autor",
+    "narration": "¿Alguna vez te has sentado a preparar un curso o una serie de lecciones y te has quedado bloqueado decidiendo en qué carpeta guardarlo o en qué semana encajará mejor? Los educadores solemos pensar de forma orgánica, no lineal. Antigravity Writer nació con una premisa revolucionaria: permitirte escribir primero y organizar después, sin perder jamás la coherencia conceptual de tu temario.",
+    "startMs": 0,
+    "endMs": 23520,
+    "durationMs": 23520
+  },
+  {
+    "id": "escena_02_workspace",
+    "index": 2,
+    "title": "Gestor de Espacios de Trabajo",
+    "narration": "Al abrir la aplicación, nos recibe el Gestor de Espacios de Trabajo. Aquí puedes saltar instantáneamente entre diferentes cursos, compendios de catequesis o manuales técnicos. Todos tus proyectos son carpetas estándar en tu disco duro con archivos de texto plano legibles y universales. Tu conocimiento te pertenece al cien por cien.",
+    "startMs": 23520,
+    "endMs": 43344,
+    "durationMs": 19824
+  },
+  {
+    "id": "escena_03_crear_compendio",
+    "index": 3,
+    "title": "Creación Rápida de un Compendio",
+    "narration": "Vamos a crear un nuevo compendio. Pulsamos en 'Nuevo Rápido', introducimos el título del curso, autor y descripción. Al pulsar 'Crear', la aplicación no solo genera la estructura de carpetas, sino que inicializa automáticamente un repositorio Git interno. A partir de este segundo, cada párrafo que escribas tendrá control de versiones automático e invisible.",
+    "startMs": 43344,
+    "endMs": 64776,
+    "durationMs": 21432
+  },
+  {
+    "id": "escena_04_interfaz_dual",
+    "index": 4,
+    "title": "Anatomía de la Interfaz Dual",
+    "narration": "Esta es la cabina de mandos. A la izquierda tenemos el Árbol del Compendio, con sus módulos, sesiones ordenadas y la Bandeja de Ideas Flotantes. En el centro, el Lienzo de Escritura Fluida, compatible con AsciiDoc. En la barra superior disponemos de herramientas de dictado por voz local con Whisper, grafos en tiempo real y matriz curricular.",
+    "startMs": 64776,
+    "endMs": 85056,
+    "durationMs": 20280
+  },
+  {
+    "id": "escena_05_crear_modulos",
+    "index": 5,
+    "title": "Creación Dinámica de Módulos y Sesiones",
+    "narration": "Crear y reestructurar es inmediato. Añadimos un segundo módulo temático para profundizar en la materia y creamos una nueva sesión dentro de él. El árbol se actualiza en tiempo real reflejando la jerarquía pedagógica sin esperas.",
+    "startMs": 85056,
+    "endMs": 99144,
+    "durationMs": 14088
+  },
+  {
+    "id": "escena_06_bloques_pedagogicos",
+    "index": 6,
+    "title": "Bloques Pedagógicos Estructurados",
+    "narration": "Al redactar material didáctico, la claridad visual es clave. Antigravity Writer incorpora bloques semánticos nativos de AsciiDoc. Con un solo clic podemos insertar una caja de Consejo Pedagógico, escribir la recomendación y guardar. El documento se sincroniza inmediatamente con el disco local generando un commit atómico.",
+    "startMs": 99144,
+    "endMs": 119424,
+    "durationMs": 20280
+  },
+  {
+    "id": "escena_07_persistencia_git",
+    "index": 7,
+    "title": "Persistencia Atómica y Control de Versiones",
+    "narration": "Detrás de escena, nunca perderás un cambio. La aplicación rastrea cada guardado con un mensaje descriptivo automático. Si cometes un error o quieres recuperar una versión anterior de una sesión, puedes viajar en el tiempo con total tranquilidad.",
+    "startMs": 119424,
+    "endMs": 133944,
+    "durationMs": 14520
+  },
+  {
+    "id": "escena_08_cierre",
+    "index": 8,
+    "title": "Cierre y Transición al Capítulo 2",
+    "narration": "Ahora que conocemos el lienzo dual de trabajo, ¿qué pasa cuando la inspiración llega más rápido de lo que podemos teclear? En el próximo capítulo veremos el Motor de Voz Local con Whisper: dictado continuo, medidor de señal en tiempo real y captura rápida de pensamientos sin tocar el teclado. ¡Nos vemos en el Capítulo 2!",
+    "startMs": 133944,
+    "endMs": 152880,
+    "durationMs": 18936
+  }
+]

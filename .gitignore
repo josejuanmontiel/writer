@@ -1,7 +1,7 @@
 # Wails
 build/bin/
 frontend/dist/
-frontend/node_modules/
+**/node_modules/
 wails.log
 writer.log
 *.log
@@ -21,6 +21,7 @@ Thumbs.db
 # Project specific
 dist/
 dist-win/
+**/output/raw_video/
 antigravity-writer-linux-offline.tar.gz
 antigravity-writer-windows-offline.zip
 antigravity-writer

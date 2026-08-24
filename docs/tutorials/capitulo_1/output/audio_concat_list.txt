@@ -1,0 +1,8 @@
+file '/home/jose/workspace/sandbox/gemini/writer/docs/tutorials/capitulo_1/output/audio_clips/scene_01.mp3'
+file '/home/jose/workspace/sandbox/gemini/writer/docs/tutorials/capitulo_1/output/audio_clips/scene_02.mp3'
+file '/home/jose/workspace/sandbox/gemini/writer/docs/tutorials/capitulo_1/output/audio_clips/scene_03.mp3'
+file '/home/jose/workspace/sandbox/gemini/writer/docs/tutorials/capitulo_1/output/audio_clips/scene_04.mp3'
+file '/home/jose/workspace/sandbox/gemini/writer/docs/tutorials/capitulo_1/output/audio_clips/scene_05.mp3'
+file '/home/jose/workspace/sandbox/gemini/writer/docs/tutorials/capitulo_1/output/audio_clips/scene_06.mp3'
+file '/home/jose/workspace/sandbox/gemini/writer/docs/tutorials/capitulo_1/output/audio_clips/scene_07.mp3'
+file '/home/jose/workspace/sandbox/gemini/writer/docs/tutorials/capitulo_1/output/audio_clips/scene_08.mp3'

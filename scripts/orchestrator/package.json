@@ -1,0 +1,14 @@
+{
+  "name": "antigravity-writer-orchestrator",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Code-to-Video and Masterclass Orchestrator with Playwright, MCP, Kokoro TTS and FFmpeg",
+  "main": "orchestrator.js",
+  "scripts": {
+    "record:ch1": "node orchestrator.js --chapter 1",
+    "record:all": "node orchestrator.js --all"
+  },
+  "dependencies": {
+    "playwright": "^1.62.1"
+  }
+}
