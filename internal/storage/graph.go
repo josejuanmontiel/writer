@@ -1459,3 +1459,210 @@ func DeleteGlobalGraphEdge(targetDir string, source, target string) error {
 	return SaveGlobalGraph(targetDir, globalGraph)
 }
 
+// ExtractHeuristicConcepts extrae conceptos y relaciones analizando encabezados, negritas, admonitions y bloques de diagrama Mermaid
+func ExtractHeuristicConcepts(relativePath string, content string) ([]GraphNode, []GraphEdge) {
+	var nodes []GraphNode
+	var edges []GraphEdge
+	nodeMap := make(map[string]GraphNode)
+
+	cleanRel := filepath.ToSlash(filepath.Clean(relativePath))
+	isUnassigned := strings.HasPrefix(cleanRel, "content/unassigned/")
+
+	lines := strings.Split(content, "\n")
+	var prevConceptID string
+
+	boldReg := regexp.MustCompile(`\*([a-zA-ZáéíóúÁÉÍÓÚñÑ0-9\s]{3,40})\*`)
+	mermaidArrowReg := regexp.MustCompile(`([a-zA-Z0-9_-]+)\s*(?:-->|-.->|==>)\s*([a-zA-Z0-9_-]+)`)
+
+	for _, line := range lines {
+		trimmed := strings.TrimSpace(line)
+		if trimmed == "" {
+			continue
+		}
+
+		// 1. Encabezados AsciiDoc (==, ===, ====)
+		if strings.HasPrefix(trimmed, "== ") || strings.HasPrefix(trimmed, "=== ") || strings.HasPrefix(trimmed, "==== ") {
+			parts := strings.SplitN(trimmed, " ", 2)
+			if len(parts) == 2 {
+				headingText := strings.TrimSpace(parts[1])
+				// Si contiene subtítulo con dos puntos (e.g. "Bautismo: Puerta de la vida...")
+				titleParts := strings.Split(headingText, ":")
+				mainConcept := strings.TrimSpace(titleParts[0])
+
+				cID := NormalizeConceptID(mainConcept)
+				if cID != "" && len(mainConcept) >= 3 {
+					cType := "Doctrina"
+					lower := strings.ToLower(mainConcept)
+					if strings.Contains(lower, "bautismo") || strings.Contains(lower, "confirmacion") || strings.Contains(lower, "eucaristia") || strings.Contains(lower, "sacramento") || strings.Contains(lower, "uncion") || strings.Contains(lower, "penitencia") || strings.Contains(lower, "reconciliacion") || strings.Contains(lower, "orden") || strings.Contains(lower, "matrimonio") {
+						cType = "Sacramento"
+					} else if strings.Contains(lower, "gracia") || strings.Contains(lower, "fe") || strings.Contains(lower, "credo") || strings.Contains(lower, "dios") || strings.Contains(lower, "trinidad") || strings.Contains(lower, "iglesia") {
+						cType = "Doctrina"
+					} else if strings.Contains(lower, "rito") || strings.Contains(lower, "liturgia") || strings.Contains(lower, "signo") || strings.Contains(lower, "simbolo") || strings.Contains(lower, "materia") || strings.Contains(lower, "forma") || strings.Contains(lower, "crisma") || strings.Contains(lower, "oleo") {
+						cType = "Liturgia"
+					} else if strings.Contains(lower, "mandamiento") || strings.Contains(lower, "moral") || strings.Contains(lower, "pecado") || strings.Contains(lower, "virtud") {
+						cType = "Moral"
+					} else if strings.Contains(lower, "evangelio") || strings.Contains(lower, "biblia") || strings.Contains(lower, "testamento") || strings.Contains(lower, "jesus") || strings.Contains(lower, "cristo") {
+						cType = "Biblia"
+					}
+
+					nodeMap[cID] = GraphNode{
+						ID:           cID,
+						Label:        mainConcept,
+						Type:         cType,
+						SourceFiles:  []string{cleanRel},
+						Occurrences:  1,
+						IsUnassigned: isUnassigned,
+					}
+
+					if prevConceptID != "" && prevConceptID != cID {
+						edges = append(edges, GraphEdge{
+							ID:           fmt.Sprintf("e-%s-%s", prevConceptID, cID),
+							Source:       prevConceptID,
+							Target:       cID,
+							Label:        "prerrequisito_de",
+							Score:        0.9,
+							SourceFiles:  []string{cleanRel},
+							IsUnassigned: isUnassigned,
+						})
+					}
+					prevConceptID = cID
+				}
+			}
+		}
+
+		// 2. Términos clave resaltados en negrita
+		matches := boldReg.FindAllStringSubmatch(trimmed, -1)
+		for _, m := range matches {
+			if len(m) > 1 {
+				term := strings.TrimSpace(m[1])
+				// Filtrar palabras auxiliares comunes
+				termLower := strings.ToLower(term)
+				if termLower == "nota" || termLower == "resumen" || termLower == "objetivo" || termLower == "actividad" || termLower == "tiempo" || termLower == "materiales" {
+					continue
+				}
+				cID := NormalizeConceptID(term)
+				if cID != "" && len(term) >= 4 {
+					if _, exists := nodeMap[cID]; !exists {
+						nodeMap[cID] = GraphNode{
+							ID:           cID,
+							Label:        term,
+							Type:         "Concepto",
+							SourceFiles:  []string{cleanRel},
+							Occurrences:  1,
+							IsUnassigned: isUnassigned,
+						}
+						if prevConceptID != "" && prevConceptID != cID {
+							edges = append(edges, GraphEdge{
+								ID:           fmt.Sprintf("e-%s-%s", prevConceptID, cID),
+								Source:       prevConceptID,
+								Target:       cID,
+								Label:        "profundiza_en",
+								Score:        0.75,
+								SourceFiles:  []string{cleanRel},
+								IsUnassigned: isUnassigned,
+							})
+						}
+					}
+				}
+			}
+		}
+
+		// 3. Flechas en bloques Mermaid
+		mMatches := mermaidArrowReg.FindAllStringSubmatch(trimmed, -1)
+		for _, mm := range mMatches {
+			if len(mm) >= 3 {
+				src := NormalizeConceptID(mm[1])
+				tgt := NormalizeConceptID(mm[2])
+				if src != "" && tgt != "" && src != tgt {
+					if _, ok := nodeMap[src]; !ok {
+						nodeMap[src] = GraphNode{ID: src, Label: mm[1], Type: "Concepto", SourceFiles: []string{cleanRel}, Occurrences: 1, IsUnassigned: isUnassigned}
+					}
+					if _, ok := nodeMap[tgt]; !ok {
+						nodeMap[tgt] = GraphNode{ID: tgt, Label: mm[2], Type: "Concepto", SourceFiles: []string{cleanRel}, Occurrences: 1, IsUnassigned: isUnassigned}
+					}
+					edges = append(edges, GraphEdge{
+						ID:           fmt.Sprintf("e-%s-%s", src, tgt),
+						Source:       src,
+						Target:       tgt,
+						Label:        "asociado_con",
+						Score:        1.0,
+						SourceFiles:  []string{cleanRel},
+						IsUnassigned: isUnassigned,
+					})
+				}
+			}
+		}
+	}
+
+	for _, n := range nodeMap {
+		nodes = append(nodes, n)
+	}
+
+	return nodes, edges
+}
+
+// ScanAndRebuildCompendiumGraph recorre todos los archivos .adoc y .md del compendio y reconstruye el grafo global consolidado
+func ScanAndRebuildCompendiumGraph(targetDir string) (*GraphData, error) {
+	globalGraph := &GraphData{
+		Version:   "1.0",
+		UpdatedAt: time.Now(),
+		Nodes:     []GraphNode{},
+		Edges:     []GraphEdge{},
+	}
+
+	contentDir := filepath.Join(targetDir, "content")
+	if _, err := os.Stat(contentDir); err != nil {
+		return globalGraph, nil
+	}
+
+	err := filepath.Walk(contentDir, func(path string, info os.FileInfo, err error) error {
+		if err != nil || info.IsDir() {
+			return nil
+		}
+
+		ext := strings.ToLower(filepath.Ext(path))
+		if ext != ".adoc" && ext != ".md" {
+			return nil
+		}
+
+		rel, err := filepath.Rel(targetDir, path)
+		if err != nil {
+			return nil
+		}
+		cleanRel := filepath.ToSlash(rel)
+
+		data, err := os.ReadFile(path)
+		if err != nil {
+			return nil
+		}
+
+		nodes, edges := ExtractHeuristicConcepts(cleanRel, string(data))
+		if len(nodes) > 0 {
+			chGraph := &ChapterGraph{
+				RelativePath: cleanRel,
+				Title:        ExtractDocumentTitle(string(data)),
+				Nodes:        nodes,
+				Edges:        edges,
+				ExtractedAt:  time.Now(),
+			}
+			if chGraph.Title == "" {
+				chGraph.Title = filepath.Base(cleanRel)
+			}
+			_ = SaveChapterGraph(targetDir, chGraph)
+			globalGraph = MergeChapterGraph(globalGraph, chGraph)
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, fmt.Errorf("error escaneando compendio: %w", err)
+	}
+
+	if err := SaveGlobalGraph(targetDir, globalGraph); err != nil {
+		return nil, err
+	}
+
+	return globalGraph, nil
+}
+

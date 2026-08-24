@@ -1,5 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Mic, MicOff, BookOpen, Cpu, Settings, Play, Info, Brain, X, RefreshCw, Save, GitBranch, History, FolderPlus, FolderOpen, FilePlus, Layers, Volume2, Sparkles, Globe, Terminal, Activity } from 'lucide-react';
+import { 
+  Mic, MicOff, BookOpen, Cpu, Settings, Play, Info, Brain, X, RefreshCw, Save, GitBranch, History, 
+  FolderPlus, FolderOpen, FilePlus, Layers, Volume2, Sparkles, Globe, Terminal, Activity, 
+  Table, Image as ImageIcon, Clock, Video, UploadCloud, ChevronDown, ChevronRight, Wrench, Split, FileText,
+  Share2, HelpCircle, Scissors, ShieldCheck, Key
+} from 'lucide-react';
 import Editor from './components/Editor';
 import ProjectSidebar from './components/ProjectSidebar';
 import TimelineModal from './components/TimelineModal';
@@ -76,7 +81,6 @@ import MediaGalleryModal from './components/MediaGalleryModal';
 import VoiceStructureModal from './components/VoiceStructureModal';
 import PromptStudioModal from './components/PromptStudioModal';
 import GitSyncModal from './components/GitSyncModal';
-import { Share2, FileText, ChevronRight, Table, HelpCircle, Scissors, Split, Clock, Image as ImageIcon, Video, UploadCloud, ShieldCheck, Key } from 'lucide-react';
 
 function App() {
   const [mode, setMode] = useState('Ficción');
@@ -135,6 +139,8 @@ function App() {
   const [isTestingMic, setIsTestingMic] = useState(false);
   const [audioLevel, setAudioLevel] = useState(0);
   const [availableUpdate, setAvailableUpdate] = useState(null);
+  const [showToolsMenu, setShowToolsMenu] = useState(false);
+  const toolsMenuRef = useRef(null);
   const [initialDraftToConvert, setInitialDraftToConvert] = useState('');
 
   const handleInsertImageFromGallery = ({ asset, caption, layoutPreset, imageWidth, asciidoc, previewB64 }) => {
@@ -457,6 +463,17 @@ function App() {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [activeCompendium, activeFile]);
+
+  // Cerrar menú de herramientas al hacer clic fuera
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (toolsMenuRef.current && !toolsMenuRef.current.contains(event.target)) {
+        setShowToolsMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   React.useEffect(() => {
     GetConfig().then(cfg => setConfig(cfg || {}));
@@ -813,17 +830,17 @@ function App() {
           </button>
         </div>
 
-        {/* Zona 3: Persistencia, Git y Ajustes (Derecha) */}
-        <div className="flex items-center gap-2">
+        {/* Zona 3: Persistencia, Herramientas, Git y Ajustes (Derecha) */}
+        <div className="flex items-center gap-1.5 shrink-0">
           {/* Botón Previsualizar Sitio Web (Hugo) */}
           {activeCompendium && (
             <button
               onClick={() => setShowSitePreviewModal(true)}
               title="Previsualizar sitio web del curso y blog DevLog (Hugo)"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-950/60 hover:bg-indigo-900/80 border border-indigo-500/30 text-indigo-300 hover:text-white transition-all shadow-sm"
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-indigo-950/60 hover:bg-indigo-900/80 border border-indigo-500/30 text-indigo-300 hover:text-white transition-all shadow-sm"
             >
               <Globe size={13} className="text-indigo-400" />
-              <span>Previsualizar</span>
+              <span className="hidden sm:inline">Previsualizar</span>
             </button>
           )}
 
@@ -831,23 +848,23 @@ function App() {
           <button
             onClick={handleSaveCompendium}
             disabled={isSaving}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium border transition-all ${
               isSaving
                 ? 'bg-indigo-950/60 border-indigo-500 text-indigo-300 animate-pulse'
                 : 'bg-slate-800/80 hover:bg-slate-700/80 border-slate-700 text-slate-200 hover:text-white'
             }`}
             title={activeFile ? `Guardar ${activeFile} en Git (Ctrl+S)` : 'Guardar borrador'}
           >
-            <Save size={14} className={isSaving ? 'animate-spin' : ''} />
-            <span>{isSaving ? 'Guardando...' : 'Guardar'}</span>
+            <Save size={13} className={isSaving ? 'animate-spin' : ''} />
+            <span className="hidden sm:inline">{isSaving ? '...' : 'Guardar'}</span>
           </button>
 
-          {/* Badge Git */}
+          {/* Badge Git / Timeline */}
           {activeCompendium && (
             <button
               onClick={() => setShowTimelineModal(true)}
               title="Historial de versiones Git (Deshacer infinito)"
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 hover:bg-slate-800 text-xs text-slate-300 transition-colors"
+              className="flex items-center gap-1 px-2 py-1 rounded-lg bg-slate-900 border border-slate-800 hover:bg-slate-800 text-xs text-slate-300 transition-colors"
             >
               <GitBranch size={13} className="text-emerald-400" />
               <span className="font-mono text-[11px] text-emerald-300">
@@ -856,90 +873,118 @@ function App() {
             </button>
           )}
 
-          {/* Badge de Actualización Disponible */}
-          {availableUpdate && (
+          {/* Menú Desplegable de Herramientas Pedagógicas & Estudio */}
+          <div className="relative" ref={toolsMenuRef}>
             <button
-              onClick={() => setShowModelManagerModal(true)}
-              title={`Actualización ${availableUpdate.latestVersion} disponible. Haz clic para instalar.`}
-              className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-950/80 hover:bg-emerald-900/90 border border-emerald-500/50 text-emerald-300 text-xs font-semibold shadow-md transition-all animate-pulse"
+              onClick={() => setShowToolsMenu(!showToolsMenu)}
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium border transition-all ${
+                showToolsMenu 
+                  ? 'bg-indigo-600/30 border-indigo-500 text-white' 
+                  : 'bg-slate-900/80 hover:bg-slate-800/90 border-slate-800 text-slate-300 hover:text-white'
+              }`}
+              title="Herramientas de Autoría: Matriz, Mediateca, Calidad, Scripts y Voz"
             >
-              <Sparkles size={12} className="text-emerald-400" />
-              <span>Update {availableUpdate.latestVersion}</span>
+              <Sparkles size={13} className="text-amber-400" />
+              <span>Herramientas</span>
+              <ChevronDown size={12} className={`transition-transform duration-150 ${showToolsMenu ? 'rotate-180' : ''}`} />
             </button>
-          )}
 
-          {/* Botón Matriz de Coherencia Curricular (Punto 1.4) */}
-          <button 
-            className="p-1.5 text-slate-400 hover:text-indigo-300 hover:bg-slate-800 rounded-lg transition-colors" 
-            onClick={() => setShowMatrixModal(true)}
-            title="Matriz de Coherencia Curricular (Mapa de Calor Conceptual)"
-          >
-            <Table size={17} />
-          </button>
+            {/* Dropdown flotante de Herramientas */}
+            {showToolsMenu && (
+              <div className="absolute right-0 top-full mt-1.5 w-60 bg-slate-900/98 backdrop-blur-xl border border-slate-800 rounded-xl p-1.5 shadow-2xl z-50 animate-in fade-in slide-in-from-top-2 duration-100 divide-y divide-slate-800/60">
+                <div className="pb-1 space-y-0.5">
+                  <div className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    Diseño Curricular & Calidad
+                  </div>
+                  <button
+                    onClick={() => { setShowToolsMenu(false); setShowMatrixModal(true); }}
+                    className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-xs text-slate-200 hover:bg-indigo-600/20 hover:text-indigo-200 text-left transition-colors"
+                  >
+                    <Table size={14} className="text-indigo-400" />
+                    <div className="flex flex-col">
+                      <span className="font-medium">Matriz Curricular</span>
+                      <span className="text-[10px] text-slate-400">Puntos de contacto y calor</span>
+                    </div>
+                  </button>
+                  <button
+                    onClick={() => { setShowToolsMenu(false); setShowQualityModal(true); }}
+                    className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-xs text-slate-200 hover:bg-indigo-600/20 hover:text-indigo-200 text-left transition-colors"
+                  >
+                    <Clock size={14} className="text-indigo-400" />
+                    <div className="flex flex-col">
+                      <span className="font-medium">Ritmo & Calidad</span>
+                      <span className="text-[10px] text-slate-400">Pacing, glosario y materiales</span>
+                    </div>
+                  </button>
+                </div>
 
-          {/* Botón Captura de Voz a Estructura (Punto 1.8) */}
-          <button 
-            className="p-1.5 text-slate-400 hover:text-purple-300 hover:bg-slate-800 rounded-lg transition-colors" 
-            onClick={() => setShowVoiceStructureModal(true)}
-            title="Captura de Voz a Estructura (Vuelca tu Experiencia Hablando - Punto 1.8)"
-          >
-            <Mic size={17} />
-          </button>
+                <div className="py-1 space-y-0.5">
+                  <div className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    Multimedia & Producción
+                  </div>
+                  <button
+                    onClick={() => { setShowToolsMenu(false); setShowMediaModal(true); }}
+                    className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-xs text-slate-200 hover:bg-sky-600/20 hover:text-sky-200 text-left transition-colors"
+                  >
+                    <ImageIcon size={14} className="text-sky-400" />
+                    <div className="flex flex-col">
+                      <span className="font-medium">Mediateca & Galería</span>
+                      <span className="text-[10px] text-slate-400">Imágenes y maquetación</span>
+                    </div>
+                  </button>
+                  <button
+                    onClick={() => { setShowToolsMenu(false); setShowPromptStudioModal(true); }}
+                    className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-xs text-slate-200 hover:bg-amber-600/20 hover:text-amber-200 text-left transition-colors"
+                  >
+                    <Video size={14} className="text-amber-400" />
+                    <div className="flex flex-col">
+                      <span className="font-medium">Script Studio</span>
+                      <span className="text-[10px] text-slate-400">Guiones para YouTube y Canva</span>
+                    </div>
+                  </button>
+                  <button
+                    onClick={() => { setShowToolsMenu(false); setShowVoiceStructureModal(true); }}
+                    className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-xs text-slate-200 hover:bg-purple-600/20 hover:text-purple-200 text-left transition-colors"
+                  >
+                    <Mic size={14} className="text-purple-400" />
+                    <div className="flex flex-col">
+                      <span className="font-medium">Voz a Estructura</span>
+                      <span className="text-[10px] text-slate-400">Grabación guiada por pasos</span>
+                    </div>
+                  </button>
+                </div>
 
-          {/* Botón Mediateca & Galería de Recursos (Imágenes y Maquetación de Libro) */}
-          <button 
-            className="p-1.5 text-slate-400 hover:text-sky-300 hover:bg-slate-800 rounded-lg transition-colors" 
-            onClick={() => setShowMediaModal(true)}
-            title="Mediateca & Galería de Recursos (Imágenes, Diagramas y Maquetación de Libro)"
-          >
-            <ImageIcon size={17} />
-          </button>
+                <div className="pt-1 space-y-0.5">
+                  <button
+                    onClick={() => { setShowToolsMenu(false); setShowLogsModal(true); }}
+                    className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-xs text-slate-300 hover:bg-slate-800 hover:text-white text-left transition-colors"
+                  >
+                    <Terminal size={14} className="text-slate-400" />
+                    <span>Logs del Sistema</span>
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
 
-          {/* Botón Herramientas de Calidad: Ritmo, Glosario, Materiales y Memos (Punto 1.7) */}
-          <button 
-            className="p-1.5 text-slate-400 hover:text-indigo-300 hover:bg-slate-800 rounded-lg transition-colors" 
-            onClick={() => setShowQualityModal(true)}
-            title="Herramientas de Calidad: Ritmo de clase, Glosario, Materiales y Memos de Voz"
-          >
-            <Clock size={17} />
-          </button>
-
-          {/* Botón Multimedia Prompt & Script Studio (Punto 1.9) */}
-          <button 
-            className="p-1.5 text-slate-400 hover:text-amber-400 hover:bg-slate-800 rounded-lg transition-colors" 
-            onClick={() => setShowPromptStudioModal(true)}
-            title="Multimedia Prompt & Script Studio (YouTube, Canva, Cápsulas - Punto 1.9)"
-          >
-            <Video size={17} />
-          </button>
-
-          {/* Botón Sincronización Git Remota (Push / Pull - Punto 1.9) */}
+          {/* Botón Sincronización Git Remota */}
           {activeCompendium && (
             <button 
               className="p-1.5 text-slate-400 hover:text-blue-400 hover:bg-slate-800 rounded-lg transition-colors" 
               onClick={() => setShowGitSyncModal(true)}
               title="Sincronización Git Remota (Push / Pull a GitHub/GitLab)"
             >
-              <UploadCloud size={17} />
+              <UploadCloud size={15} />
             </button>
           )}
 
-          {/* Botón Manual de Usuario & Documentación Interactiva */}
+          {/* Botón Manual de Usuario */}
           <button 
             className="p-1.5 text-slate-400 hover:text-amber-300 hover:bg-slate-800 rounded-lg transition-colors" 
             onClick={() => setShowDocModal(true)}
-            title="Manual de Usuario & Guía de Coherencia Conceptual (Punto 1.4)"
+            title="Manual de Usuario & Documentación Interactiva"
           >
-            <BookOpen size={17} />
-          </button>
-
-          {/* Botón Ver Logs del Sistema */}
-          <button 
-            className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors" 
-            onClick={() => setShowLogsModal(true)}
-            title="Registros del Sistema (Logs)"
-          >
-            <Terminal size={17} />
+            <BookOpen size={15} />
           </button>
 
           {/* Settings */}
@@ -948,7 +993,7 @@ function App() {
             onClick={() => setShowSettings(true)}
             title="Configuración"
           >
-            <Settings size={17} />
+            <Settings size={15} />
           </button>
         </div>
         

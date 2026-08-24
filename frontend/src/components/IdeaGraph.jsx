@@ -39,7 +39,8 @@ import {
   SaveGlobalGraphPositions,
   SaveGlobalGraphManualEdge,
   DeleteGlobalGraphEdge,
-  GetCompendiumModules
+  GetCompendiumModules,
+  RebuildAllCompendiumGraphs
 } from '../../wailsjs/go/main/App';
 
 // Nodo personalizado para entidades ontológicas
@@ -142,11 +143,17 @@ export default function IdeaGraph({ onSelectSession, activeSessionRelPath }) {
   const loadGraphData = useCallback(async () => {
     setIsLoading(true);
     try {
-      const [gData, lReport, mods] = await Promise.all([
+      let [gData, lReport, mods] = await Promise.all([
         GetGlobalGraph(),
         GetCurriculumLintReport(),
         GetCompendiumModules()
       ]);
+
+      // Si el grafo está vacío (recién abierto o sin procesar), escanear compendio automáticamente
+      if (!gData?.nodes || gData.nodes.length === 0) {
+        gData = await RebuildAllCompendiumGraphs();
+        lReport = await GetCurriculumLintReport();
+      }
 
       setRawGraph(gData);
       setLintReport(lReport);
@@ -157,6 +164,20 @@ export default function IdeaGraph({ onSelectSession, activeSessionRelPath }) {
       setIsLoading(false);
     }
   }, []);
+
+  const handleAutoScan = async () => {
+    setIsLoading(true);
+    try {
+      const gData = await RebuildAllCompendiumGraphs();
+      const lReport = await GetCurriculumLintReport();
+      setRawGraph(gData);
+      setLintReport(lReport);
+    } catch (err) {
+      alert("Error escaneando compendio: " + err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
     loadGraphData();
@@ -398,6 +419,16 @@ export default function IdeaGraph({ onSelectSession, activeSessionRelPath }) {
                 {totalErrors + totalWarnings}
               </span>
             )}
+          </button>
+
+          <button
+            onClick={handleAutoScan}
+            disabled={isLoading}
+            className="flex items-center gap-1 px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-indigo-300 hover:text-white border border-indigo-500/30 text-xs font-medium transition-colors shadow-xs disabled:opacity-50"
+            title="Escanear todas las lecciones del compendio y generar nodos ontológicos automáticamente"
+          >
+            <Sparkles size={13} className={isLoading ? 'animate-spin text-amber-400' : 'text-indigo-400'} />
+            <span>{isLoading ? 'Escaneando...' : 'Escanear Compendio'}</span>
           </button>
 
           <button

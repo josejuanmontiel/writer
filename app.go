@@ -1257,6 +1257,13 @@ func (a *App) ExtractAndMergeChapterGraph(relativePath string, content string) (
 		}
 	}
 
+	// Fallback Heurístico si GLiNER2 no está activo o no extrajo nodos
+	if len(chGraph.Nodes) == 0 {
+		hNodes, hEdges := storage.ExtractHeuristicConcepts(relativePath, plainText)
+		chGraph.Nodes = hNodes
+		chGraph.Edges = hEdges
+	}
+
 	// Persistir grafo de capítulo
 	if err := storage.SaveChapterGraph(a.activeCompendium.Path, chGraph); err != nil {
 		return nil, err
@@ -1274,6 +1281,14 @@ func (a *App) ExtractAndMergeChapterGraph(relativePath string, content string) (
 	}
 
 	return chGraph, nil
+}
+
+// RebuildAllCompendiumGraphs escanea todos los módulos y sesiones del compendio y reconstruye el grafo global consolidado
+func (a *App) RebuildAllCompendiumGraphs() (*storage.GraphData, error) {
+	if a.activeCompendium == nil {
+		return nil, fmt.Errorf("no hay ningún compendio abierto")
+	}
+	return storage.ScanAndRebuildCompendiumGraph(a.activeCompendium.Path)
 }
 
 // GetContextSuggestions devuelve conceptos previos aprendidos en el curso para autocompletado en el editor
