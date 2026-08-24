@@ -17,6 +17,15 @@ import (
 	_ "antigravity-writer/internal/ortinit"
 )
 
+func init() {
+	if os.Getenv("WEBKIT_DISABLE_COMPOSITING_MODE") == "" {
+		os.Setenv("WEBKIT_DISABLE_COMPOSITING_MODE", "1")
+	}
+	if os.Getenv("WEBKIT_DISABLE_DMABUF_RENDERER") == "" {
+		os.Setenv("WEBKIT_DISABLE_DMABUF_RENDERER", "1")
+	}
+}
+
 //go:embed all:frontend/dist
 var assets embed.FS
 
