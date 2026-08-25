@@ -65,7 +65,7 @@ async function injectWailsMocks(page) {
                   return Promise.resolve({ status: "idle", progress: 0 });
                 }
                 if (prop === 'SelectFolderDialog') {
-                  return Promise.resolve("/home/jose/workspace");
+                  return Promise.resolve("/home/jose/cursos/Curso de Piloto de Antigravedad");
                 }
                 if (prop === 'GetActiveCompendium') {
                   return Promise.resolve({ name: "Curso de Piloto de Antigravedad", path: "/home/jose/workspace" });

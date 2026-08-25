@@ -32,32 +32,86 @@ export const chapter1Data = {
       title: "Creación Rápida de un Compendio",
       narration: "Vamos a crear un nuevo compendio. Pulsamos en 'Nuevo Rápido', introducimos el título del curso, autor y descripción. Al pulsar 'Crear', la aplicación no solo genera la estructura de carpetas, sino que inicializa automáticamente un repositorio Git interno. A partir de este segundo, cada párrafo que escribas tendrá control de versiones automático e invisible.",
       action: async (page, durationMs, mcp) => {
-        const nuevoRapidoBtn = await page.$('button:has-text("Nuevo Rápido")') || await page.$('button:has-text("Nuevo")');
-        if (nuevoRapidoBtn) {
-          await nuevoRapidoBtn.click();
-          await page.waitForTimeout(600);
+        // 1. Abrir el WorkspaceSelector dropdown
+        const workspaceBtn = await page.$('button:has(.lucide-compass), button:has(.lucide-edit-3)');
+        if (workspaceBtn) {
+          await workspaceBtn.click();
+          await page.waitForTimeout(400);
         }
 
-        const titleInput = await page.$('input[placeholder*="Título"], input[placeholder*="Nombre"]');
-        if (titleInput) {
-          await titleInput.click();
-          await page.keyboard.type("Curso de Piloto de Antigravedad", { delay: 20 });
+        // 2. Clic en "Nuevo Compendio Rápido..." dentro del dropdown
+        const nuevoCompendioBtn = await page.$('button:has-text("Nuevo Compendio Rápido")');
+        if (nuevoCompendioBtn) {
+          await nuevoCompendioBtn.click();
+          await page.waitForTimeout(500);
+        }
+
+        // 3. El modal ya está abierto — simular SelectFolderDialog inyectando el valor en el input
+        // Como targetDir es readOnly, lo populamos via React's synthetic event
+        await page.evaluate(() => {
+          const inputs = document.querySelectorAll('input[readonly]');
+          for (const inp of inputs) {
+            if (inp.placeholder && inp.placeholder.includes('carpeta')) {
+              const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
+              nativeInputValueSetter.call(inp, '/home/jose/workspace/cursos/piloto-antigravedad');
+              inp.dispatchEvent(new Event('input', { bubbles: true }));
+              inp.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+          }
+        });
+        await page.waitForTimeout(300);
+
+        // 4. Clicar "Explorar" para que el mock de SelectFolderDialog rellene la ruta
+        const explorarBtn = await page.$('button:has-text("Explorar")');
+        if (explorarBtn) {
+          await explorarBtn.click({ force: true });
+          await page.waitForTimeout(500);
+        }
+
+        // 5. Rellenar campo Nombre del Compendio
+        const nameInput = await page.$('input[placeholder*="Formación"], input[placeholder*="Mecánica"]');
+        if (nameInput) {
+          await nameInput.click({ force: true });
+          await nameInput.selectText();
+          await page.keyboard.type("Curso de Piloto de Antigravedad", { delay: 45 });
           await page.waitForTimeout(300);
         }
 
-        const authorInput = await page.$('input[placeholder*="Autor"], input[placeholder*="Formador"]');
+        // 6. Rellenar campo Autor
+        const authorInput = await page.$('input[placeholder*="Juan Pérez"], input[placeholder*="Pérez"]');
         if (authorInput) {
-          await authorInput.click();
-          await page.keyboard.type("Instructor Zero", { delay: 20 });
+          await authorInput.click({ force: true });
+          await page.keyboard.type("Instructor Zero", { delay: 35 });
           await page.waitForTimeout(300);
         }
 
-        const submitBtn = await page.$('button:has-text("Crear e Inicializar")') || await page.$('button:has-text("Crear")');
+        // 7. Rellenar Email
+        const emailInput = await page.$('input[type="email"]');
+        if (emailInput) {
+          await emailInput.click({ force: true });
+          await page.keyboard.type("instructor@antigravedad.es", { delay: 30 });
+          await page.waitForTimeout(300);
+        }
+
+        // 8. Rellenar Descripción
+        const descTextarea = await page.$('textarea[placeholder*="Breve resumen"]');
+        if (descTextarea) {
+          await descTextarea.click({ force: true });
+          await page.keyboard.type("Formación para pilotos de naves con motores de antigravedad.", { delay: 25 });
+          await page.waitForTimeout(300);
+        }
+
+        // 9. Hacer pausa para que el espectador vea el formulario completado
+        await page.waitForTimeout(1000);
+
+        // 10. Clic en "Crear e Inicializar Git"
+        const submitBtn = await page.$('button:has-text("Crear e Inicializar Git")');
         if (submitBtn) {
-          await submitBtn.click();
+          await submitBtn.click({ force: true });
           await page.waitForTimeout(600);
         }
 
+        // Cerrar cualquier modal residual
         await page.keyboard.press('Escape');
       }
     },
