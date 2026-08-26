@@ -1,0 +1,47 @@
+[
+  {
+    "id": "escena_01_apertura",
+    "index": 1,
+    "title": "Texto con Significado",
+    "narration": "¿Cómo sabe un buen profesor si sus lecciones están bien conectadas entre sí? En la mayoría de procesadores de texto, las palabras son solo letras mudas. En Antigravity Writer, cada párrafo que escribes cobra vida gracias a nuestro motor semántico local GLiNER2, capaz de extraer conceptos y dependencias en tiempo real.",
+    "startMs": 0,
+    "endMs": 19992,
+    "durationMs": 19992
+  },
+  {
+    "id": "escena_02_analisis_gliner2",
+    "index": 2,
+    "title": "Cómo GLiNER2 analiza el texto",
+    "narration": "A través de modelos optimizados en ONNX Runtime, GLiNER2 escanea el lenguaje natural y reconoce entidades clave y sus relaciones lógicas. Detecta si estás introduciendo un concepto nuevo o profundizando en uno anterior, clasificando las relaciones con precisión pedagógica.",
+    "startMs": 19992,
+    "endMs": 37464,
+    "durationMs": 17472
+  },
+  {
+    "id": "escena_03_sincronizacion_grafos",
+    "index": 3,
+    "title": "Sincronización Local vs Grafo Global del Compendio",
+    "narration": "Cada sesión mantiene su propio subgrafo local. Al guardar o pulsar sincronizar, estos nodos se fusionan de forma limpia e idempotente con el Grafo Global de todo el curso. Si modificas una definición en una sesión, el mapa global se actualiza sin duplicar información.",
+    "startMs": 37464,
+    "endMs": 53616,
+    "durationMs": 16152
+  },
+  {
+    "id": "escena_04_autocompletado_contexto",
+    "index": 4,
+    "title": "Autocompletado Semántico y Contexto Activo",
+    "narration": "Al abrir cualquier sesión posterior, el editor ya conoce los conceptos que enseñaste semanas atrás. Te ofrece autocompletado conceptual y te avisa si estás reutilizando términos fundamentales, manteniendo un hilo conductor perfecto a lo largo de los meses.",
+    "startMs": 53616,
+    "endMs": 68928,
+    "durationMs": 15312
+  },
+  {
+    "id": "escena_05_cierre",
+    "index": 5,
+    "title": "Cierre y Transición al Capítulo 4",
+    "narration": "Ahora que nuestro compendio entiende el significado de lo que escribimos, ¿qué hacemos con esas ideas sueltas que aún no sabemos en qué clase encajan? En el Capítulo 4 descubriremos la Bandeja de Ideas Flotantes y los Semáforos de Madurez. ¡Vamos a verlo!",
+    "startMs": 68928,
+    "endMs": 83808,
+    "durationMs": 14880
+  }
+]

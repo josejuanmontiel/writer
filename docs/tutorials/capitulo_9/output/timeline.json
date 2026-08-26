@@ -1,0 +1,47 @@
+[
+  {
+    "id": "escena_01_apertura",
+    "index": 1,
+    "title": "Una fuente, múltiples públicos",
+    "narration": "¿Tienes que impartir el mismo tema a un grupo de niños de Primera Comunión y a un grupo de jóvenes de Confirmación? Duplicar documentos a mano es una trampa de tiempo y errores. En Antigravity Writer aplicamos el principio de Fuente Única: redactas tu sesión maestra y la derivas a cualquier público en cuestión de segundos.",
+    "startMs": 0,
+    "endMs": 19296,
+    "durationMs": 19296
+  },
+  {
+    "id": "escena_02_configuracion_audiencia",
+    "index": 2,
+    "title": "Configuración de la Audiencia y Tono",
+    "narration": "Seleccionamos la audiencia deseada: niños, adolescentes o adultos. El asistente transforma el vocabulario complejo en analogías sencillas y propone dinámicas adaptadas a la madurez de los alumnos, respetando estrictamente los conceptos ontológicos del temario.",
+    "startMs": 19296,
+    "endMs": 35256,
+    "durationMs": 15960
+  },
+  {
+    "id": "escena_03_vista_dual",
+    "index": 3,
+    "title": "La Vista Dual Sincronizada (Dual Pane View)",
+    "narration": "Con la Vista Dual podemos comparar y editar ambas versiones en paralelo. A la izquierda tienes tu guía completa de formador con citas y notas técnicas; a la derecha, la ficha lista para imprimir o compartir con tus estudiantes.",
+    "startMs": 35256,
+    "endMs": 48528,
+    "durationMs": 13272
+  },
+  {
+    "id": "escena_04_calculadora_ritmo",
+    "index": 4,
+    "title": "La Calculadora de Ritmo y Calidad",
+    "narration": "¿Cuánto durará realmente tu clase? La Calculadora de Ritmo analiza la densidad de palabras y los bloques de dinámica, estimando con precisión si la sesión se ajusta a los cuarenta y cinco minutos programados o si corres el riesgo de quedarte sin tiempo.",
+    "startMs": 48528,
+    "endMs": 63288,
+    "durationMs": 14760
+  },
+  {
+    "id": "escena_05_cierre",
+    "index": 5,
+    "title": "Cierre y Transición al Capítulo 10",
+    "narration": "Hemos dominado la redacción, los grafos y la adaptación de audiencias. En nuestro gran episodio final, el Capítulo 10, descubriremos el Compendium Wizard, Prompt Studio y la Sincronización Git Colaborativa. ¡Vamos al gran cierre!",
+    "startMs": 63288,
+    "endMs": 77136,
+    "durationMs": 13848
+  }
+]

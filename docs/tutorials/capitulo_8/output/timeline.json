@@ -1,0 +1,47 @@
+[
+  {
+    "id": "escena_01_apertura",
+    "index": 1,
+    "title": "El mapa visual de tu mente",
+    "narration": "¿Cómo se ve el conocimiento cuando lo miras desde arriba? En Antigravity Writer, tu compendio no es solo un montón de texto: es un grafo vivo de ideas. Bienvenido a IdeaGraph 2.0, el visor conceptual donde puedes explorar, conectar y auditar toda la red de tu curso de forma interactiva.",
+    "startMs": 0,
+    "endMs": 17592,
+    "durationMs": 17592
+  },
+  {
+    "id": "escena_02_navegacion_grafo",
+    "index": 2,
+    "title": "Navegación por el Grafo y Tipos de Nodos",
+    "narration": "Podemos movernos por el lienzo con total libertad. Cada nodo representa un concepto y muestra el número de veces que ha sido citado. Al situarnos sobre un concepto central, como 'El Bautismo', el grafo ilumina de inmediato sus fundamentos previos y las lecciones futuras que se construyen sobre él.",
+    "startMs": 17592,
+    "endMs": 35088,
+    "durationMs": 17496
+  },
+  {
+    "id": "escena_03_knowledge_linter",
+    "index": 3,
+    "title": "El Knowledge Linter — Detectando Anomalías",
+    "narration": "El Validador Curricular actúa como un corrector ortográfico, pero para el sentido pedagógico de tu curso. Detecta dependencias circulares —donde dos conceptos se exigen mutuamente sin un punto de entrada claro— y nodos huérfanos que han quedado aislados, ayudándote a pulir la coherencia del temario.",
+    "startMs": 35088,
+    "endMs": 51960,
+    "durationMs": 16872
+  },
+  {
+    "id": "escena_04_navegacion_bidireccional",
+    "index": 4,
+    "title": "Navegación Bidireccional Grafo ↔ Editor",
+    "narration": "La conexión es total en ambos sentidos. Doble clic sobre cualquier nodo y el editor te llevará directamente a la sesión y párrafo exacto donde se definió. Modificas el texto, guardas, y el grafo refleja los cambios de inmediato.",
+    "startMs": 51960,
+    "endMs": 66024,
+    "durationMs": 14064
+  },
+  {
+    "id": "escena_05_cierre",
+    "index": 5,
+    "title": "Cierre y Transición al Capítulo 9",
+    "narration": "Ya tenemos un curso sólido y bien conectado. Pero, ¿cómo adaptamos una misma lección maestra para impartirla a niños de ocho años, jóvenes o catecúmenos adultos? En el Capítulo 9 descubriremos la Derivación de Audiencias y Calidad de Contenido. ¡Vamos a verlo!",
+    "startMs": 66024,
+    "endMs": 81960,
+    "durationMs": 15936
+  }
+]

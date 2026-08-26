@@ -1,0 +1,19 @@
+1
+00:00:00,000 --> 00:00:15,096
+Bienvenidos al capítulo final de nuestra masterclass. Hoy conectaremos todas las piezas del rompecabezas: desde cómo generar un curso completo de dos años en diez segundos, hasta cómo crear presentaciones, vídeos y sincronizar tu trabajo en equipo con Git.
+
+2
+00:00:15,096 --> 00:00:32,328
+Con el Compendium Wizard no necesitas configurar carpetas a mano. Defines el horizonte temporal —por ejemplo, un curso escolar o un plan bienal de catequesis— y el sistema calcula de forma determinista todas las semanas, fechas y archivos base con plantillas pedagógicas estandarizadas.
+
+3
+00:00:32,328 --> 00:00:50,736
+En el Prompt Studio transformamos cualquier lección en múltiples formatos con un clic. ¿Necesitas diapositivas para la clase? Genera el esquema para Canva. ¿Quieres publicar un resumen en vídeo? Obtén una escaleta cronometrada. Puedes usar tu propia API key o simplemente copiar el prompt listo para Gemini Web.
+
+4
+00:00:50,736 --> 00:01:08,520
+Todo tu trabajo vive en un repositorio Git local. Con el módulo de sincronización remota, puedes conectar tu compendio con GitHub o el servidor de tu centro educativo. Con un solo clic en 'Push', tus compañeros de equipo reciben las últimas sesiones y tu material queda respaldado de forma segura.
+
+5
+00:01:08,520 --> 00:01:27,096
+Has completado la formación integral de Antigravity Writer. Ahora cuentas con el poder de escribir libremente, extraer conocimiento en grafos locales, auditar la coherencia curricular de tus cursos y producir contenido multiformato sin fricción. ¡Empieza hoy mismo a crear tu próximo gran compendio!

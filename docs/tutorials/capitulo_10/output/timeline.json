@@ -1,0 +1,47 @@
+[
+  {
+    "id": "escena_01_apertura",
+    "index": 1,
+    "title": "La suite completa de producción educativa",
+    "narration": "Bienvenidos al capítulo final de nuestra masterclass. Hoy conectaremos todas las piezas del rompecabezas: desde cómo generar un curso completo de dos años en diez segundos, hasta cómo crear presentaciones, vídeos y sincronizar tu trabajo en equipo con Git.",
+    "startMs": 0,
+    "endMs": 15096,
+    "durationMs": 15096
+  },
+  {
+    "id": "escena_02_asistente_plurianual",
+    "index": 2,
+    "title": "El Asistente de Calendario Plurianual",
+    "narration": "Con el Compendium Wizard no necesitas configurar carpetas a mano. Defines el horizonte temporal —por ejemplo, un curso escolar o un plan bienal de catequesis— y el sistema calcula de forma determinista todas las semanas, fechas y archivos base con plantillas pedagógicas estandarizadas.",
+    "startMs": 15096,
+    "endMs": 32328,
+    "durationMs": 17232
+  },
+  {
+    "id": "escena_03_prompt_studio",
+    "index": 3,
+    "title": "Prompt Studio — Diapositivas, Vídeos y Cápsulas",
+    "narration": "En el Prompt Studio transformamos cualquier lección en múltiples formatos con un clic. ¿Necesitas diapositivas para la clase? Genera el esquema para Canva. ¿Quieres publicar un resumen en vídeo? Obtén una escaleta cronometrada. Puedes usar tu propia API key o simplemente copiar el prompt listo para Gemini Web.",
+    "startMs": 32328,
+    "endMs": 50736,
+    "durationMs": 18408
+  },
+  {
+    "id": "escena_04_git_sync_remoto",
+    "index": 4,
+    "title": "Sincronización Git Remota y Colaboración",
+    "narration": "Todo tu trabajo vive en un repositorio Git local. Con el módulo de sincronización remota, puedes conectar tu compendio con GitHub o el servidor de tu centro educativo. Con un solo clic en 'Push', tus compañeros de equipo reciben las últimas sesiones y tu material queda respaldado de forma segura.",
+    "startMs": 50736,
+    "endMs": 68520,
+    "durationMs": 17784
+  },
+  {
+    "id": "escena_05_conclusion_masterclass",
+    "index": 5,
+    "title": "Conclusión y Cierre de la Masterclass",
+    "narration": "Has completado la formación integral de Antigravity Writer. Ahora cuentas con el poder de escribir libremente, extraer conocimiento en grafos locales, auditar la coherencia curricular de tus cursos y producir contenido multiformato sin fricción. ¡Empieza hoy mismo a crear tu próximo gran compendio!",
+    "startMs": 68520,
+    "endMs": 87096,
+    "durationMs": 18576
+  }
+]

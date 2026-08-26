@@ -1,0 +1,19 @@
+1
+00:00:00,000 --> 00:00:18,096
+Has acumulado una docena de ideas en tu bandeja flotante. Ha llegado el momento de darles un hogar definitivo en el curso. ¿Cómo saber cuál es el lugar pedagógicamente perfecto para cada una? Antigravity Writer cuenta con una brújula inteligente: el Asistente de Reubicación por Dependencias.
+
+2
+00:00:18,096 --> 00:00:36,216
+Al abrir el asistente, el sistema analiza el grafo completo. Revisa cuándo se explicaron los conceptos de base —en este caso 'El Pan y el Vino' en la Sesión 4 y 'La Última Cena' en la Sesión 6— y nos indica con un noventa y cinco por ciento de confianza que la ubicación óptima es a partir de la Sesión 7.
+
+3
+00:00:36,216 --> 00:00:50,280
+Si la idea es suficientemente extensa e importante, elegimos 'Promover como Nueva Sesión'. El asistente mueve el archivo al módulo correspondiente, renombra la lección de forma correlativa y actualiza el repositorio Git automáticamente.
+
+4
+00:00:50,280 --> 00:01:07,248
+Si la idea es una dinámica corta o una anécdota, no necesitamos crear una clase entera. Seleccionamos 'Incrustar en Sesión Existente'. La aplicación añade el texto al final de la sesión elegida como una subsección o un bloque destacado, manteniendo tu temario limpio y ordenado.
+
+5
+00:01:07,248 --> 00:01:23,712
+Ahora que nuestras lecciones e ideas están organizadas en el calendario, ¿cómo auditamos todo el curso de un vistazo para asegurar que no hay fugas ni conceptos usados antes de tiempo? En el Capítulo 7 veremos la Matriz de Coherencia Curricular y su Mapa de Calor. ¡Acompáñanos!

@@ -1,0 +1,19 @@
+1
+00:00:00,000 --> 00:00:19,992
+¿Cómo sabe un buen profesor si sus lecciones están bien conectadas entre sí? En la mayoría de procesadores de texto, las palabras son solo letras mudas. En Antigravity Writer, cada párrafo que escribes cobra vida gracias a nuestro motor semántico local GLiNER2, capaz de extraer conceptos y dependencias en tiempo real.
+
+2
+00:00:19,992 --> 00:00:37,464
+A través de modelos optimizados en ONNX Runtime, GLiNER2 escanea el lenguaje natural y reconoce entidades clave y sus relaciones lógicas. Detecta si estás introduciendo un concepto nuevo o profundizando en uno anterior, clasificando las relaciones con precisión pedagógica.
+
+3
+00:00:37,464 --> 00:00:53,616
+Cada sesión mantiene su propio subgrafo local. Al guardar o pulsar sincronizar, estos nodos se fusionan de forma limpia e idempotente con el Grafo Global de todo el curso. Si modificas una definición en una sesión, el mapa global se actualiza sin duplicar información.
+
+4
+00:00:53,616 --> 00:01:08,928
+Al abrir cualquier sesión posterior, el editor ya conoce los conceptos que enseñaste semanas atrás. Te ofrece autocompletado conceptual y te avisa si estás reutilizando términos fundamentales, manteniendo un hilo conductor perfecto a lo largo de los meses.
+
+5
+00:01:08,928 --> 00:01:23,808
+Ahora que nuestro compendio entiende el significado de lo que escribimos, ¿qué hacemos con esas ideas sueltas que aún no sabemos en qué clase encajan? En el Capítulo 4 descubriremos la Bandeja de Ideas Flotantes y los Semáforos de Madurez. ¡Vamos a verlo!

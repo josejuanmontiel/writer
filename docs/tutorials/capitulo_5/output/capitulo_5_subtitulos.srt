@@ -1,0 +1,19 @@
+1
+00:00:00,000 --> 00:00:19,344
+¿Alguna vez has escrito una explicación brillante pero te has dado cuenta de que se desvía del objetivo central de la clase de hoy? En un procesador convencional, o la borras con dolor o sobrecargas a tus alumnos. En Antigravity Writer puedes podar esa sección en un segundo y convertirla en una idea flotante independiente.
+
+2
+00:00:19,344 --> 00:00:35,712
+Basta con seleccionar el texto que queremos modularizar. En la barra de herramientas del editor pulsamos el botón 'Convertir en Idea Flotante'. La aplicación nos solicita un título breve para la nueva nota o nos sugiere uno automáticamente a partir de los conceptos detectados.
+
+3
+00:00:35,712 --> 00:00:53,424
+Observa lo que acaba de ocurrir: en el lugar del texto extraído, el editor ha insertado una referencia cruzada elegante. Tu sesión recupera su duración perfecta de 45 minutos, y en la barra lateral dispones de tu nueva idea flotante con su propio semáforo de madurez listo para ser analizado.
+
+4
+00:00:53,424 --> 00:01:07,392
+Al hacer clic sobre la referencia, podemos abrir la idea en cualquier momento. El motor de grafos entiende que ambos documentos están conectados, manteniendo la trazabilidad pedagógica completa sin sobrecargar la sesión principal.
+
+5
+00:01:07,392 --> 00:01:23,280
+Ya sabemos cómo capturar ideas libres y cómo podar nuestras clases. Pero, ¿cómo decidimos cuál es la semana exacta del calendario en la que debemos enseñar cada idea? En el Capítulo 6 descubriremos el Asistente de Reubicación por Dependencias. ¡Nos vemos allí!

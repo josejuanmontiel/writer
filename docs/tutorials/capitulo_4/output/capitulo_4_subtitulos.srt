@@ -1,0 +1,19 @@
+1
+00:00:00,000 --> 00:00:18,984
+¿Cuántas ideas brillantes se pierden porque en el momento en que se te ocurren no sabes exactamente dónde colocarlas? En Antigravity Writer dispones de la Bandeja de Ideas Flotantes: un espacio seguro donde volcar dinámicas, reflexiones o lecciones enteras sin la presión de asignarles una fecha inmediata.
+
+2
+00:00:18,984 --> 00:00:33,624
+Pulsamos el botón de añadir idea flotante o grabamos una nota rápida por voz. Escribimos la actividad libremente. El sistema la guarda en la carpeta content/unassigned y el motor GLiNER2 extrae de inmediato sus conceptos clave.
+
+3
+00:00:33,624 --> 00:00:54,696
+Observa los semáforos de madurez en cada idea. La insignia verde nos indica que todos los conceptos previos necesarios para esta lección ya han sido explicados en clases anteriores. La insignia amarilla nos alerta: la idea requiere conocimientos que tus alumnos aún no han recibido. Y la insignia morada marca conceptos autónomos o introductorios.
+
+4
+00:00:54,696 --> 00:01:09,336
+Al hacer clic sobre una idea bloqueada, el sistema nos muestra con exactitud qué eslabones conceptuales nos faltan por construir en el temario. De esta forma, nunca improvisarás una clase que tus estudiantes no estén preparados para entender.
+
+5
+00:01:09,336 --> 00:01:24,360
+Pero, ¿qué sucede si mientras redactas una clase te das cuenta de que te has desviado del tema principal con una digresión interesante? En el Capítulo 5 veremos cómo podar párrafos y convertirlos en ideas flotantes con un solo clic. ¡Nos vemos allí!

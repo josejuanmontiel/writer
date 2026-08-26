@@ -280,13 +280,19 @@ async function dismissAnyModal(page) {
 async function main() {
   const args = process.argv.slice(2);
   let runAll = false;
-  let targetChapter = 1;
+  let targetChapter = null;
+  let fromChapter = null;
+  let toChapter = null;
 
   for (let i = 0; i < args.length; i++) {
     if (args[i] === '--all') {
       runAll = true;
     } else if (args[i] === '--chapter' && args[i + 1]) {
       targetChapter = parseInt(args[i + 1], 10);
+    } else if (args[i] === '--from' && args[i + 1]) {
+      fromChapter = parseInt(args[i + 1], 10);
+    } else if (args[i] === '--to' && args[i + 1]) {
+      toChapter = parseInt(args[i + 1], 10);
     }
   }
 
@@ -297,8 +303,14 @@ async function main() {
         await processChapter(ch);
       }
       console.log(`\n🏆 ¡LOS 10 CAPÍTULOS DE LA MASTERCLASS HAN SIDO PRODUCIDOS CON ÉXITO!`);
+    } else if (fromChapter !== null && toChapter !== null) {
+      console.log(`🚀 LANZANDO PRODUCCIÓN DE LOS CAPÍTULOS ${fromChapter} AL ${toChapter}...`);
+      for (let ch = fromChapter; ch <= toChapter; ch++) {
+        await processChapter(ch);
+      }
+      console.log(`\n🏆 ¡LOS CAPÍTULOS ${fromChapter} AL ${toChapter} HAN SIDO PRODUCIDOS CON ÉXITO!`);
     } else {
-      await processChapter(targetChapter);
+      await processChapter(targetChapter || 1);
     }
   } catch (err) {
     console.error('❌ Error en la ejecución del orquestador:', err);

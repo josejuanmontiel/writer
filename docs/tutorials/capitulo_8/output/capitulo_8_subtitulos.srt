@@ -1,0 +1,19 @@
+1
+00:00:00,000 --> 00:00:17,592
+¿Cómo se ve el conocimiento cuando lo miras desde arriba? En Antigravity Writer, tu compendio no es solo un montón de texto: es un grafo vivo de ideas. Bienvenido a IdeaGraph 2.0, el visor conceptual donde puedes explorar, conectar y auditar toda la red de tu curso de forma interactiva.
+
+2
+00:00:17,592 --> 00:00:35,088
+Podemos movernos por el lienzo con total libertad. Cada nodo representa un concepto y muestra el número de veces que ha sido citado. Al situarnos sobre un concepto central, como 'El Bautismo', el grafo ilumina de inmediato sus fundamentos previos y las lecciones futuras que se construyen sobre él.
+
+3
+00:00:35,088 --> 00:00:51,960
+El Validador Curricular actúa como un corrector ortográfico, pero para el sentido pedagógico de tu curso. Detecta dependencias circulares —donde dos conceptos se exigen mutuamente sin un punto de entrada claro— y nodos huérfanos que han quedado aislados, ayudándote a pulir la coherencia del temario.
+
+4
+00:00:51,960 --> 00:01:06,024
+La conexión es total en ambos sentidos. Doble clic sobre cualquier nodo y el editor te llevará directamente a la sesión y párrafo exacto donde se definió. Modificas el texto, guardas, y el grafo refleja los cambios de inmediato.
+
+5
+00:01:06,024 --> 00:01:21,960
+Ya tenemos un curso sólido y bien conectado. Pero, ¿cómo adaptamos una misma lección maestra para impartirla a niños de ocho años, jóvenes o catecúmenos adultos? En el Capítulo 9 descubriremos la Derivación de Audiencias y Calidad de Contenido. ¡Vamos a verlo!
