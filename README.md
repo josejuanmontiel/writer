@@ -102,8 +102,10 @@ Antigravity Writer incluye un servidor MCP (*Model Context Protocol*) nativo en 
 
 Antigravity Writer cuenta con una **Masterclass Audiovisual Integral** en 10 capítulos (15:25 minutos) producida automáticamente con navegación real de pantalla en 1080p, locución neural en español (Kokoro TTS a -14 LUFS) y subtítulos sincronizados.
 
+[![Ver Masterclass Completa de Antigravity Writer](./docs/tutorials/masterclass_preview.png)](./docs/tutorials/masterclass_completa_antigravity_writer.mp4)
+
 > 📺 **[🌐 Abrir Visor Web Interactivo de la Masterclass](./docs/tutorials/visor_masterclass.html)** *(Reproductor con índice de capítulos interactivo, selector de velocidad y subtítulos)*  
-> 📹 **[🎬 Ver / Descargar Vídeo Unificado MP4 (15:25 min)](./docs/tutorials/masterclass_completa_antigravity_writer.mp4)** • **[💬 Subtítulos SRT](./docs/tutorials/masterclass_completa_subtitulos.srt)** • **[📝 Ficha de YouTube](./docs/tutorials/YOUTUBE_DESCRIPCION.md)**
+> 📹 **[🎬 Ver / Descargar Vídeo Unificado MP4 (15:25 min)](./docs/tutorials/masterclass_completa_antigravity_writer.mp4)** • **[💬 Subtítulos SRT](./docs/tutorials/masterclass_completa_subtitulos.srt)** • **[📝 Ficha y Marcas de Tiempo de YouTube](./docs/tutorials/YOUTUBE_DESCRIPCION.md)**
 
 | # | Cap. / Tiempo | Título y Enfoque Temático | Recursos |
 | :-: | :---: | :--- | :---: |
