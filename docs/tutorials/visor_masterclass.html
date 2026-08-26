@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Antigravity Writer — Visor Interactivo de la Masterclass</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            outfit: ['Outfit', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace']
+          },
+          colors: {
+            brand: {
+              DEFAULT: '#6366f1',
+              dark: '#4f46e5',
+              accent: '#818cf8',
+              surface: '#0f172a',
+              card: '#1e293b'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #090d16; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: #475569; }
+    video::cue {
+      background: rgba(15, 23, 42, 0.85);
+      color: #f8fafc;
+      font-family: 'Inter', sans-serif;
+      font-size: 16px;
+      padding: 4px 12px;
+      border-radius: 6px;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen flex flex-col antialiased selection:bg-indigo-500 selection:text-white">
+
+  <!-- Header / Top Bar -->
+  <header class="border-b border-slate-800/80 bg-slate-950/80 backdrop-blur-md sticky top-0 z-40 px-6 py-3.5 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+        </svg>
+      </div>
+      <div>
+        <h1 class="text-base font-bold font-outfit text-white tracking-tight flex items-center gap-2">
+          Antigravity Writer
+          <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 uppercase tracking-wider">
+            Masterclass Completa
+          </span>
+        </h1>
+        <p class="text-xs text-slate-400">10 Capítulos de Formación Integral • 15:25 min • IA Offline & Pedagogía</p>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <a href="https://github.com/josejuanmontiel/writer" target="_blank" class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs font-medium text-slate-300 transition-colors">
+        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
+        GitHub
+      </a>
+      <a href="../VIDEOTUTORIALES_Y_MASTERCLASS.md" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold text-white shadow-sm transition-colors">
+        <span>📖 Guía & Prompts</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- Main Layout -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+    <!-- Video & Controls Section (Left/Center 8 cols) -->
+    <div class="lg:col-span-8 flex flex-col space-y-4">
+
+      <!-- Video Container with Ambient Glow -->
+      <div class="relative group rounded-2xl overflow-hidden bg-slate-900 border border-slate-800 shadow-2xl shadow-indigo-950/20 aspect-video">
+        <video 
+          id="mainPlayer" 
+          controls 
+          preload="metadata" 
+          class="w-full h-full object-contain bg-black"
+          poster="./capitulo_1/navegacion_capitulo_1.webp"
+        >
+          <source src="./masterclass_completa_antigravity_writer.mp4" type="video/mp4">
+          <track label="Español (Subtítulos)" kind="subtitles" srclang="es" src="./masterclass_completa_subtitulos.vtt" default>
+          Tu navegador no soporta reproducción de vídeo HTML5.
+        </video>
+      </div>
+
+      <!-- Video Info & Chapter Header -->
+      <div class="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-2 mb-1">
+            <span id="currentBadge" class="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 uppercase tracking-wider">
+              Capítulo 1 de 10
+            </span>
+            <span id="activeTimecode" class="text-xs font-mono text-slate-400">00:00 - 02:32</span>
+          </div>
+          <h2 id="currentTitle" class="text-lg md:text-xl font-bold font-outfit text-white">
+            Introducción y Paradigma: «Escribir sin miedo al orden»
+          </h2>
+          <p id="currentDesc" class="text-xs text-slate-400 mt-1">
+            Interfaz dual, Lienzo AsciiDoc, Árbol del Compendio y Control de versiones Git invisible.
+          </p>
+        </div>
+
+        <!-- Playback Controls -->
+        <div class="flex items-center gap-2 shrink-0">
+          <div class="flex bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs">
+            <button onclick="changeSpeed(0.75)" class="speed-btn px-2 py-1 rounded-lg text-slate-400 hover:text-white transition-colors" data-speed="0.75">0.75x</button>
+            <button onclick="changeSpeed(1)" class="speed-btn px-2 py-1 rounded-lg text-white bg-indigo-600 font-semibold transition-colors" data-speed="1">1x</button>
+            <button onclick="changeSpeed(1.25)" class="speed-btn px-2 py-1 rounded-lg text-slate-400 hover:text-white transition-colors" data-speed="1.25">1.25x</button>
+            <button onclick="changeSpeed(1.5)" class="speed-btn px-2 py-1 rounded-lg text-slate-400 hover:text-white transition-colors" data-speed="1.5">1.5x</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Chapter Progress Bar -->
+      <div class="p-4 rounded-xl bg-slate-900/50 border border-slate-800/80 flex items-center justify-between text-xs">
+        <button onclick="prevChapter()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium transition-colors">
+          ⏮️ Capítulo Anterior
+        </button>
+        <span class="text-slate-400 font-mono text-[11px]" id="timelineSummary">10 Módulos • 15:25 Duración Total</span>
+        <button onclick="nextChapter()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium transition-colors">
+          Siguiente Capítulo ⏭️
+        </button>
+      </div>
+
+    </div>
+
+    <!-- Chapter Navigation Sidebar (Right 4 cols) -->
+    <div class="lg:col-span-4 flex flex-col space-y-3">
+      <div class="flex items-center justify-between px-1">
+        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 font-mono flex items-center gap-2">
+          📑 Índice de Capítulos
+        </h3>
+        <span class="text-[11px] text-indigo-400 font-semibold" id="currentChapterCount">1 / 10</span>
+      </div>
+
+      <!-- Chapters List -->
+      <div class="space-y-2 overflow-y-auto max-h-[620px] pr-1" id="chaptersList">
+        <!-- Generado dinámicamente con JavaScript -->
+      </div>
+
+      <!-- YouTube Export / Resources Card -->
+      <div class="p-4 rounded-xl bg-gradient-to-br from-indigo-950/40 to-slate-900 border border-indigo-500/20 text-xs space-y-2">
+        <div class="flex items-center gap-2 text-indigo-300 font-semibold">
+          <svg class="w-4 h-4 text-red-500 fill-current" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+          Marcas de Tiempo YouTube Listas
+        </div>
+        <p class="text-slate-400 text-[11px]">
+          Las marcas de tiempo de los 10 capítulos están preparadas en <code class="text-indigo-300 font-mono">YOUTUBE_DESCRIPCION.md</code> para copiar y pegar directamente en la descripción del vídeo.
+        </p>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    const CHAPTERS = [
+      { num: 1, start: 0, title: "Introducción y Paradigma: «Escribir sin miedo al orden»", desc: "Interfaz dual (Editor AsciiDoc + Árbol), persistencia Git invisible y estructura pedagógica.", timeStr: "00:00" },
+      { num: 2, start: 152.88, title: "Motor de Voz Local & Dictado con Whisper", desc: "VU Meter en tiempo real, selección de modelos GGML (Tiny, Base, Small) y modo silencioso TTT.", timeStr: "02:32" },
+      { num: 3, start: 259.30, title: "Extracción Semántica & Grafos con GLiNER2", desc: "Modelos ONNX locales, extracción de entidades y sincronización con el Grafo Global.", timeStr: "04:19" },
+      { num: 4, start: 343.11, title: "Bandeja de Ideas Flotantes & Semáforos de Madurez", desc: "Captura en buffer sin asignar, Readiness Badges y detección de prerrequisitos faltantes.", timeStr: "05:43" },
+      { num: 5, start: 427.47, title: "Extracción de Selección a Idea Flotante", desc: "Poda de lecciones sobrecargadas con enlaces xref automáticos y trazabilidad semántica.", timeStr: "07:07" },
+      { num: 6, start: 510.75, title: "Asistente de Reubicación por Dependencias (🧭)", desc: "Diagnóstico topológico del grafo: promover a nueva sesión vs incrustar en clase existente.", timeStr: "08:30" },
+      { num: 7, start: 594.46, title: "Matriz de Coherencia Curricular (Heatmap)", desc: "Radiografía tabular, estrellas de introducción, círculos de refuerzo y alertas de uso prematuro.", timeStr: "09:54" },
+      { num: 8, start: 678.82, title: "IdeaGraph 2.0 & Validador Curricular", desc: "Lienzo interactivo 2D, detección de ciclos y nodos huérfanos con el Knowledge Linter.", timeStr: "11:18" },
+      { num: 9, start: 760.78, title: "Derivación de Audiencias & Calidad de Contenido", desc: "Single-source authoring, Vista Dual sincronizada y calculadora de ritmo de clase (45 min).", timeStr: "12:40" },
+      { num: 10, start: 837.92, title: "Compendium Wizard, Prompt Studio y Git Sync", desc: "Esqueleto plurianual de 60 semanas, exportación para Canva y sincronización remota Git.", timeStr: "13:57" }
+    ];
+
+    const player = document.getElementById('mainPlayer');
+    const chaptersList = document.getElementById('chaptersList');
+    const currentTitle = document.getElementById('currentTitle');
+    const currentDesc = document.getElementById('currentDesc');
+    const currentBadge = document.getElementById('currentBadge');
+    const activeTimecode = document.getElementById('activeTimecode');
+    const currentChapterCount = document.getElementById('currentChapterCount');
+
+    let currentChapterIndex = 0;
+
+    // Render Chapters List
+    function renderChapters() {
+      chaptersList.innerHTML = CHAPTERS.map((ch, idx) => `
+        <div 
+          id="ch-card-${idx}" 
+          onclick="seekToChapter(${idx})"
+          class="chapter-card group p-3 rounded-xl border transition-all cursor-pointer flex items-start gap-3 ${
+            idx === currentChapterIndex 
+              ? 'bg-indigo-950/60 border-indigo-500/40 shadow-md shadow-indigo-950/30' 
+              : 'bg-slate-900/70 border-slate-800/80 hover:bg-slate-850 hover:border-slate-700'
+          }"
+        >
+          <div class="w-8 h-8 rounded-lg flex items-center justify-center font-outfit font-bold text-xs shrink-0 ${
+            idx === currentChapterIndex
+              ? 'bg-indigo-600 text-white'
+              : 'bg-slate-800 text-slate-400 group-hover:text-slate-200'
+          }">
+            ${String(ch.num).padStart(2, '0')}
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center justify-between gap-1 mb-0.5">
+              <h4 class="text-xs font-semibold text-white truncate group-hover:text-indigo-300 transition-colors">
+                ${ch.title}
+              </h4>
+              <span class="text-[10px] font-mono text-slate-500 shrink-0 font-medium">${ch.timeStr}</span>
+            </div>
+            <p class="text-[11px] text-slate-400 line-clamp-2 leading-relaxed">
+              ${ch.desc}
+            </p>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function updateActiveChapter(index) {
+      if (currentChapterIndex === index) return;
+      currentChapterIndex = index;
+      const ch = CHAPTERS[index];
+
+      currentTitle.innerText = `Capítulo ${ch.num}: ${ch.title}`;
+      currentDesc.innerText = ch.desc;
+      currentBadge.innerText = `Capítulo ${ch.num} de 10`;
+      currentChapterCount.innerText = `${ch.num} / 10`;
+
+      const nextStart = CHAPTERS[index + 1] ? CHAPTERS[index + 1].timeStr : "15:25";
+      activeTimecode.innerText = `${ch.timeStr} - ${nextStart}`;
+
+      renderChapters();
+
+      const activeEl = document.getElementById(`ch-card-${index}`);
+      if (activeEl) {
+        activeEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    }
+
+    function seekToChapter(index) {
+      const ch = CHAPTERS[index];
+      player.currentTime = ch.start + 0.1;
+      player.play();
+      updateActiveChapter(index);
+    }
+
+    function prevChapter() {
+      if (currentChapterIndex > 0) {
+        seekToChapter(currentChapterIndex - 1);
+      }
+    }
+
+    function nextChapter() {
+      if (currentChapterIndex < CHAPTERS.length - 1) {
+        seekToChapter(currentChapterIndex + 1);
+      }
+    }
+
+    function changeSpeed(speed) {
+      player.playbackRate = speed;
+      document.querySelectorAll('.speed-btn').forEach(btn => {
+        if (parseFloat(btn.dataset.speed) === speed) {
+          btn.className = "speed-btn px-2 py-1 rounded-lg text-white bg-indigo-600 font-semibold transition-colors";
+        } else {
+          btn.className = "speed-btn px-2 py-1 rounded-lg text-slate-400 hover:text-white transition-colors";
+        }
+      });
+    }
+
+    // Monitor Player Timeupdate
+    player.addEventListener('timeupdate', () => {
+      const curTime = player.currentTime;
+      for (let i = CHAPTERS.length - 1; i >= 0; i--) {
+        if (curTime >= CHAPTERS[i].start) {
+          updateActiveChapter(i);
+          break;
+        }
+      }
+    });
+
+    // Keyboard Shortcuts
+    document.addEventListener('keydown', (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+      if (e.key === 'ArrowRight' && e.shiftKey) nextChapter();
+      if (e.key === 'ArrowLeft' && e.shiftKey) prevChapter();
+      if (e.key === ' ') {
+        e.preventDefault();
+        player.paused ? player.play() : player.pause();
+      }
+    });
+
+    // Init
+    renderChapters();
+  </script>
+</body>
+</html>

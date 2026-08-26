@@ -98,6 +98,28 @@ Antigravity Writer incluye un servidor MCP (*Model Context Protocol*) nativo en 
 
 ---
 
+## 🎬 Masterclass Completa: De la Idea al Compendio Editorial (15 min)
+
+Antigravity Writer cuenta con una **Masterclass Audiovisual Integral** en 10 capítulos (15:25 minutos) producida automáticamente con navegación real de pantalla en 1080p, locución neural en español (Kokoro TTS a -14 LUFS) y subtítulos sincronizados.
+
+> 📺 **[🌐 Abrir Visor Web Interactivo de la Masterclass](./docs/tutorials/visor_masterclass.html)** *(Reproductor con índice de capítulos interactivo, selector de velocidad y subtítulos)*  
+> 📹 **[🎬 Ver / Descargar Vídeo Unificado MP4 (15:25 min)](./docs/tutorials/masterclass_completa_antigravity_writer.mp4)** • **[💬 Subtítulos SRT](./docs/tutorials/masterclass_completa_subtitulos.srt)** • **[📝 Ficha de YouTube](./docs/tutorials/YOUTUBE_DESCRIPCION.md)**
+
+| # | Cap. / Tiempo | Título y Enfoque Temático | Recursos |
+| :-: | :---: | :--- | :---: |
+| **01** | `00:00` | **Introducción y Paradigma: «Escribir sin miedo al orden»** *(Interfaz dual, lienzo AsciiDoc y Git invisible)* | [📖 Material](./docs/tutorials/capitulo_1/material_didactico.md) • [🎬 MP4](./docs/tutorials/capitulo_1/output/capitulo_1_masterclass.mp4) |
+| **02** | `02:32` | **Motor de Voz Local & Dictado con Whisper** *(VU Meter en vivo, selección de modelos GGML y modo TTT)* | [📖 Material](./docs/tutorials/capitulo_2/material_didactico.md) • [🎬 MP4](./docs/tutorials/capitulo_2/output/capitulo_2_masterclass.mp4) |
+| **03** | `04:19` | **Extracción Semántica & Grafos con GLiNER2** *(Entidades ontológicas y sincronización de grafo local/global)* | [📖 Material](./docs/tutorials/capitulo_3/material_didactico.md) • [🎬 MP4](./docs/tutorials/capitulo_3/output/capitulo_3_masterclass.mp4) |
+| **04** | `05:43` | **Bandeja de Ideas Flotantes & Semáforos de Madurez** *(Buffer sin asignar, Readiness Badges y prerrequisitos)* | [📖 Material](./docs/tutorials/capitulo_4/material_didactico.md) • [🎬 MP4](./docs/tutorials/capitulo_4/output/capitulo_4_masterclass.mp4) |
+| **05** | `07:07` | **Extracción de Selección a Idea Flotante** *(Podar lecciones sobrecargadas con enlaces xref automáticos)* | [📖 Material](./docs/tutorials/capitulo_5/material_didactico.md) • [🎬 MP4](./docs/tutorials/capitulo_5/output/capitulo_5_masterclass.mp4) |
+| **06** | `08:30` | **Asistente de Reubicación por Dependencias (🧭)** *(Diagnóstico del grafo: nueva sesión vs incrustar)* | [📖 Material](./docs/tutorials/capitulo_6/material_didactico.md) • [🎬 MP4](./docs/tutorials/capitulo_6/output/capitulo_6_masterclass.mp4) |
+| **07** | `09:54` | **Matriz de Coherencia Curricular (Heatmap)** *(Validación de prerrequisitos y alertas de uso prematuro)* | [📖 Material](./docs/tutorials/capitulo_7/material_didactico.md) • [🎬 MP4](./docs/tutorials/capitulo_7/output/capitulo_7_masterclass.mp4) |
+| **08** | `11:18` | **IdeaGraph 2.0 & Validador Curricular** *(Lienzo 2D interactivo, detección de ciclos y nodos huérfanos)* | [📖 Material](./docs/tutorials/capitulo_8/material_didactico.md) • [🎬 MP4](./docs/tutorials/capitulo_8/output/capitulo_8_masterclass.mp4) |
+| **09** | `12:40` | **Derivación de Audiencias & Calidad de Contenido** *(Single-Source Authoring, Vista Dual y calculadora de ritmo)* | [📖 Material](./docs/tutorials/capitulo_9/material_didactico.md) • [🎬 MP4](./docs/tutorials/capitulo_9/output/capitulo_9_masterclass.mp4) |
+| **10** | `13:57` | **Compendium Wizard, Prompt Studio y Git Sync** *(Esqueletos plurianuales de 60 semanas, Canva y Git remoto)* | [📖 Material](./docs/tutorials/capitulo_10/material_didactico.md) • [🎬 MP4](./docs/tutorials/capitulo_10/output/capitulo_10_masterclass.mp4) |
+
+---
+
 ## 📚 Documentación y Recursos
 
 Para profundizar en la arquitectura y uso pedagógico de la herramienta:
@@ -106,4 +128,4 @@ Para profundizar en la arquitectura y uso pedagógico de la herramienta:
 2. 🕸️ **[Arquitectura de Grafos y GLiNER2](./docs/ARQUITECTURA_GRAFOS.md)**: Explicación formal de la ontología, fusión idempotente y resolución de dependencias.
 3. ⚙️ **[Guía de Configuración](./CONFIG_GUIDE.md)**: Parámetros del motor de audio, modelos y dispositivos.
 4. 📋 **[Roadmap y Estado del Proyecto (TODO.md)](./TODO.md)**: Historial de características implementadas y objetivos futuros.
-5. 🎥 **[Videotutoriales, Guiones de Producción y Masterclass](./docs/VIDEOTUTORIALES_Y_MASTERCLASS.md)**: Escaletas de producción, clips de vídeo reales de navegación UI grabados con subagente y materiales listos para procesar con Gemini Multimodal.
+5. 🎥 **[Centro de Masterclass y Prompts IA](./docs/VIDEOTUTORIALES_Y_MASTERCLASS.md)**: Acceso a todos los prompts para Gemini Studio y guías de Google NotebookLM.

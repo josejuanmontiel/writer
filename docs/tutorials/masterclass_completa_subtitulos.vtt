@@ -1,0 +1,163 @@
+WEBVTT
+
+00:00.000 --> 00:23.520
+¿Alguna vez te has sentado a preparar un curso o una serie de lecciones y te has quedado bloqueado decidiendo en qué carpeta guardarlo o en qué semana encajará mejor? Los educadores solemos pensar de forma orgánica, no lineal. Antigravity Writer nació con una premisa revolucionaria: permitirte escribir primero y organizar después, sin perder jamás la coherencia conceptual de tu temario.
+
+00:23.520 --> 00:43.344
+Al abrir la aplicación, nos recibe el Gestor de Espacios de Trabajo. Aquí puedes saltar instantáneamente entre diferentes cursos, compendios de catequesis o manuales técnicos. Todos tus proyectos son carpetas estándar en tu disco duro con archivos de texto plano legibles y universales. Tu conocimiento te pertenece al cien por cien.
+
+00:43.344 --> 01:04.776
+Vamos a crear un nuevo compendio. Pulsamos en 'Nuevo Rápido', introducimos el título del curso, autor y descripción. Al pulsar 'Crear', la aplicación no solo genera la estructura de carpetas, sino que inicializa automáticamente un repositorio Git interno. A partir de este segundo, cada párrafo que escribas tendrá control de versiones automático e invisible.
+
+01:04.776 --> 01:25.056
+Esta es la cabina de mandos. A la izquierda tenemos el Árbol del Compendio, con sus módulos, sesiones ordenadas y la Bandeja de Ideas Flotantes. En el centro, el Lienzo de Escritura Fluida, compatible con AsciiDoc. En la barra superior disponemos de herramientas de dictado por voz local con Whisper, grafos en tiempo real y matriz curricular.
+
+01:25.056 --> 01:39.144
+Crear y reestructurar es inmediato. Añadimos un segundo módulo temático para profundizar en la materia y creamos una nueva sesión dentro de él. El árbol se actualiza en tiempo real reflejando la jerarquía pedagógica sin esperas.
+
+01:39.144 --> 01:59.424
+Al redactar material didáctico, la claridad visual es clave. Antigravity Writer incorpora bloques semánticos nativos de AsciiDoc. Con un solo clic podemos insertar una caja de Consejo Pedagógico, escribir la recomendación y guardar. El documento se sincroniza inmediatamente con el disco local generando un commit atómico.
+
+01:59.424 --> 02:13.944
+Detrás de escena, nunca perderás un cambio. La aplicación rastrea cada guardado con un mensaje descriptivo automático. Si cometes un error o quieres recuperar una versión anterior de una sesión, puedes viajar en el tiempo con total tranquilidad.
+
+02:13.944 --> 02:32.880
+Ahora que conocemos el lienzo dual de trabajo, ¿qué pasa cuando la inspiración llega más rápido de lo que podemos teclear? En el próximo capítulo veremos el Motor de Voz Local con Whisper: dictado continuo, medidor de señal en tiempo real y captura rápida de pensamientos sin tocar el teclado. ¡Nos vemos en el Capítulo 2!
+
+02:32.900 --> 02:55.484
+¿Cuántas veces has tenido una explicación brillante en mente y al sentarte a escribirla en el teclado has perdido la frescura de la idea? La voz es nuestro canal de comunicación más natural. En este capítulo veremos cómo Antigravity Writer utiliza inteligencia artificial local para transformar tu voz en texto estructurado sin depender de internet ni enviar tus datos a la nube.
+
+02:55.484 --> 03:14.804
+Desde el panel de configuración, podemos seleccionar qué modelo de Whisper utilizar según la potencia de nuestro equipo. El modelo 'Tiny' ofrece respuesta instantánea para equipos modestos, mientras que 'Base' y 'Small' proporcionan una precisión extraordinaria en terminología técnica y pedagógica. La descarga se gestiona en un solo clic.
+
+03:14.804 --> 03:32.612
+Uno de los problemas más frustrantes al dictar es hablar durante minutos y descubrir que el micrófono estaba silenciado. Antigravity Writer incluye un medidor de volumen o VU Meter en tiempo real. Al pulsar sobre el test, puedes verificar visualmente la señal antes de empezar a grabar.
+
+03:32.612 --> 03:51.284
+Hacemos clic en el micrófono y comenzamos a hablar libremente. No hace falta dictar signos de puntuación como en los sistemas antiguos; el motor local interpreta las pausas e inserta mayúsculas, comas y puntos de forma natural. Al finalizar, el texto aparece en el lienzo de redacción listo para ser enriquecido.
+
+03:51.284 --> 04:02.180
+¿Estás en una biblioteca o prefieres no hablar? El modo TTT o Text-to-Text te permite usar los mismos flujos de captura rápida mediante texto directo, manteniendo la misma agilidad.
+
+04:02.180 --> 04:19.316
+Ya tenemos nuestras palabras en pantalla. Pero, ¿cómo sabe la aplicación qué conceptos hemos enseñado y cómo se relacionan entre sí? En el Capítulo 3 descubriremos el Motor Semántico Local GLiNER2 y la extracción automática de grafos de conocimiento. ¡Continuemos!
+
+04:19.316 --> 04:39.308
+¿Cómo sabe un buen profesor si sus lecciones están bien conectadas entre sí? En la mayoría de procesadores de texto, las palabras son solo letras mudas. En Antigravity Writer, cada párrafo que escribes cobra vida gracias a nuestro motor semántico local GLiNER2, capaz de extraer conceptos y dependencias en tiempo real.
+
+04:39.308 --> 04:56.780
+A través de modelos optimizados en ONNX Runtime, GLiNER2 escanea el lenguaje natural y reconoce entidades clave y sus relaciones lógicas. Detecta si estás introduciendo un concepto nuevo o profundizando en uno anterior, clasificando las relaciones con precisión pedagógica.
+
+04:56.780 --> 05:12.932
+Cada sesión mantiene su propio subgrafo local. Al guardar o pulsar sincronizar, estos nodos se fusionan de forma limpia e idempotente con el Grafo Global de todo el curso. Si modificas una definición en una sesión, el mapa global se actualiza sin duplicar información.
+
+05:12.932 --> 05:28.244
+Al abrir cualquier sesión posterior, el editor ya conoce los conceptos que enseñaste semanas atrás. Te ofrece autocompletado conceptual y te avisa si estás reutilizando términos fundamentales, manteniendo un hilo conductor perfecto a lo largo de los meses.
+
+05:28.244 --> 05:43.124
+Ahora que nuestro compendio entiende el significado de lo que escribimos, ¿qué hacemos con esas ideas sueltas que aún no sabemos en qué clase encajan? En el Capítulo 4 descubriremos la Bandeja de Ideas Flotantes y los Semáforos de Madurez. ¡Vamos a verlo!
+
+05:43.124 --> 06:02.108
+¿Cuántas ideas brillantes se pierden porque en el momento en que se te ocurren no sabes exactamente dónde colocarlas? En Antigravity Writer dispones de la Bandeja de Ideas Flotantes: un espacio seguro donde volcar dinámicas, reflexiones o lecciones enteras sin la presión de asignarles una fecha inmediata.
+
+06:02.108 --> 06:16.748
+Pulsamos el botón de añadir idea flotante o grabamos una nota rápida por voz. Escribimos la actividad libremente. El sistema la guarda en la carpeta content/unassigned y el motor GLiNER2 extrae de inmediato sus conceptos clave.
+
+06:16.748 --> 06:37.820
+Observa los semáforos de madurez en cada idea. La insignia verde nos indica que todos los conceptos previos necesarios para esta lección ya han sido explicados en clases anteriores. La insignia amarilla nos alerta: la idea requiere conocimientos que tus alumnos aún no han recibido. Y la insignia morada marca conceptos autónomos o introductorios.
+
+06:37.820 --> 06:52.460
+Al hacer clic sobre una idea bloqueada, el sistema nos muestra con exactitud qué eslabones conceptuales nos faltan por construir en el temario. De esta forma, nunca improvisarás una clase que tus estudiantes no estén preparados para entender.
+
+06:52.460 --> 07:07.484
+Pero, ¿qué sucede si mientras redactas una clase te das cuenta de que te has desviado del tema principal con una digresión interesante? En el Capítulo 5 veremos cómo podar párrafos y convertirlos en ideas flotantes con un solo clic. ¡Nos vemos allí!
+
+07:07.490 --> 07:26.834
+¿Alguna vez has escrito una explicación brillante pero te has dado cuenta de que se desvía del objetivo central de la clase de hoy? En un procesador convencional, o la borras con dolor o sobrecargas a tus alumnos. En Antigravity Writer puedes podar esa sección en un segundo y convertirla en una idea flotante independiente.
+
+07:26.834 --> 07:43.202
+Basta con seleccionar el texto que queremos modularizar. En la barra de herramientas del editor pulsamos el botón 'Convertir en Idea Flotante'. La aplicación nos solicita un título breve para la nueva nota o nos sugiere uno automáticamente a partir de los conceptos detectados.
+
+07:43.202 --> 08:00.914
+Observa lo que acaba de ocurrir: en el lugar del texto extraído, el editor ha insertado una referencia cruzada elegante. Tu sesión recupera su duración perfecta de 45 minutos, y en la barra lateral dispones de tu nueva idea flotante con su propio semáforo de madurez listo para ser analizado.
+
+08:00.914 --> 08:14.882
+Al hacer clic sobre la referencia, podemos abrir la idea en cualquier momento. El motor de grafos entiende que ambos documentos están conectados, manteniendo la trazabilidad pedagógica completa sin sobrecargar la sesión principal.
+
+08:14.882 --> 08:30.770
+Ya sabemos cómo capturar ideas libres y cómo podar nuestras clases. Pero, ¿cómo decidimos cuál es la semana exacta del calendario en la que debemos enseñar cada idea? En el Capítulo 6 descubriremos el Asistente de Reubicación por Dependencias. ¡Nos vemos allí!
+
+08:30.770 --> 08:48.866
+Has acumulado una docena de ideas en tu bandeja flotante. Ha llegado el momento de darles un hogar definitivo en el curso. ¿Cómo saber cuál es el lugar pedagógicamente perfecto para cada una? Antigravity Writer cuenta con una brújula inteligente: el Asistente de Reubicación por Dependencias.
+
+08:48.866 --> 09:06.986
+Al abrir el asistente, el sistema analiza el grafo completo. Revisa cuándo se explicaron los conceptos de base —en este caso 'El Pan y el Vino' en la Sesión 4 y 'La Última Cena' en la Sesión 6— y nos indica con un noventa y cinco por ciento de confianza que la ubicación óptima es a partir de la Sesión 7.
+
+09:06.986 --> 09:21.050
+Si la idea es suficientemente extensa e importante, elegimos 'Promover como Nueva Sesión'. El asistente mueve el archivo al módulo correspondiente, renombra la lección de forma correlativa y actualiza el repositorio Git automáticamente.
+
+09:21.050 --> 09:38.018
+Si la idea es una dinámica corta o una anécdota, no necesitamos crear una clase entera. Seleccionamos 'Incrustar en Sesión Existente'. La aplicación añade el texto al final de la sesión elegida como una subsección o un bloque destacado, manteniendo tu temario limpio y ordenado.
+
+09:38.018 --> 09:54.482
+Ahora que nuestras lecciones e ideas están organizadas en el calendario, ¿cómo auditamos todo el curso de un vistazo para asegurar que no hay fugas ni conceptos usados antes de tiempo? En el Capítulo 7 veremos la Matriz de Coherencia Curricular y su Mapa de Calor. ¡Acompáñanos!
+
+09:54.482 --> 10:14.498
+¿Cómo podemos estar cien por cien seguros de que nuestro curso está pedagógicamente blindado antes de publicarlo o impartirlo? En Antigravity Writer disponemos de la Matriz de Coherencia Curricular: una auténtica radiografía de todo tu temario que te muestra qué se enseña, cuándo se refuerza y dónde existen posibles lagunas.
+
+10:14.498 --> 10:35.330
+En el eje horizontal encontramos todas las sesiones en orden cronológico; en el eje vertical, todos los conceptos extraídos. La estrella dorada marca el momento exacto en que un concepto nace y se explica formalmente. Los círculos verdes reflejan las clases posteriores donde vuelves a reforzarlo, asegurando una curva de aprendizaje continua.
+
+10:35.330 --> 10:49.490
+Observa esta alerta: en la Sesión 3 hemos utilizado un término avanzado sin haberlo explicado previamente. La matriz detecta este salto pedagógico de forma automática y nos avisa antes de que un alumno quede descolocado en el aula.
+
+10:49.490 --> 11:03.098
+Desde la propia matriz podemos saltar a la sesión afectada, añadir una breve explicación previa o reordenar el temario. En cuanto guardas, la matriz recalcula la coherencia y la alerta desaparece, certificando la solidez de tu curso.
+
+11:03.098 --> 11:18.842
+Hemos visto la vista tabular cronológica. Pero, ¿cómo interactuamos directamente con los nodos y flechas de forma visual en dos dimensiones? En el Capítulo 8 descubriremos IdeaGraph 2.0 y el Validador Curricular Linter. ¡Nos vemos en el siguiente episodio!
+
+11:18.849 --> 11:36.441
+¿Cómo se ve el conocimiento cuando lo miras desde arriba? En Antigravity Writer, tu compendio no es solo un montón de texto: es un grafo vivo de ideas. Bienvenido a IdeaGraph 2.0, el visor conceptual donde puedes explorar, conectar y auditar toda la red de tu curso de forma interactiva.
+
+11:36.441 --> 11:53.937
+Podemos movernos por el lienzo con total libertad. Cada nodo representa un concepto y muestra el número de veces que ha sido citado. Al situarnos sobre un concepto central, como 'El Bautismo', el grafo ilumina de inmediato sus fundamentos previos y las lecciones futuras que se construyen sobre él.
+
+11:53.937 --> 12:10.809
+El Validador Curricular actúa como un corrector ortográfico, pero para el sentido pedagógico de tu curso. Detecta dependencias circulares —donde dos conceptos se exigen mutuamente sin un punto de entrada claro— y nodos huérfanos que han quedado aislados, ayudándote a pulir la coherencia del temario.
+
+12:10.809 --> 12:24.873
+La conexión es total en ambos sentidos. Doble clic sobre cualquier nodo y el editor te llevará directamente a la sesión y párrafo exacto donde se definió. Modificas el texto, guardas, y el grafo refleja los cambios de inmediato.
+
+12:24.873 --> 12:40.809
+Ya tenemos un curso sólido y bien conectado. Pero, ¿cómo adaptamos una misma lección maestra para impartirla a niños de ocho años, jóvenes o catecúmenos adultos? En el Capítulo 9 descubriremos la Derivación de Audiencias y Calidad de Contenido. ¡Vamos a verlo!
+
+12:40.815 --> 13:00.111
+¿Tienes que impartir el mismo tema a un grupo de niños de Primera Comunión y a un grupo de jóvenes de Confirmación? Duplicar documentos a mano es una trampa de tiempo y errores. En Antigravity Writer aplicamos el principio de Fuente Única: redactas tu sesión maestra y la derivas a cualquier público en cuestión de segundos.
+
+13:00.111 --> 13:16.071
+Seleccionamos la audiencia deseada: niños, adolescentes o adultos. El asistente transforma el vocabulario complejo en analogías sencillas y propone dinámicas adaptadas a la madurez de los alumnos, respetando estrictamente los conceptos ontológicos del temario.
+
+13:16.071 --> 13:29.343
+Con la Vista Dual podemos comparar y editar ambas versiones en paralelo. A la izquierda tienes tu guía completa de formador con citas y notas técnicas; a la derecha, la ficha lista para imprimir o compartir con tus estudiantes.
+
+13:29.343 --> 13:44.103
+¿Cuánto durará realmente tu clase? La Calculadora de Ritmo analiza la densidad de palabras y los bloques de dinámica, estimando con precisión si la sesión se ajusta a los cuarenta y cinco minutos programados o si corres el riesgo de quedarte sin tiempo.
+
+13:44.103 --> 13:57.951
+Hemos dominado la redacción, los grafos y la adaptación de audiencias. En nuestro gran episodio final, el Capítulo 10, descubriremos el Compendium Wizard, Prompt Studio y la Sincronización Git Colaborativa. ¡Vamos al gran cierre!
+
+13:57.982 --> 14:13.078
+Bienvenidos al capítulo final de nuestra masterclass. Hoy conectaremos todas las piezas del rompecabezas: desde cómo generar un curso completo de dos años en diez segundos, hasta cómo crear presentaciones, vídeos y sincronizar tu trabajo en equipo con Git.
+
+14:13.078 --> 14:30.310
+Con el Compendium Wizard no necesitas configurar carpetas a mano. Defines el horizonte temporal —por ejemplo, un curso escolar o un plan bienal de catequesis— y el sistema calcula de forma determinista todas las semanas, fechas y archivos base con plantillas pedagógicas estandarizadas.
+
+14:30.310 --> 14:48.718
+En el Prompt Studio transformamos cualquier lección en múltiples formatos con un clic. ¿Necesitas diapositivas para la clase? Genera el esquema para Canva. ¿Quieres publicar un resumen en vídeo? Obtén una escaleta cronometrada. Puedes usar tu propia API key o simplemente copiar el prompt listo para Gemini Web.
+
+14:48.718 --> 15:06.502
+Todo tu trabajo vive en un repositorio Git local. Con el módulo de sincronización remota, puedes conectar tu compendio con GitHub o el servidor de tu centro educativo. Con un solo clic en 'Push', tus compañeros de equipo reciben las últimas sesiones y tu material queda respaldado de forma segura.
+
+15:06.502 --> 15:25.078
+Has completado la formación integral de Antigravity Writer. Ahora cuentas con el poder de escribir libremente, extraer conocimiento en grafos locales, auditar la coherencia curricular de tus cursos y producir contenido multiformato sin fricción. ¡Empieza hoy mismo a crear tu próximo gran compendio!
