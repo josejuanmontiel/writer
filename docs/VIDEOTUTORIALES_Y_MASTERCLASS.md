@@ -13,6 +13,10 @@ flowchart LR
     C --> D[4. Producto Final<br>Vídeo Editado + Audio Podcast + Guía]
 ```
 
+> 🔴 **[▶️ Ver Masterclass Completa en YouTube (15:25 min)](https://youtu.be/azt1LvtCY8g)**  
+> 📺 **[🌐 Abrir Visor Web Interactivo](./tutorials/visor_masterclass.html)** *(Con reproductor YouTube/MP4 y navegación interactiva por capítulos)*  
+> 📹 **[🎬 Descargar Vídeo Unificado MP4 (15:25 min)](./tutorials/masterclass_completa_antigravity_writer.mp4)** • **[💬 Subtítulos SRT](./tutorials/masterclass_completa_subtitulos.srt)** • **[📝 Ficha de YouTube](./tutorials/YOUTUBE_DESCRIPCION.md)**
+
 ---
 
 ## 📚 Índice de los 10 Capítulos de la Masterclass

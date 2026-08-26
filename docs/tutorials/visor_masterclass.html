@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://www.youtube.com/iframe_api"></script>
   <script>
     tailwind.config = {
       darkMode: 'class',
@@ -67,11 +68,18 @@
       </div>
     </div>
 
-    <div class="flex items-center gap-2">
+    <!-- Right Actions -->
+    <div class="flex items-center gap-2.5">
+      <a href="https://youtu.be/azt1LvtCY8g" target="_blank" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-600/10 hover:bg-red-600/20 border border-red-500/30 text-xs font-semibold text-red-400 transition-colors">
+        <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+        <span>Ver en YouTube</span>
+      </a>
+
       <a href="https://github.com/josejuanmontiel/writer" target="_blank" class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs font-medium text-slate-300 transition-colors">
         <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
-        GitHub
+        <span>GitHub</span>
       </a>
+
       <a href="../VIDEOTUTORIALES_Y_MASTERCLASS.md" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold text-white shadow-sm transition-colors">
         <span>📖 Guía & Prompts</span>
       </a>
@@ -84,19 +92,52 @@
     <!-- Video & Controls Section (Left/Center 8 cols) -->
     <div class="lg:col-span-8 flex flex-col space-y-4">
 
-      <!-- Video Container with Ambient Glow -->
+      <!-- Source Toggle Tabs -->
+      <div class="flex items-center justify-between bg-slate-900/60 p-1.5 rounded-xl border border-slate-800 text-xs">
+        <span class="text-slate-400 font-medium px-2">Reproductor:</span>
+        <div class="flex gap-1">
+          <button 
+            id="tabYoutube" 
+            onclick="setPlayerMode('youtube')" 
+            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-semibold transition-all bg-red-600 text-white shadow-sm"
+          >
+            <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+            <span>YouTube Stream</span>
+          </button>
+          <button 
+            id="tabLocal" 
+            onclick="setPlayerMode('local')" 
+            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium text-slate-400 hover:text-white transition-all"
+          >
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+            <span>Vídeo Local MP4</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Video Container -->
       <div class="relative group rounded-2xl overflow-hidden bg-slate-900 border border-slate-800 shadow-2xl shadow-indigo-950/20 aspect-video">
-        <video 
-          id="mainPlayer" 
-          controls 
-          preload="metadata" 
-          class="w-full h-full object-contain bg-black"
-          poster="./capitulo_1/navegacion_capitulo_1.webp"
-        >
-          <source src="./masterclass_completa_antigravity_writer.mp4" type="video/mp4">
-          <track label="Español (Subtítulos)" kind="subtitles" srclang="es" src="./masterclass_completa_subtitulos.vtt" default>
-          Tu navegador no soporta reproducción de vídeo HTML5.
-        </video>
+        
+        <!-- 1. YouTube Iframe Player -->
+        <div id="ytContainer" class="w-full h-full">
+          <div id="ytPlayer" class="w-full h-full"></div>
+        </div>
+
+        <!-- 2. Local HTML5 Video Player -->
+        <div id="localContainer" class="w-full h-full hidden">
+          <video 
+            id="localPlayer" 
+            controls 
+            preload="metadata" 
+            class="w-full h-full object-contain bg-black"
+            poster="./masterclass_preview.png"
+          >
+            <source src="./masterclass_completa_antigravity_writer.mp4" type="video/mp4">
+            <track label="Español (Subtítulos)" kind="subtitles" srclang="es" src="./masterclass_completa_subtitulos.vtt" default>
+            Tu navegador no soporta reproducción de vídeo HTML5.
+          </video>
+        </div>
+
       </div>
 
       <!-- Video Info & Chapter Header -->
@@ -116,8 +157,8 @@
           </p>
         </div>
 
-        <!-- Playback Controls -->
-        <div class="flex items-center gap-2 shrink-0">
+        <!-- Speed Controls (for local player) -->
+        <div id="speedControls" class="hidden items-center gap-2 shrink-0">
           <div class="flex bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs">
             <button onclick="changeSpeed(0.75)" class="speed-btn px-2 py-1 rounded-lg text-slate-400 hover:text-white transition-colors" data-speed="0.75">0.75x</button>
             <button onclick="changeSpeed(1)" class="speed-btn px-2 py-1 rounded-lg text-white bg-indigo-600 font-semibold transition-colors" data-speed="1">1x</button>
@@ -132,7 +173,7 @@
         <button onclick="prevChapter()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium transition-colors">
           ⏮️ Capítulo Anterior
         </button>
-        <span class="text-slate-400 font-mono text-[11px]" id="timelineSummary">10 Módulos • 15:25 Duración Total</span>
+        <span class="text-slate-400 font-mono text-[11px]" id="timelineSummary">10 Capítulos • 15:25 Duración Total</span>
         <button onclick="nextChapter()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium transition-colors">
           Siguiente Capítulo ⏭️
         </button>
@@ -144,7 +185,7 @@
     <div class="lg:col-span-4 flex flex-col space-y-3">
       <div class="flex items-center justify-between px-1">
         <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 font-mono flex items-center gap-2">
-          📑 Índice de Capítulos
+          📑 Índice Interactivo de Capítulos
         </h3>
         <span class="text-[11px] text-indigo-400 font-semibold" id="currentChapterCount">1 / 10</span>
       </div>
@@ -154,14 +195,14 @@
         <!-- Generado dinámicamente con JavaScript -->
       </div>
 
-      <!-- YouTube Export / Resources Card -->
+      <!-- YouTube Info Card -->
       <div class="p-4 rounded-xl bg-gradient-to-br from-indigo-950/40 to-slate-900 border border-indigo-500/20 text-xs space-y-2">
         <div class="flex items-center gap-2 text-indigo-300 font-semibold">
           <svg class="w-4 h-4 text-red-500 fill-current" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
-          Marcas de Tiempo YouTube Listas
+          Sincronizado con YouTube
         </div>
         <p class="text-slate-400 text-[11px]">
-          Las marcas de tiempo de los 10 capítulos están preparadas en <code class="text-indigo-300 font-mono">YOUTUBE_DESCRIPCION.md</code> para copiar y pegar directamente en la descripción del vídeo.
+          Al hacer clic en cualquier capítulo del menú lateral, el reproductor de YouTube saltará automáticamente al segundo exacto.
         </p>
       </div>
     </div>
@@ -169,6 +210,8 @@
   </main>
 
   <script>
+    const YOUTUBE_VIDEO_ID = 'azt1LvtCY8g';
+
     const CHAPTERS = [
       { num: 1, start: 0, title: "Introducción y Paradigma: «Escribir sin miedo al orden»", desc: "Interfaz dual (Editor AsciiDoc + Árbol), persistencia Git invisible y estructura pedagógica.", timeStr: "00:00" },
       { num: 2, start: 152.88, title: "Motor de Voz Local & Dictado con Whisper", desc: "VU Meter en tiempo real, selección de modelos GGML (Tiny, Base, Small) y modo silencioso TTT.", timeStr: "02:32" },
@@ -182,15 +225,94 @@
       { num: 10, start: 837.92, title: "Compendium Wizard, Prompt Studio y Git Sync", desc: "Esqueleto plurianual de 60 semanas, exportación para Canva y sincronización remota Git.", timeStr: "13:57" }
     ];
 
-    const player = document.getElementById('mainPlayer');
+    let playerMode = 'youtube'; // 'youtube' | 'local'
+    let ytPlayerInstance = null;
+    let ytCheckInterval = null;
+
+    const localPlayer = document.getElementById('localPlayer');
     const chaptersList = document.getElementById('chaptersList');
     const currentTitle = document.getElementById('currentTitle');
     const currentDesc = document.getElementById('currentDesc');
     const currentBadge = document.getElementById('currentBadge');
     const activeTimecode = document.getElementById('activeTimecode');
     const currentChapterCount = document.getElementById('currentChapterCount');
+    const speedControls = document.getElementById('speedControls');
 
     let currentChapterIndex = 0;
+
+    // YouTube API Ready
+    window.onYouTubeIframeAPIReady = function() {
+      ytPlayerInstance = new YT.Player('ytPlayer', {
+        height: '100%',
+        width: '100%',
+        videoId: YOUTUBE_VIDEO_ID,
+        playerVars: {
+          autoplay: 0,
+          controls: 1,
+          rel: 0,
+          modestbranding: 1,
+          hl: 'es',
+          cc_lang_pref: 'es',
+          cc_load_policy: 1
+        },
+        events: {
+          'onStateChange': onYtStateChange
+        }
+      });
+    };
+
+    function onYtStateChange(event) {
+      if (event.data === YT.PlayerState.PLAYING) {
+        if (!ytCheckInterval) {
+          ytCheckInterval = setInterval(checkYtTime, 500);
+        }
+      } else {
+        if (ytCheckInterval) {
+          clearInterval(ytCheckInterval);
+          ytCheckInterval = null;
+        }
+      }
+    }
+
+    function checkYtTime() {
+      if (ytPlayerInstance && ytPlayerInstance.getCurrentTime) {
+        const curTime = ytPlayerInstance.getCurrentTime();
+        for (let i = CHAPTERS.length - 1; i >= 0; i--) {
+          if (curTime >= CHAPTERS[i].start) {
+            updateActiveChapter(i);
+            break;
+          }
+        }
+      }
+    }
+
+    function setPlayerMode(mode) {
+      playerMode = mode;
+      const tabYt = document.getElementById('tabYoutube');
+      const tabLoc = document.getElementById('tabLocal');
+      const ytBox = document.getElementById('ytContainer');
+      const locBox = document.getElementById('localContainer');
+
+      if (mode === 'youtube') {
+        tabYt.className = "flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-semibold transition-all bg-red-600 text-white shadow-sm";
+        tabLoc.className = "flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium text-slate-400 hover:text-white transition-all";
+        ytBox.classList.remove('hidden');
+        locBox.classList.add('hidden');
+        speedControls.classList.add('hidden');
+        speedControls.classList.remove('flex');
+        localPlayer.pause();
+      } else {
+        tabLoc.className = "flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-semibold transition-all bg-indigo-600 text-white shadow-sm";
+        tabYt.className = "flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium text-slate-400 hover:text-white transition-all";
+        locBox.classList.remove('hidden');
+        ytBox.classList.add('hidden');
+        speedControls.classList.remove('hidden');
+        speedControls.classList.add('flex');
+        if (ytPlayerInstance && ytPlayerInstance.pauseVideo) {
+          ytPlayerInstance.pauseVideo();
+        }
+      }
+    }
 
     // Render Chapters List
     function renderChapters() {
@@ -249,9 +371,15 @@
 
     function seekToChapter(index) {
       const ch = CHAPTERS[index];
-      player.currentTime = ch.start + 0.1;
-      player.play();
       updateActiveChapter(index);
+
+      if (playerMode === 'youtube' && ytPlayerInstance && ytPlayerInstance.seekTo) {
+        ytPlayerInstance.seekTo(ch.start, true);
+        ytPlayerInstance.playVideo();
+      } else {
+        localPlayer.currentTime = ch.start + 0.1;
+        localPlayer.play();
+      }
     }
 
     function prevChapter() {
@@ -267,7 +395,7 @@
     }
 
     function changeSpeed(speed) {
-      player.playbackRate = speed;
+      localPlayer.playbackRate = speed;
       document.querySelectorAll('.speed-btn').forEach(btn => {
         if (parseFloat(btn.dataset.speed) === speed) {
           btn.className = "speed-btn px-2 py-1 rounded-lg text-white bg-indigo-600 font-semibold transition-colors";
@@ -277,9 +405,10 @@
       });
     }
 
-    // Monitor Player Timeupdate
-    player.addEventListener('timeupdate', () => {
-      const curTime = player.currentTime;
+    // Monitor Local Player Timeupdate
+    localPlayer.addEventListener('timeupdate', () => {
+      if (playerMode !== 'local') return;
+      const curTime = localPlayer.currentTime;
       for (let i = CHAPTERS.length - 1; i >= 0; i--) {
         if (curTime >= CHAPTERS[i].start) {
           updateActiveChapter(i);
@@ -293,9 +422,9 @@
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
       if (e.key === 'ArrowRight' && e.shiftKey) nextChapter();
       if (e.key === 'ArrowLeft' && e.shiftKey) prevChapter();
-      if (e.key === ' ') {
+      if (e.key === ' ' && playerMode === 'local') {
         e.preventDefault();
-        player.paused ? player.play() : player.pause();
+        localPlayer.paused ? localPlayer.play() : localPlayer.pause();
       }
     });
 
