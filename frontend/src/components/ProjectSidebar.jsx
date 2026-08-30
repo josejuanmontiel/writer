@@ -112,16 +112,17 @@ export default function ProjectSidebar({
   };
 
   const isModuleFolder = (relPath) => {
-    return relPath.startsWith('content/') && relPath !== 'content/unassigned' && relPath !== 'content/journal' && relPath.split('/').length === 2;
+    return relPath && typeof relPath === 'string' && relPath.startsWith('content/') && relPath !== 'content/unassigned' && relPath !== 'content/journal' && relPath.split('/').length === 2;
   };
 
   // Render tree item
   const renderTree = (nodes) => {
-    if (!nodes || nodes.length === 0) return null;
+    const safeNodes = Array.isArray(nodes) ? nodes : (nodes?.children || []);
+    if (!safeNodes || safeNodes.length === 0) return null;
 
     return (
       <ul className="space-y-0.5">
-        {nodes.map((node) => {
+        {safeNodes.map((node) => {
           const isSelected = activeFile === node.relative_path;
           const isCategoryCollapsed = collapsedCategories[node.relative_path];
           const isModule = isModuleFolder(node.relative_path);
@@ -235,7 +236,8 @@ export default function ProjectSidebar({
           }
 
           // File Node
-          const isUnassigned = node.relative_path.startsWith('content/unassigned/') || node.relative_path.includes('/unassigned/');
+          const nodeRelPath = node.relative_path || node.path || '';
+          const isUnassigned = nodeRelPath.startsWith('content/unassigned/') || nodeRelPath.includes('/unassigned/');
 
           return (
             <li key={node.relative_path} className="group/file">
@@ -415,7 +417,7 @@ export default function ProjectSidebar({
                 Compendio
               </h2>
               <p className="text-[11px] text-slate-400 truncate">
-                {activeCompendium ? activeCompendium.meta.name : 'Sin proyecto'}
+                {activeCompendium ? (activeCompendium.meta?.name || 'Compendio Activo') : 'Sin proyecto'}
               </p>
             </div>
           </div>

@@ -188,8 +188,8 @@ export function asciidocToHtml(adocText) {
       continue;
     }
 
-    // 6. Delimitadores de Admonition (====)
-    if (line === '====') {
+    // 6. Delimitadores de Admonition (==== o --)
+    if (line === '====' || line === '--') {
       if (inAdmonition) {
         closeAdmonition();
       }

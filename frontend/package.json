@@ -7,9 +7,12 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "node --test src/utils/asciidoc.test.js"
+    "test": "node --test src/utils/asciidoc.test.js",
+    "test:e2e": "playwright test",
+    "test:all": "npm test && npm run test:e2e"
   },
   "dependencies": {
+    "@isomorphic-git/lightning-fs": "^4.7.0",
     "@tiptap/core": "^3.30.2",
     "@tiptap/extension-highlight": "^3.30.2",
     "@tiptap/extension-image": "^3.30.2",
@@ -26,12 +29,15 @@
     "@tiptap/react": "^3.30.2",
     "@tiptap/starter-kit": "^3.30.2",
     "d3-force": "^3.0.0",
+    "isomorphic-git": "^1.41.9",
+    "jszip": "^3.10.1",
     "lucide-react": "^1.14.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "reactflow": "^11.11.4"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
     "@tailwindcss/postcss": "^4.2.4",
     "@tailwindcss/typography": "^0.5.19",
     "@types/react": "^18.0.17",

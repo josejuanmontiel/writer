@@ -50,3 +50,8 @@ windows-vm/*.iso
 windows-vm/*.conf
 windows-vm/*.fd
 
+# Playwright Test Artifacts
+frontend/test-results/
+frontend/playwright-report/
+
+

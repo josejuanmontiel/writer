@@ -52,7 +52,7 @@ export default function WorkspaceSelector({
             {activeCompendium ? 'Workspace' : 'Modo Libre'}
           </span>
           <span className="font-semibold text-slate-100 truncate text-xs">
-            {activeCompendium ? activeCompendium.meta.name : 'Borrador Sin Guardar'}
+            {activeCompendium ? (activeCompendium.meta?.name || 'Compendio Activo') : 'Borrador Sin Guardar'}
           </span>
         </div>
         <ChevronDown className={`w-3.5 h-3.5 text-slate-400 ml-1 transition-transform duration-200 ${isOpen ? 'rotate-180 text-white' : ''}`} />
@@ -69,7 +69,7 @@ export default function WorkspaceSelector({
                 <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-wider">Activo</span>
                 <span className="text-[10px] font-mono text-slate-400">{activeCompendium.last_commit ? activeCompendium.last_commit.substring(0, 7) : 'main'}</span>
               </div>
-              <div className="font-semibold text-white truncate text-xs mb-0.5">{activeCompendium.meta.name}</div>
+              <div className="font-semibold text-white truncate text-xs mb-0.5">{activeCompendium.meta?.name || 'Compendio'}</div>
               <div className="text-[11px] text-slate-400 truncate font-mono" title={activeCompendium.path}>
                 {activeCompendium.path}
               </div>

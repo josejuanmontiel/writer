@@ -47,7 +47,7 @@ func ResolveLLMEndpoint(cfg config.LLMConfig) (url string, model string, authHea
 			url = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions"
 		}
 		if model == "" {
-			model = "gemini-2.0-flash"
+			model = "gemini-3.6-flash"
 		}
 		if apiKey != "" {
 			authHeader = "Bearer " + apiKey

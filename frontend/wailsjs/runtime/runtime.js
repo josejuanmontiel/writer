@@ -1,298 +1,123 @@
 /*
- _       __      _ __
-| |     / /___ _(_) /____
-| | /| / / __ `/ / / ___/
-| |/ |/ / /_/ / / (__  )
-|__/|__/\__,_/_/_/____/
-The electron alternative for Go
-(c) Lea Anthony 2019-present
-*/
+ * Isomorphic Wails Runtime for Antigravity Writer
+ * Supports both Desktop Wails runtime and in-browser fallback.
+ */
 
 export function LogPrint(message) {
-    window.runtime.LogPrint(message);
+  if (typeof window !== 'undefined' && window.runtime?.LogPrint) return window.runtime.LogPrint(message);
+  console.log('[WailsLog]', message);
 }
 
 export function LogTrace(message) {
-    window.runtime.LogTrace(message);
+  if (typeof window !== 'undefined' && window.runtime?.LogTrace) return window.runtime.LogTrace(message);
+  console.trace('[WailsTrace]', message);
 }
 
 export function LogDebug(message) {
-    window.runtime.LogDebug(message);
+  if (typeof window !== 'undefined' && window.runtime?.LogDebug) return window.runtime.LogDebug(message);
+  console.debug('[WailsDebug]', message);
 }
 
 export function LogInfo(message) {
-    window.runtime.LogInfo(message);
+  if (typeof window !== 'undefined' && window.runtime?.LogInfo) return window.runtime.LogInfo(message);
+  console.info('[WailsInfo]', message);
 }
 
 export function LogWarning(message) {
-    window.runtime.LogWarning(message);
+  if (typeof window !== 'undefined' && window.runtime?.LogWarning) return window.runtime.LogWarning(message);
+  console.warn('[WailsWarning]', message);
 }
 
 export function LogError(message) {
-    window.runtime.LogError(message);
+  if (typeof window !== 'undefined' && window.runtime?.LogError) return window.runtime.LogError(message);
+  console.error('[WailsError]', message);
 }
 
 export function LogFatal(message) {
-    window.runtime.LogFatal(message);
-}
-
-export function EventsOnMultiple(eventName, callback, maxCallbacks) {
-    return window.runtime.EventsOnMultiple(eventName, callback, maxCallbacks);
+  if (typeof window !== 'undefined' && window.runtime?.LogFatal) return window.runtime.LogFatal(message);
+  console.error('[WailsFatal]', message);
 }
 
 export function EventsOn(eventName, callback) {
-    return EventsOnMultiple(eventName, callback, -1);
+  if (typeof window !== 'undefined' && window.runtime?.EventsOn) {
+    return window.runtime.EventsOn(eventName, callback);
+  }
+  const handler = (e) => callback(e.detail);
+  window.addEventListener(`wails:${eventName}`, handler);
+  return () => window.removeEventListener(`wails:${eventName}`, handler);
 }
 
 export function EventsOff(eventName, ...additionalEventNames) {
+  if (typeof window !== 'undefined' && window.runtime?.EventsOff) {
     return window.runtime.EventsOff(eventName, ...additionalEventNames);
+  }
 }
 
 export function EventsOffAll() {
-  return window.runtime.EventsOffAll();
+  if (typeof window !== 'undefined' && window.runtime?.EventsOffAll) {
+    return window.runtime.EventsOffAll();
+  }
 }
 
 export function EventsOnce(eventName, callback) {
-    return EventsOnMultiple(eventName, callback, 1);
+  if (typeof window !== 'undefined' && window.runtime?.EventsOnce) {
+    return window.runtime.EventsOnce(eventName, callback);
+  }
+  const handler = (e) => {
+    window.removeEventListener(`wails:${eventName}`, handler);
+    callback(e.detail);
+  };
+  window.addEventListener(`wails:${eventName}`, handler);
 }
 
-export function EventsEmit(eventName) {
-    let args = [eventName].slice.call(arguments);
-    return window.runtime.EventsEmit.apply(null, args);
-}
-
-export function WindowReload() {
-    window.runtime.WindowReload();
-}
-
-export function WindowReloadApp() {
-    window.runtime.WindowReloadApp();
-}
-
-export function WindowSetAlwaysOnTop(b) {
-    window.runtime.WindowSetAlwaysOnTop(b);
-}
-
-export function WindowSetSystemDefaultTheme() {
-    window.runtime.WindowSetSystemDefaultTheme();
-}
-
-export function WindowSetLightTheme() {
-    window.runtime.WindowSetLightTheme();
-}
-
-export function WindowSetDarkTheme() {
-    window.runtime.WindowSetDarkTheme();
-}
-
-export function WindowCenter() {
-    window.runtime.WindowCenter();
-}
-
-export function WindowSetTitle(title) {
-    window.runtime.WindowSetTitle(title);
-}
-
-export function WindowFullscreen() {
-    window.runtime.WindowFullscreen();
-}
-
-export function WindowUnfullscreen() {
-    window.runtime.WindowUnfullscreen();
-}
-
-export function WindowIsFullscreen() {
-    return window.runtime.WindowIsFullscreen();
-}
-
-export function WindowGetSize() {
-    return window.runtime.WindowGetSize();
-}
-
-export function WindowSetSize(width, height) {
-    window.runtime.WindowSetSize(width, height);
-}
-
-export function WindowSetMaxSize(width, height) {
-    window.runtime.WindowSetMaxSize(width, height);
-}
-
-export function WindowSetMinSize(width, height) {
-    window.runtime.WindowSetMinSize(width, height);
-}
-
-export function WindowSetPosition(x, y) {
-    window.runtime.WindowSetPosition(x, y);
-}
-
-export function WindowGetPosition() {
-    return window.runtime.WindowGetPosition();
-}
-
-export function WindowHide() {
-    window.runtime.WindowHide();
-}
-
-export function WindowShow() {
-    window.runtime.WindowShow();
-}
-
-export function WindowMaximise() {
-    window.runtime.WindowMaximise();
-}
-
-export function WindowToggleMaximise() {
-    window.runtime.WindowToggleMaximise();
-}
-
-export function WindowUnmaximise() {
-    window.runtime.WindowUnmaximise();
-}
-
-export function WindowIsMaximised() {
-    return window.runtime.WindowIsMaximised();
-}
-
-export function WindowMinimise() {
-    window.runtime.WindowMinimise();
-}
-
-export function WindowUnminimise() {
-    window.runtime.WindowUnminimise();
-}
-
-export function WindowSetBackgroundColour(R, G, B, A) {
-    window.runtime.WindowSetBackgroundColour(R, G, B, A);
-}
-
-export function ScreenGetAll() {
-    return window.runtime.ScreenGetAll();
-}
-
-export function WindowIsMinimised() {
-    return window.runtime.WindowIsMinimised();
-}
-
-export function WindowIsNormal() {
-    return window.runtime.WindowIsNormal();
+export function EventsEmit(eventName, ...args) {
+  if (typeof window !== 'undefined' && window.runtime?.EventsEmit) {
+    return window.runtime.EventsEmit(eventName, ...args);
+  }
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent(`wails:${eventName}`, { detail: args[0] }));
+  }
 }
 
 export function BrowserOpenURL(url) {
-    window.runtime.BrowserOpenURL(url);
-}
-
-export function Environment() {
-    return window.runtime.Environment();
-}
-
-export function Quit() {
-    window.runtime.Quit();
-}
-
-export function Hide() {
-    window.runtime.Hide();
-}
-
-export function Show() {
-    window.runtime.Show();
+  if (typeof window !== 'undefined' && window.runtime?.BrowserOpenURL) {
+    return window.runtime.BrowserOpenURL(url);
+  }
+  if (typeof window !== 'undefined') {
+    window.open(url, '_blank', 'noopener,noreferrer');
+  }
 }
 
 export function ClipboardGetText() {
+  if (typeof window !== 'undefined' && window.runtime?.ClipboardGetText) {
     return window.runtime.ClipboardGetText();
+  }
+  if (navigator?.clipboard?.readText) {
+    return navigator.clipboard.readText();
+  }
+  return Promise.resolve('');
 }
 
 export function ClipboardSetText(text) {
+  if (typeof window !== 'undefined' && window.runtime?.ClipboardSetText) {
     return window.runtime.ClipboardSetText(text);
+  }
+  if (navigator?.clipboard?.writeText) {
+    return navigator.clipboard.writeText(text);
+  }
+  return Promise.resolve();
 }
 
-/**
- * Callback for OnFileDrop returns a slice of file path strings when a drop is finished.
- *
- * @export
- * @callback OnFileDropCallback
- * @param {number} x - x coordinate of the drop
- * @param {number} y - y coordinate of the drop
- * @param {string[]} paths - A list of file paths.
- */
-
-/**
- * OnFileDrop listens to drag and drop events and calls the callback with the coordinates of the drop and an array of path strings.
- *
- * @export
- * @param {OnFileDropCallback} callback - Callback for OnFileDrop returns a slice of file path strings when a drop is finished.
- * @param {boolean} [useDropTarget=true] - Only call the callback when the drop finished on an element that has the drop target style. (--wails-drop-target)
- */
-export function OnFileDrop(callback, useDropTarget) {
-    return window.runtime.OnFileDrop(callback, useDropTarget);
+export function WindowReload() {
+  if (typeof window !== 'undefined' && window.runtime?.WindowReload) {
+    return window.runtime.WindowReload();
+  }
+  window.location.reload();
 }
 
-/**
- * OnFileDropOff removes the drag and drop listeners and handlers.
- */
-export function OnFileDropOff() {
-    return window.runtime.OnFileDropOff();
-}
-
-export function CanResolveFilePaths() {
-    return window.runtime.CanResolveFilePaths();
-}
-
-export function ResolveFilePaths(files) {
-    return window.runtime.ResolveFilePaths(files);
-}
-
-export function InitializeNotifications() {
-    return window.runtime.InitializeNotifications();
-}
-
-export function CleanupNotifications() {
-    return window.runtime.CleanupNotifications();
-}
-
-export function IsNotificationAvailable() {
-    return window.runtime.IsNotificationAvailable();
-}
-
-export function RequestNotificationAuthorization() {
-    return window.runtime.RequestNotificationAuthorization();
-}
-
-export function CheckNotificationAuthorization() {
-    return window.runtime.CheckNotificationAuthorization();
-}
-
-export function SendNotification(options) {
-    return window.runtime.SendNotification(options);
-}
-
-export function SendNotificationWithActions(options) {
-    return window.runtime.SendNotificationWithActions(options);
-}
-
-export function RegisterNotificationCategory(category) {
-    return window.runtime.RegisterNotificationCategory(category);
-}
-
-export function RemoveNotificationCategory(categoryId) {
-    return window.runtime.RemoveNotificationCategory(categoryId);
-}
-
-export function RemoveAllPendingNotifications() {
-    return window.runtime.RemoveAllPendingNotifications();
-}
-
-export function RemovePendingNotification(identifier) {
-    return window.runtime.RemovePendingNotification(identifier);
-}
-
-export function RemoveAllDeliveredNotifications() {
-    return window.runtime.RemoveAllDeliveredNotifications();
-}
-
-export function RemoveDeliveredNotification(identifier) {
-    return window.runtime.RemoveDeliveredNotification(identifier);
-}
-
-export function RemoveNotification(identifier) {
-    return window.runtime.RemoveNotification(identifier);
+export function WindowSetTitle(title) {
+  if (typeof window !== 'undefined' && window.runtime?.WindowSetTitle) {
+    return window.runtime.WindowSetTitle(title);
+  }
+  document.title = title;
 }

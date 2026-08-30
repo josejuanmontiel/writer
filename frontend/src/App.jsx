@@ -3,7 +3,7 @@ import {
   Mic, MicOff, BookOpen, Cpu, Settings, Play, Info, Brain, X, RefreshCw, Save, GitBranch, History, 
   FolderPlus, FolderOpen, FilePlus, Layers, Volume2, Sparkles, Globe, Terminal, Activity, 
   Table, Image as ImageIcon, Clock, Video, UploadCloud, ChevronDown, ChevronRight, Wrench, Split, FileText,
-  Share2, HelpCircle, Scissors, ShieldCheck, Key
+  Share2, HelpCircle, Scissors, ShieldCheck, Key, Heart, Download
 } from 'lucide-react';
 import Editor from './components/Editor';
 import ProjectSidebar from './components/ProjectSidebar';
@@ -81,6 +81,11 @@ import MediaGalleryModal from './components/MediaGalleryModal';
 import VoiceStructureModal from './components/VoiceStructureModal';
 import PromptStudioModal from './components/PromptStudioModal';
 import GitSyncModal from './components/GitSyncModal';
+import MemoryEvokerModal from './components/MemoryEvokerModal';
+import SeniorKioskModal from './components/SeniorKioskModal';
+import CharacterStudioModal from './components/CharacterStudioModal';
+import { PROFILES, getProfile } from './services/profiles';
+import { webBackend } from './services/webBackend';
 
 function App() {
   const [mode, setMode] = useState('Ficción');
@@ -142,6 +147,35 @@ function App() {
   const [showToolsMenu, setShowToolsMenu] = useState(false);
   const toolsMenuRef = useRef(null);
   const [initialDraftToConvert, setInitialDraftToConvert] = useState('');
+  const [currentProfile, setCurrentProfile] = useState(() => localStorage.getItem('antigravity_profile') || 'memoirs');
+  const [showMemoryEvokerModal, setShowMemoryEvokerModal] = useState(false);
+  const [showSeniorKiosk, setShowSeniorKiosk] = useState(false);
+  const [showCharacterStudio, setShowCharacterStudio] = useState(false);
+  const isWebMode = typeof window !== 'undefined' && !window?.go?.main?.App;
+
+  const handleProfileChange = (newProfile) => {
+    setCurrentProfile(newProfile);
+    localStorage.setItem('antigravity_profile', newProfile);
+    if (config) {
+      const updated = { ...config, profile: newProfile };
+      setConfig(updated);
+      UpdateConfig(updated);
+    }
+  };
+
+  const handleExportZip = async () => {
+    try {
+      if (webBackend && typeof webBackend.ExportCompendiumToZip === 'function') {
+        await webBackend.ExportCompendiumToZip();
+      } else {
+        alert('Exportar a ZIP solo está habilitado en modo web/navegador.');
+      }
+    } catch (e) {
+      alert('Error exportando ZIP: ' + e.message);
+    }
+  };
+
+
 
   const handleInsertImageFromGallery = ({ asset, caption, layoutPreset, imageWidth, asciidoc, previewB64 }) => {
     const imgSrc = previewB64 ? `data:${asset.mime_type};base64,${previewB64}` : asset.relative_path;
@@ -711,6 +745,40 @@ function App() {
             />
           </div>
 
+          {/* Profile Switcher (Manuales / Memorias / Ficción) */}
+          <div className="flex items-center bg-slate-900/80 p-0.5 rounded-lg border border-slate-800 shrink-0 text-xs">
+            <button
+              onClick={() => handleProfileChange('memoirs')}
+              className={`flex items-center gap-1 px-2 py-1 rounded-md transition-all font-medium ${
+                currentProfile === 'memoirs' ? 'bg-amber-600 text-white shadow-sm' : 'text-slate-400 hover:text-white'
+              }`}
+              title="Perfil: Memorias de Vida y Biografías (Eco de Vida)"
+            >
+              <Heart size={12} className={currentProfile === 'memoirs' ? 'text-rose-300' : 'text-amber-400'} />
+              <span className="hidden sm:inline">Memorias</span>
+            </button>
+            <button
+              onClick={() => handleProfileChange('manuals')}
+              className={`flex items-center gap-1 px-2 py-1 rounded-md transition-all font-medium ${
+                currentProfile === 'manuals' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400 hover:text-white'
+              }`}
+              title="Perfil: Manuales y Formación Pedagógica"
+            >
+              <BookOpen size={12} />
+              <span className="hidden sm:inline">Manuales</span>
+            </button>
+            <button
+              onClick={() => handleProfileChange('fiction')}
+              className={`flex items-center gap-1 px-2 py-1 rounded-md transition-all font-medium ${
+                currentProfile === 'fiction' ? 'bg-purple-600 text-white shadow-sm' : 'text-slate-400 hover:text-white'
+              }`}
+              title="Perfil: Ficción y Novelas"
+            >
+              <Sparkles size={12} />
+              <span className="hidden sm:inline">Ficción</span>
+            </button>
+          </div>
+
           {/* Selector de Vista (Escritura / Vista Dual / Grafo 2.0) */}
           <div className="flex bg-slate-900/80 p-0.5 rounded-lg border border-slate-800 shrink-0">
             <button
@@ -740,13 +808,47 @@ function App() {
               title="Grafo ontológico curricular interactivo"
             >
               <Layers size={13} />
-              <span>Grafo 2.0</span>
+              <span>{currentProfile === 'memoirs' ? 'Árbol' : 'Grafo 2.0'}</span>
             </button>
           </div>
         </div>
 
         {/* Zona 2: Cápsula Central de Captura e IA (Centro) */}
         <div className="flex items-center gap-1.5 bg-slate-900/90 px-2 py-1 rounded-xl border border-slate-800 shadow-md shrink-0">
+          {/* Activador de Recuerdos IA & Modo Kiosco (Perfil Memorias) */}
+          {currentProfile === 'memoirs' && (
+            <>
+              <button
+                onClick={() => setShowSeniorKiosk(true)}
+                className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-gradient-to-r from-amber-600 to-rose-600 hover:from-amber-500 hover:to-rose-500 text-white transition-all shadow-md shadow-amber-600/30"
+                title="Abrir Modo Kiosco / Tablet para Mayores (Voz guiada e imágenes)"
+              >
+                <span>👴</span>
+                <span>Modo Kiosco / Tablet</span>
+              </button>
+              <button
+                onClick={() => setShowMemoryEvokerModal(true)}
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 transition-all"
+                title="Activador de Recuerdos con Julián (IA Evocadora & Fotos)"
+              >
+                <Heart size={12} className="text-rose-400 fill-rose-400/30" />
+                <span>Evocar Recuerdo</span>
+              </button>
+            </>
+          )}
+
+          {/* Dramatis Personae (Perfil Ficción) */}
+          {currentProfile === 'fiction' && (
+            <button
+              onClick={() => setShowCharacterStudio(true)}
+              className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 border border-purple-500/40 transition-all shadow-sm"
+              title="Estudio de Personajes y Arcos Dramáticos"
+            >
+              <span>🎭</span>
+              <span>Personajes & Arcos</span>
+            </button>
+          )}
+
           {/* Dictar / Mic */}
           <button
             onClick={() => {
@@ -835,6 +937,18 @@ function App() {
 
         {/* Zona 3: Persistencia, Herramientas, Git y Ajustes (Derecha) */}
         <div className="flex items-center gap-1.5 shrink-0">
+          {/* Botón Exportar ZIP en Web */}
+          {isWebMode && (
+            <button
+              onClick={handleExportZip}
+              title="Descargar compendio completo en archivo .ZIP"
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-emerald-950/60 hover:bg-emerald-900/80 border border-emerald-500/30 text-emerald-300 hover:text-white transition-all shadow-sm"
+            >
+              <Download size={13} />
+              <span className="hidden sm:inline">Descargar ZIP</span>
+            </button>
+          )}
+
           {/* Botón Previsualizar Sitio Web (Hugo) */}
           {activeCompendium && (
             <button
@@ -1882,6 +1996,45 @@ function App() {
         isOpen={showGitSyncModal}
         onClose={() => setShowGitSyncModal(false)}
         onRefreshTree={() => handleRefreshCompendium()}
+      />
+
+      {/* Activador de Recuerdos & Memorias (Eco de Vida) */}
+      <MemoryEvokerModal
+        isOpen={showMemoryEvokerModal}
+        onClose={() => setShowMemoryEvokerModal(false)}
+        currentFile={activeFile}
+        onMemorySaved={(filePath, newContent) => {
+          setEditorContent(newContent);
+          if (editorRef.current) {
+            editorRef.current.setContent(asciidocToHtml(newContent));
+          }
+          refreshTree();
+        }}
+      />
+
+      {/* Modo Kiosco / Tablet para Mayores (Eco de Vida) */}
+      <SeniorKioskModal
+        isOpen={showSeniorKiosk}
+        onClose={() => setShowSeniorKiosk(false)}
+        currentFile={activeFile}
+        onMemorySaved={(filePath, newContent) => {
+          setEditorContent(newContent);
+          if (editorRef.current) {
+            editorRef.current.setContent(asciidocToHtml(newContent));
+          }
+          refreshTree();
+        }}
+      />
+
+      {/* Dramatis Personae & Arcos Argumentales (Ficción) */}
+      <CharacterStudioModal
+        isOpen={showCharacterStudio}
+        onClose={() => setShowCharacterStudio(false)}
+        onInsertIntoEditor={(adocContent) => {
+          if (editorRef.current?.insertText) {
+            editorRef.current.insertText(adocContent);
+          }
+        }}
       />
     </div>
   );
