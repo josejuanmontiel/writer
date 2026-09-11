@@ -61,7 +61,7 @@ type MCPEditorServer struct {
 func NewMCPEditorServer(app AppInterface) *MCPEditorServer {
 	s := mcp.NewServer(&mcp.Implementation{
 		Name:    "Antigravity Writer",
-		Version: "1.3.2",
+		Version: "1.3.3",
 	}, nil)
 
 	// -------------------------------------------------------------
