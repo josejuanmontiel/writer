@@ -198,6 +198,11 @@
 - [x] **Servidor MCP (Model Context Protocol)**: Servidor SSE en puerto 3000 con herramientas `insert_text` y `get_editor_content`.
 - [x] **OAuth y Cliente Canva**: Flujo completo de autenticación y subida de esquemas visuales.
 
+### 🌐 Vista Web (GitHub Pages) y Responsividad UI
+- [ ] **Ajuste del Menú Superior en Vista Web (`https://josejuanmontiel.github.io/writer/`)**:
+  - Revisar y afinar el comportamiento del menú superior en la versión web desplegada en GitHub Pages ante diferentes anchos de ventana, zoom del navegador y presencia del botón `Descargar ZIP` (`isWebMode`).
+  - Asegurar que todos los elementos de la cabecera (selectores de vista, cápsula central de IA/grabación, botones de guardado, herramientas y configuración) encajen fluidamente sin salirse de la pantalla en pantallas con escalado de 125%/150% o ventanas no maximizadas.
+
 ---
 
 ## 🛠️ 3. Historial de Hitos Completados ✅
