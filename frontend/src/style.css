@@ -20,6 +20,15 @@
   }
 }
 
+/* Ocultar barra de scroll pero mantener funcionalidad de desplazamiento */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 /* Estilos completos para el Editor (TipTap) */
 .tiptap {
   color: #f1f5f9;

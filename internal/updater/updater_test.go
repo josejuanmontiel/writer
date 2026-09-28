@@ -1,6 +1,8 @@
 package updater
 
 import (
+	"os"
+	"path/filepath"
 	"testing"
 )
 
@@ -49,8 +51,56 @@ func TestSelectAssetForPlatform(t *testing.T) {
 		t.Errorf("Expected macos slim asset, got: %+v", macAsset)
 	}
 
-	linuxAsset := selectAssetForPlatform(assets, "linux", "amd64")
+	linuxAsset := selectAssetForPlatform(assets, "linux", "amd64", false)
 	if linuxAsset == nil || linuxAsset.Name != "antigravity-writer-linux-slim.tar.gz" {
 		t.Errorf("Expected linux slim asset, got: %+v", linuxAsset)
+	}
+
+	linuxAppImageAsset := selectAssetForPlatform(assets, "linux", "amd64", true)
+	if linuxAppImageAsset == nil || linuxAppImageAsset.Name != "AntigravityWriter-x86_64.AppImage" {
+		t.Errorf("Expected linux AppImage asset, got: %+v", linuxAppImageAsset)
+	}
+}
+
+func TestGetExecutablePathWithAppImage(t *testing.T) {
+	// Crear archivo temporal simulando un AppImage
+	tmpFile, err := os.CreateTemp("", "test-appimage-*.AppImage")
+	if err != nil {
+		t.Fatalf("Error creando archivo temporal: %v", err)
+	}
+	defer os.Remove(tmpFile.Name())
+	tmpFile.Close()
+
+	origAppImage := os.Getenv("APPIMAGE")
+	defer os.Setenv("APPIMAGE", origAppImage)
+
+	os.Setenv("APPIMAGE", tmpFile.Name())
+
+	if !IsAppImage() {
+		t.Errorf("Expected IsAppImage() to be true when APPIMAGE points to an existing file")
+	}
+
+	execPath, err := GetExecutablePath()
+	if err != nil {
+		t.Fatalf("GetExecutablePath failed: %v", err)
+	}
+
+	// Debe coincidir con la ruta del archivo simulado
+	evalTmp, _ := filepath.EvalSymlinks(tmpFile.Name())
+	if execPath != evalTmp {
+		t.Errorf("Expected GetExecutablePath() = %q, got %q", evalTmp, execPath)
+	}
+}
+
+func TestCheckWritable(t *testing.T) {
+	tmpDir, err := os.MkdirTemp("", "test-checkwritable-*")
+	if err != nil {
+		t.Fatalf("Error creando directorio temporal: %v", err)
+	}
+	defer os.RemoveAll(tmpDir)
+
+	testFilePath := filepath.Join(tmpDir, "testapp.AppImage")
+	if err := checkWritable(testFilePath); err != nil {
+		t.Errorf("Expected writable directory to pass, got error: %v", err)
 	}
 }

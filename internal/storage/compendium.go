@@ -171,6 +171,10 @@ theme = "paper"
   description = "%s"
   devlog_enabled = true
 
+[security]
+  [security.exec]
+    allow = ['^(dart-)?sass$', '^go$', '^git$', '^node$', '^postcss$', '^asciidoctor$']
+
 [markup]
   [markup.asciidocExt]
     backend = "html5"
@@ -232,6 +236,12 @@ jobs:
         with:
           hugo-version: 'latest'
           extended: true
+
+      - name: Descargar Tema Paper
+        run: |
+          if [ ! -d "themes/paper" ]; then
+            git clone --depth 1 https://github.com/nanxiaobei/hugo-paper.git themes/paper
+          fi
 
       - name: Compilar Sitio Web
         run: hugo --minify

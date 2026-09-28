@@ -111,34 +111,131 @@ func (u *Updater) CheckForUpdates() (*UpdateInfo, error) {
 	return info, nil
 }
 
-// DownloadAndApplyUpdate descarga el artefacto slim y actualiza el binario
+// IsAppImage devuelve true si la aplicación se está ejecutando dentro de un contenedor AppImage en Linux
+func IsAppImage() bool {
+	if runtime.GOOS != "linux" {
+		return false
+	}
+	appImage := os.Getenv("APPIMAGE")
+	if appImage == "" {
+		return false
+	}
+	if _, err := os.Stat(appImage); err == nil {
+		return true
+	}
+	return false
+}
+
+// GetExecutablePath devuelve la ruta del ejecutable real que debe ser actualizado o reiniciado.
+// En entornos AppImage de Linux, os.Executable() apunta al punto de montaje temporal
+// de solo lectura (/tmp/.mount_xxx/usr/bin/writer). Esta función devuelve en su lugar
+// la ruta del archivo .AppImage real a través de la variable de entorno $APPIMAGE.
+func GetExecutablePath() (string, error) {
+	if runtime.GOOS == "linux" && IsAppImage() {
+		appImagePath := os.Getenv("APPIMAGE")
+		absPath, err := filepath.Abs(appImagePath)
+		if err != nil {
+			return "", fmt.Errorf("error obteniendo ruta absoluta de APPIMAGE (%s): %w", appImagePath, err)
+		}
+		evalPath, err := filepath.EvalSymlinks(absPath)
+		if err != nil {
+			evalPath = absPath
+		}
+		return evalPath, nil
+	}
+
+	execPath, err := os.Executable()
+	if err != nil {
+		return "", fmt.Errorf("no se pudo determinar la ruta del ejecutable actual: %w", err)
+	}
+	evalPath, err := filepath.EvalSymlinks(execPath)
+	if err != nil {
+		evalPath = execPath
+	}
+
+	if runtime.GOOS == "linux" && strings.Contains(evalPath, "/.mount_") {
+		return "", fmt.Errorf("detectada ejecución dentro de montaje AppImage temporal (%s), pero la variable $APPIMAGE no está definida o el archivo no existe; no se puede auto-actualizar un sistema de archivos de solo lectura", evalPath)
+	}
+
+	return evalPath, nil
+}
+
+// checkWritable comprueba si la ruta destino y su directorio tienen permisos de escritura.
+func checkWritable(targetPath string) error {
+	dir := filepath.Dir(targetPath)
+	dirInfo, err := os.Stat(dir)
+	if err != nil {
+		return fmt.Errorf("el directorio destino '%s' no es accesible: %w", dir, err)
+	}
+	if !dirInfo.IsDir() {
+		return fmt.Errorf("la ruta '%s' no es un directorio válido", dir)
+	}
+
+	// Probar creación de archivo temporal para verificar permisos reales de escritura en el directorio
+	testFile := filepath.Join(dir, fmt.Sprintf(".test_write_%d.tmp", time.Now().UnixNano()))
+	f, err := os.OpenFile(testFile, os.O_CREATE|os.O_WRONLY|os.O_EXCL, 0600)
+	if err != nil {
+		if os.IsPermission(err) {
+			return fmt.Errorf("sin permisos de escritura en '%s'. Mueva la aplicación a una carpeta con permisos de usuario o ejecute con permisos suficientes", dir)
+		}
+		return fmt.Errorf("error verificando permisos de escritura en '%s': %w", dir, err)
+	}
+	_ = f.Close()
+	_ = os.Remove(testFile)
+
+	// Si el archivo destino ya existe, comprobar si podemos abrirlo para escritura
+	if _, err := os.Stat(targetPath); err == nil {
+		f, err := os.OpenFile(targetPath, os.O_WRONLY, 0)
+		if err != nil && os.IsPermission(err) {
+			return fmt.Errorf("sin permisos de escritura sobre el archivo '%s'", targetPath)
+		}
+		if err == nil {
+			_ = f.Close()
+		}
+	}
+
+	return nil
+}
+
+// DownloadAndApplyUpdate descarga el artefacto y actualiza el binario o AppImage
 func (u *Updater) DownloadAndApplyUpdate(downloadURL string, onProgress func(percent int)) error {
 	if downloadURL == "" {
 		return fmt.Errorf("URL de descarga vacía")
 	}
 
-	// 1. Crear directorio temporal
+	// 1. Obtener la ruta del ejecutable destino y comprobar permisos antes de descargar
+	targetExec, err := GetExecutablePath()
+	if err != nil {
+		return err
+	}
+
+	if err := checkWritable(targetExec); err != nil {
+		return err
+	}
+
+	// 2. Crear directorio temporal
 	tempDir, err := os.MkdirTemp("", "writer-update-*")
 	if err != nil {
 		return fmt.Errorf("error creando directorio temporal: %w", err)
 	}
 	defer os.RemoveAll(tempDir)
 
-	// 2. Descargar archivo con seguimiento de progreso
+	// 3. Descargar archivo con seguimiento de progreso
 	archivePath := filepath.Join(tempDir, "update-archive")
 	err = u.downloadFile(downloadURL, archivePath, onProgress)
 	if err != nil {
 		return fmt.Errorf("error descargando actualización: %w", err)
 	}
 
-	// 3. Extraer el binario según el formato
+	// 4. Extraer el binario según el formato
 	var newBinaryPath string
-	if strings.HasSuffix(downloadURL, ".zip") {
+	lowerURL := strings.ToLower(downloadURL)
+	if strings.HasSuffix(lowerURL, ".zip") {
 		newBinaryPath, err = extractBinaryFromZip(archivePath, tempDir)
-	} else if strings.HasSuffix(downloadURL, ".tar.gz") || strings.HasSuffix(downloadURL, ".tgz") {
+	} else if strings.HasSuffix(lowerURL, ".tar.gz") || strings.HasSuffix(lowerURL, ".tgz") {
 		newBinaryPath, err = extractBinaryFromTarGz(archivePath, tempDir)
 	} else {
-		// Asumimos binario directo si no es archivo comprimido
+		// Asumimos binario directo si no es archivo comprimido (ej: .AppImage)
 		newBinaryPath = archivePath
 	}
 
@@ -146,18 +243,8 @@ func (u *Updater) DownloadAndApplyUpdate(downloadURL string, onProgress func(per
 		return fmt.Errorf("error extrayendo binario: %w", err)
 	}
 
-	// 4. Reemplazar ejecutable actual
-	currentExec, err := os.Executable()
-	if err != nil {
-		return fmt.Errorf("no se pudo determinar la ruta del ejecutable actual: %w", err)
-	}
-	// Resolver enlaces simbólicos si existen
-	currentExec, err = filepath.EvalSymlinks(currentExec)
-	if err != nil {
-		return fmt.Errorf("no se pudo resolver symlink del ejecutable: %w", err)
-	}
-
-	return replaceExecutable(currentExec, newBinaryPath)
+	// 5. Reemplazar ejecutable actual
+	return replaceExecutable(targetExec, newBinaryPath)
 }
 
 func (u *Updater) downloadFile(url, destPath string, onProgress func(percent int)) error {
@@ -242,18 +329,42 @@ func replaceExecutable(currentExecPath, newBinaryPath string) error {
 	// Linux / macOS:
 	// Primero damos permisos de ejecución
 	if err := os.Chmod(newBinaryPath, 0755); err != nil {
-		return fmt.Errorf("error asignando permisos de ejecución: %w", err)
+		return fmt.Errorf("error asignando permisos de ejecución a la actualización: %w", err)
+	}
+
+	// Evitar intentar escribir dentro de puntos de montaje AppImage de solo lectura
+	if strings.Contains(currentExecPath, "/.mount_") {
+		return fmt.Errorf("no se puede reemplazar un archivo dentro del montaje temporal de AppImage (%s)", currentExecPath)
 	}
 
 	// Crear archivo backup temporal
 	backupPath := currentExecPath + ".old"
 	_ = os.Remove(backupPath)
-	_ = os.Rename(currentExecPath, backupPath)
-
-	if err := copyFile(newBinaryPath, currentExecPath); err != nil {
-		_ = os.Rename(backupPath, currentExecPath)
-		return fmt.Errorf("error instalando nuevo binario Unix: %w", err)
+	if err := os.Rename(currentExecPath, backupPath); err != nil {
+		return fmt.Errorf("error preparando reemplazo de %s (compruebe permisos de escritura): %w", currentExecPath, err)
 	}
+
+	// Copiar el nuevo binario a un archivo temporal en el mismo directorio de destino
+	// para que el reemplazo final sea una operación de renombrado atómica
+	destDir := filepath.Dir(currentExecPath)
+	tempDest := filepath.Join(destDir, fmt.Sprintf(".update-%d.tmp", time.Now().UnixNano()))
+	if err := copyFile(newBinaryPath, tempDest); err != nil {
+		_ = os.Rename(backupPath, currentExecPath)
+		return fmt.Errorf("error copiando nueva versión al destino: %w", err)
+	}
+
+	if err := os.Chmod(tempDest, 0755); err != nil {
+		_ = os.Remove(tempDest)
+		_ = os.Rename(backupPath, currentExecPath)
+		return fmt.Errorf("error asignando permisos a la nueva versión: %w", err)
+	}
+
+	if err := os.Rename(tempDest, currentExecPath); err != nil {
+		_ = os.Remove(tempDest)
+		_ = os.Rename(backupPath, currentExecPath)
+		return fmt.Errorf("error finalizando instalación de la nueva versión: %w", err)
+	}
+
 	_ = os.Chmod(currentExecPath, 0755)
 	_ = os.Remove(backupPath)
 
@@ -369,7 +480,49 @@ func extractBinaryFromTarGz(tarGzPath, destDir string) (string, error) {
 }
 
 // selectAssetForPlatform selecciona el asset óptimo según SO y Arquitectura
-func selectAssetForPlatform(assets []ReleaseAsset, goos, goarch string) *ReleaseAsset {
+func selectAssetForPlatform(assets []ReleaseAsset, goos, goarch string, isAppImage ...bool) *ReleaseAsset {
+	appImage := false
+	if len(isAppImage) > 0 {
+		appImage = isAppImage[0]
+	} else if goos == "linux" {
+		appImage = IsAppImage()
+	}
+
+	if goos == "linux" && appImage {
+		// En Linux ejecutando AppImage, debemos descargar el asset .AppImage compatible
+		var archPatterns []string
+		switch goarch {
+		case "amd64":
+			archPatterns = []string{"x86_64", "amd64"}
+		case "arm64":
+			archPatterns = []string{"aarch64", "arm64"}
+		default:
+			archPatterns = []string{goarch}
+		}
+
+		// 1. Buscar AppImage que coincida con la arquitectura
+		for _, a := range assets {
+			nameLower := strings.ToLower(a.Name)
+			if strings.HasSuffix(nameLower, ".appimage") {
+				for _, arch := range archPatterns {
+					if strings.Contains(nameLower, strings.ToLower(arch)) {
+						return &a
+					}
+				}
+			}
+		}
+
+		// 2. Si no especifica arquitectura pero termina en .AppImage
+		for _, a := range assets {
+			nameLower := strings.ToLower(a.Name)
+			if strings.HasSuffix(nameLower, ".appimage") {
+				return &a
+			}
+		}
+
+		return nil
+	}
+
 	// Priorizar paquetes ligeros (slim)
 	var prefix, ext string
 	switch goos {
@@ -442,7 +595,7 @@ func isNewerVersion(latest, current string) bool {
 
 // CleanupOldExecutables elimina los archivos .old residuales en arranque
 func CleanupOldExecutables() {
-	execPath, err := os.Executable()
+	execPath, err := GetExecutablePath()
 	if err != nil {
 		return
 	}
@@ -454,11 +607,7 @@ func CleanupOldExecutables() {
 
 // RestartApp lanza la nueva instancia y finaliza la actual
 func RestartApp() error {
-	execPath, err := os.Executable()
-	if err != nil {
-		return err
-	}
-	execPath, err = filepath.EvalSymlinks(execPath)
+	execPath, err := GetExecutablePath()
 	if err != nil {
 		return err
 	}
@@ -466,8 +615,39 @@ func RestartApp() error {
 	cmd := exec.Command(execPath)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
+
+	// Si estamos en Linux bajo AppImage, sanitizar variables de entorno para que
+	// el nuevo AppImage cree su propio punto de montaje limpio y no herede el temporal anterior
+	if runtime.GOOS == "linux" && IsAppImage() {
+		var cleanEnv []string
+		for _, env := range os.Environ() {
+			if strings.HasPrefix(env, "APPDIR=") || strings.HasPrefix(env, "ARGV0=") {
+				continue
+			}
+			if strings.HasPrefix(env, "LD_LIBRARY_PATH=") {
+				appDir := os.Getenv("APPDIR")
+				if appDir != "" {
+					val := strings.TrimPrefix(env, "LD_LIBRARY_PATH=")
+					parts := strings.Split(val, ":")
+					var filteredParts []string
+					for _, p := range parts {
+						if p != "" && !strings.HasPrefix(p, appDir) {
+							filteredParts = append(filteredParts, p)
+						}
+					}
+					if len(filteredParts) > 0 {
+						cleanEnv = append(cleanEnv, "LD_LIBRARY_PATH="+strings.Join(filteredParts, ":"))
+					}
+					continue
+				}
+			}
+			cleanEnv = append(cleanEnv, env)
+		}
+		cmd.Env = cleanEnv
+	}
+
 	if err := cmd.Start(); err != nil {
-		return err
+		return fmt.Errorf("error al reiniciar la aplicación (%s): %w", execPath, err)
 	}
 
 	os.Exit(0)

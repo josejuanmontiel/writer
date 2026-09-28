@@ -716,12 +716,12 @@ function App() {
       <div className="fixed top-[-10%] left-[-10%] w-[50%] h-[50%] bg-brand-accent/5 blur-[140px] rounded-full pointer-events-none z-0" />
       <div className="fixed bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-amber-500/5 blur-[140px] rounded-full pointer-events-none z-0" />
 
-      {/* Header Fijo y Limpio (Sin solapamientos ni auto-hide invasivo) */}
-      <header className="w-full h-14 bg-slate-950/95 border-b border-slate-800/80 flex items-center justify-between px-3 gap-2 z-40 shrink-0 shadow-md backdrop-blur-md">
+      {/* Header Fijo y Limpio (Sin solapamientos ni auto-hide invasivo, adaptado a Zoom 125% / DPI Alto) */}
+      <header className="w-full h-14 bg-slate-950/95 border-b border-slate-800/80 flex items-center justify-between px-2 sm:px-3 gap-1.5 sm:gap-2 z-40 shrink-0 shadow-md backdrop-blur-md overflow-x-auto overflow-y-hidden no-scrollbar">
         
         {/* Zona 1: Contexto y Navegación (Izquierda) */}
-        <div className="flex items-center gap-2.5 shrink-0">
-          <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 xl:gap-2.5 shrink-0">
+          <div className="flex items-center gap-1.5 shrink-0">
             <div className="w-7 h-7 bg-brand-accent rounded-lg flex items-center justify-center font-bold font-outfit shadow-md shadow-brand-accent/30 text-sm shrink-0">
               <span>A</span>
             </div>
@@ -749,33 +749,33 @@ function App() {
           <div className="flex items-center bg-slate-900/80 p-0.5 rounded-lg border border-slate-800 shrink-0 text-xs">
             <button
               onClick={() => handleProfileChange('memoirs')}
-              className={`flex items-center gap-1 px-2 py-1 rounded-md transition-all font-medium ${
+              className={`flex items-center gap-1 px-1.5 sm:px-2 py-1 rounded-md transition-all font-medium ${
                 currentProfile === 'memoirs' ? 'bg-amber-600 text-white shadow-sm' : 'text-slate-400 hover:text-white'
               }`}
               title="Perfil: Memorias de Vida y Biografías (Eco de Vida)"
             >
               <Heart size={12} className={currentProfile === 'memoirs' ? 'text-rose-300' : 'text-amber-400'} />
-              <span className="hidden sm:inline">Memorias</span>
+              <span className={currentProfile === 'memoirs' ? 'inline' : 'hidden 2xl:inline'}>Memorias</span>
             </button>
             <button
               onClick={() => handleProfileChange('manuals')}
-              className={`flex items-center gap-1 px-2 py-1 rounded-md transition-all font-medium ${
+              className={`flex items-center gap-1 px-1.5 sm:px-2 py-1 rounded-md transition-all font-medium ${
                 currentProfile === 'manuals' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400 hover:text-white'
               }`}
               title="Perfil: Manuales y Formación Pedagógica"
             >
               <BookOpen size={12} />
-              <span className="hidden sm:inline">Manuales</span>
+              <span className={currentProfile === 'manuals' ? 'inline' : 'hidden 2xl:inline'}>Manuales</span>
             </button>
             <button
               onClick={() => handleProfileChange('fiction')}
-              className={`flex items-center gap-1 px-2 py-1 rounded-md transition-all font-medium ${
+              className={`flex items-center gap-1 px-1.5 sm:px-2 py-1 rounded-md transition-all font-medium ${
                 currentProfile === 'fiction' ? 'bg-purple-600 text-white shadow-sm' : 'text-slate-400 hover:text-white'
               }`}
               title="Perfil: Ficción y Novelas"
             >
               <Sparkles size={12} />
-              <span className="hidden sm:inline">Ficción</span>
+              <span className={currentProfile === 'fiction' ? 'inline' : 'hidden 2xl:inline'}>Ficción</span>
             </button>
           </div>
 
@@ -783,56 +783,61 @@ function App() {
           <div className="flex bg-slate-900/80 p-0.5 rounded-lg border border-slate-800 shrink-0">
             <button
               onClick={() => setView('Escritura')}
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md transition-all text-xs font-medium ${
+              className={`flex items-center gap-1 px-2 py-1 rounded-md transition-all text-xs font-medium ${
                 view === 'Escritura' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400 hover:text-white'
               }`}
+              title="Vista de Escritura"
             >
               <FileText size={13} />
-              <span>Escritura</span>
+              <span className={view === 'Escritura' ? 'inline' : 'hidden xl:inline'}>Escritura</span>
             </button>
             <button
               onClick={() => setView('Dual')}
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md transition-all text-xs font-medium ${
+              className={`flex items-center gap-1 px-2 py-1 rounded-md transition-all text-xs font-medium ${
                 view === 'Dual' ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-400 hover:text-white'
               }`}
               title="Vista dual sincronizada maestro / alumno"
             >
               <Split size={13} />
-              <span>Vista Dual</span>
+              <span className={view === 'Dual' ? 'inline' : 'hidden xl:inline'}>Vista Dual</span>
             </button>
             <button
               onClick={() => setView('Grafo')}
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md transition-all text-xs font-medium ${
+              className={`flex items-center gap-1 px-2 py-1 rounded-md transition-all text-xs font-medium ${
                 view === 'Grafo' || view === 'Diagrama' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400 hover:text-white'
               }`}
               title="Grafo ontológico curricular interactivo"
             >
               <Layers size={13} />
-              <span>{currentProfile === 'memoirs' ? 'Árbol' : 'Grafo 2.0'}</span>
+              <span className={view === 'Grafo' || view === 'Diagrama' ? 'inline' : 'hidden xl:inline'}>
+                {currentProfile === 'memoirs' ? 'Árbol' : 'Grafo 2.0'}
+              </span>
             </button>
           </div>
         </div>
 
         {/* Zona 2: Cápsula Central de Captura e IA (Centro) */}
-        <div className="flex items-center gap-1.5 bg-slate-900/90 px-2 py-1 rounded-xl border border-slate-800 shadow-md shrink-0">
+        <div className="flex items-center gap-1 xl:gap-1.5 bg-slate-900/90 px-1.5 sm:px-2 py-1 rounded-xl border border-slate-800 shadow-md shrink-0">
           {/* Activador de Recuerdos IA & Modo Kiosco (Perfil Memorias) */}
           {currentProfile === 'memoirs' && (
             <>
               <button
                 onClick={() => setShowSeniorKiosk(true)}
-                className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-gradient-to-r from-amber-600 to-rose-600 hover:from-amber-500 hover:to-rose-500 text-white transition-all shadow-md shadow-amber-600/30"
+                className="flex items-center gap-1.5 px-2 sm:px-2.5 py-1 rounded-lg text-xs font-semibold bg-gradient-to-r from-amber-600 to-rose-600 hover:from-amber-500 hover:to-rose-500 text-white transition-all shadow-md shadow-amber-600/30"
                 title="Abrir Modo Kiosco / Tablet para Mayores (Voz guiada e imágenes)"
               >
                 <span>👴</span>
-                <span>Modo Kiosco / Tablet</span>
+                <span className="hidden xl:inline">Modo Kiosco / Tablet</span>
+                <span className="inline xl:hidden">Kiosco</span>
               </button>
               <button
                 onClick={() => setShowMemoryEvokerModal(true)}
-                className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 transition-all"
+                className="flex items-center gap-1.5 px-2 sm:px-2.5 py-1 rounded-lg text-xs font-medium bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 transition-all"
                 title="Activador de Recuerdos con Julián (IA Evocadora & Fotos)"
               >
                 <Heart size={12} className="text-rose-400 fill-rose-400/30" />
-                <span>Evocar Recuerdo</span>
+                <span className="hidden xl:inline">Evocar Recuerdo</span>
+                <span className="inline xl:hidden">Evocar</span>
               </button>
             </>
           )}
@@ -841,11 +846,12 @@ function App() {
           {currentProfile === 'fiction' && (
             <button
               onClick={() => setShowCharacterStudio(true)}
-              className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 border border-purple-500/40 transition-all shadow-sm"
+              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-lg text-xs font-semibold bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 border border-purple-500/40 transition-all shadow-sm"
               title="Estudio de Personajes y Arcos Dramáticos"
             >
               <span>🎭</span>
-              <span>Personajes & Arcos</span>
+              <span className="hidden xl:inline">Personajes & Arcos</span>
+              <span className="inline xl:hidden">Personajes</span>
             </button>
           )}
 
@@ -860,7 +866,7 @@ function App() {
                 else { setIsAiMode(false); startRecording(); }
               }
             }}
-            className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
+            className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
               (isRecording && !isAiMode) || (showTttInput && !isAiMode)
                 ? 'bg-rose-600 text-white shadow-md shadow-rose-600/40 animate-pulse'
                 : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-sm'
@@ -898,7 +904,7 @@ function App() {
                 else { setIsAiMode(true); startRecording(); }
               }
             }}
-            className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
+            className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
               (isRecording && isAiMode) || (showTttInput && isAiMode)
                 ? 'bg-amber-500 text-white shadow-md shadow-amber-500/40 animate-pulse'
                 : 'bg-slate-800 hover:bg-amber-600/20 text-amber-400 border border-amber-500/20'
@@ -927,25 +933,25 @@ function App() {
 
           {/* Escuchar / TTS */}
           <button
-            className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-800/60 hover:bg-slate-800 text-slate-300 transition-colors"
+            className="flex items-center gap-1 px-2 sm:px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-800/60 hover:bg-slate-800 text-slate-300 transition-colors"
             title="Lectura en voz alta de la sesión"
           >
             <Volume2 size={13} />
-            <span>Escuchar</span>
+            <span className="hidden lg:inline">Escuchar</span>
           </button>
         </div>
 
         {/* Zona 3: Persistencia, Herramientas, Git y Ajustes (Derecha) */}
-        <div className="flex items-center gap-1.5 shrink-0">
+        <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
           {/* Botón Exportar ZIP en Web */}
           {isWebMode && (
             <button
               onClick={handleExportZip}
               title="Descargar compendio completo en archivo .ZIP"
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-emerald-950/60 hover:bg-emerald-900/80 border border-emerald-500/30 text-emerald-300 hover:text-white transition-all shadow-sm"
+              className="flex items-center gap-1.5 px-2 sm:px-2.5 py-1 rounded-lg text-xs font-semibold bg-emerald-950/60 hover:bg-emerald-900/80 border border-emerald-500/30 text-emerald-300 hover:text-white transition-all shadow-sm"
             >
               <Download size={13} />
-              <span className="hidden sm:inline">Descargar ZIP</span>
+              <span className="hidden 2xl:inline">Descargar ZIP</span>
             </button>
           )}
 
@@ -954,10 +960,10 @@ function App() {
             <button
               onClick={() => setShowSitePreviewModal(true)}
               title="Previsualizar sitio web del curso y blog DevLog (Hugo)"
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-indigo-950/60 hover:bg-indigo-900/80 border border-indigo-500/30 text-indigo-300 hover:text-white transition-all shadow-sm"
+              className="flex items-center gap-1.5 px-2 sm:px-2.5 py-1 rounded-lg text-xs font-semibold bg-indigo-950/60 hover:bg-indigo-900/80 border border-indigo-500/30 text-indigo-300 hover:text-white transition-all shadow-sm"
             >
               <Globe size={13} className="text-indigo-400" />
-              <span className="hidden sm:inline">Previsualizar</span>
+              <span className="hidden xl:inline">Previsualizar</span>
             </button>
           )}
 
@@ -965,7 +971,7 @@ function App() {
           <button
             onClick={handleSaveCompendium}
             disabled={isSaving}
-            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium border transition-all ${
+            className={`flex items-center gap-1.5 px-2 sm:px-2.5 py-1 rounded-lg text-xs font-medium border transition-all ${
               isSaving
                 ? 'bg-indigo-950/60 border-indigo-500 text-indigo-300 animate-pulse'
                 : 'bg-slate-800/80 hover:bg-slate-700/80 border-slate-700 text-slate-200 hover:text-white'
@@ -973,7 +979,7 @@ function App() {
             title={activeFile ? `Guardar ${activeFile} en Git (Ctrl+S)` : 'Guardar borrador'}
           >
             <Save size={13} className={isSaving ? 'animate-spin' : ''} />
-            <span className="hidden sm:inline">{isSaving ? '...' : 'Guardar'}</span>
+            <span className="hidden lg:inline">{isSaving ? '...' : 'Guardar'}</span>
           </button>
 
           {/* Badge Git / Timeline */}
@@ -981,7 +987,7 @@ function App() {
             <button
               onClick={() => setShowTimelineModal(true)}
               title="Historial de versiones Git (Deshacer infinito)"
-              className="flex items-center gap-1 px-2 py-1 rounded-lg bg-slate-900 border border-slate-800 hover:bg-slate-800 text-xs text-slate-300 transition-colors"
+              className="flex items-center gap-1 px-1.5 sm:px-2 py-1 rounded-lg bg-slate-900 border border-slate-800 hover:bg-slate-800 text-xs text-slate-300 transition-colors"
             >
               <GitBranch size={13} className="text-emerald-400" />
               <span className="font-mono text-[11px] text-emerald-300">
@@ -994,7 +1000,7 @@ function App() {
           <div className="relative" ref={toolsMenuRef}>
             <button
               onClick={() => setShowToolsMenu(!showToolsMenu)}
-              className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium border transition-all ${
+              className={`flex items-center gap-1 px-2 sm:px-2.5 py-1 rounded-lg text-xs font-medium border transition-all ${
                 showToolsMenu 
                   ? 'bg-indigo-600/30 border-indigo-500 text-white' 
                   : 'bg-slate-900/80 hover:bg-slate-800/90 border-slate-800 text-slate-300 hover:text-white'
@@ -1002,7 +1008,7 @@ function App() {
               title="Herramientas de Autoría: Matriz, Mediateca, Calidad, Scripts y Voz"
             >
               <Sparkles size={13} className="text-amber-400" />
-              <span>Herramientas</span>
+              <span className="hidden xl:inline">Herramientas</span>
               <ChevronDown size={12} className={`transition-transform duration-150 ${showToolsMenu ? 'rotate-180' : ''}`} />
             </button>
 

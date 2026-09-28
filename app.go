@@ -24,7 +24,7 @@ import (
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
-const AppVersion = "v1.3.3"
+const AppVersion = "v1.3.4"
 
 // App struct
 type App struct {

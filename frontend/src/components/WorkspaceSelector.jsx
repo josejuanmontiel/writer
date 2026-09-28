@@ -42,7 +42,7 @@ export default function WorkspaceSelector({
       {/* Trigger Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-2.5 py-1 rounded-lg bg-black/40 hover:bg-black/60 border border-white/10 text-xs text-slate-200 transition-all shadow-sm max-w-[210px]"
+        className="flex items-center gap-2 px-2.5 py-1 rounded-lg bg-black/40 hover:bg-black/60 border border-white/10 text-xs text-slate-200 transition-all shadow-sm max-w-[130px] sm:max-w-[160px] xl:max-w-[210px]"
       >
         <div className={`p-1 rounded-md shrink-0 ${activeCompendium ? 'bg-indigo-500/20 text-indigo-400' : 'bg-amber-500/20 text-amber-400'}`}>
           {activeCompendium ? <Compass className="w-3.5 h-3.5" /> : <Edit3 className="w-3.5 h-3.5" />}
